@@ -394,7 +394,7 @@ def summarise(res):
     f = res["folds"]
     print(f"Per-fold validation metrics ({len(f)} of {CFG['N_FOLDS']} folds):")
     display(f[["fold", "epochs", "minutes"] + COLS].round(2))
-    mean, std = f[COLS].mean(), f[COLS].std(ddof=1) if len(f) > 1 else f[COLS].std() * 0
+    mean, std = f[COLS].mean(), f[COLS].std(ddof=1 if len(f) > 1 else 0)  # 1 fold: SD 0, not NaN
     print("Mean ± SD over folds:")
     display(pd.DataFrame({"mean": mean, "sd": std}).T.round(2))
     print("Each fold model on the hold-out test set:")
