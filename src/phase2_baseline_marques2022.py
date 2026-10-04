@@ -510,7 +510,7 @@ def save_summary(name, r):
              n_images=int(len(df)), n_slides=int(df.slide.nunique()),
              folds_run=int(len(f)),
              mean_fold=f[COLS].mean().round(2).to_dict(),
-             sd_fold=(f[COLS].std(ddof=1) if len(f) > 1 else f[COLS].std()*0).round(2).to_dict(),
+             sd_fold=f[COLS].std(ddof=1 if len(f) > 1 else 0).round(2).to_dict(),  # 1 fold: SD 0, not NaN
              ensemble={k: (round(v, 2) if isinstance(v, float) else v) for k, v in r["ensemble"].items()},
              paper=PAPER)
     with open(f"{OUT_DIR}/{name.split('_')[0]}_summary.json", "w") as fh:
