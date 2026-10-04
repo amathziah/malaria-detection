@@ -501,15 +501,22 @@ else:
 # ## 10 · Save a summary (paste these numbers into the slides and report)
 
 # %%
-r = RESULTS["A0_baseline"]
-summary = dict(config=CFG, n_images=int(len(df)), n_slides=int(df.slide.nunique()),
-               folds_run=int(len(r["folds"])),
-               mean_fold=r["folds"][COLS].mean().round(2).to_dict(),
-               sd_fold=(r["folds"][COLS].std(ddof=1) if len(r["folds"]) > 1 else r["folds"][COLS].std()*0).round(2).to_dict(),
-               ensemble={k: (round(v, 2) if isinstance(v, float) else v) for k, v in r["ensemble"].items()},
-               paper=PAPER)
-with open(f"{OUT_DIR}/A0_summary.json", "w") as fh:
-    json.dump(summary, fh, indent=2, default=str)
+def save_summary(name, r):
+    # One JSON per experiment: A0_summary.json, A1_summary.json, ... (A1–A3 used to get none)
+    f = r["folds"]
+    s = dict(config=CFG, experiment=name, split=r["split"], preprocess=r["preprocess"],
+             n_images=int(len(df)), n_slides=int(df.slide.nunique()),
+             folds_run=int(len(f)),
+             mean_fold=f[COLS].mean().round(2).to_dict(),
+             sd_fold=(f[COLS].std(ddof=1) if len(f) > 1 else f[COLS].std()*0).round(2).to_dict(),
+             ensemble={k: (round(v, 2) if isinstance(v, float) else v) for k, v in r["ensemble"].items()},
+             paper=PAPER)
+    with open(f"{OUT_DIR}/{name.split('_')[0]}_summary.json", "w") as fh:
+        json.dump(s, fh, indent=2, default=str)
+    return s
+
+summaries = {name: save_summary(name, r) for name, r in RESULTS.items()}
+summary = summaries["A0_baseline"]
 
 print("SLIDE TABLE (copy into the 'Reproduction results' slide)")
 print(f"| Metric | Paper | Ours |")
