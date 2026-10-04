@@ -51,6 +51,11 @@ def main():
     print(f"\nMean fold accuracy SD: ±{sd['accuracy']:.2f}")
     print(f"Test set: {ens['FN']} infected cells missed, {ens['FP']} healthy cells flagged")
 
+    # The 1 pp target only applies to the reproduction (image split, no preprocessing).
+    # A1–A3 change the protocol on purpose, so a gap there is a result, not a failure.
+    if s.get("split", "image") != "image" or s.get("preprocess", "none") != "none":
+        print("\nVerdict: not a reproduction run; compare it with A0: python src/compare_experiments.py")
+        return
     ok = all(abs(o - p) <= TOLERANCE_PP for _, p, o in rows[:2])
     print("\nVerdict:", "✅ within 1 pp of the paper" if ok else "❌ more than 1 pp from the paper")
 
