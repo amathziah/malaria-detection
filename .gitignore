@@ -30,3 +30,6 @@ access_token
 
 # Office lock files (created while a .pptx/.docx is open)
 ~$*
+
+# Personal task sheets (never commit)
+MY_TASKS.md
