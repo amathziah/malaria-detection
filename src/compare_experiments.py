@@ -22,6 +22,7 @@ QUESTIONS = [  # (experiment, compared with, what the difference tells us)
     ("A2", "A1", "H2: gain from YUV stain normalisation on unseen slides"),
     ("A3", "A0", "Control: gain from YUV when slides are shared"),
 ]
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # works from any folder
 
 
 def load(root):
@@ -62,7 +63,7 @@ def answers(found):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--results", default="results")
+    ap.add_argument("--results", default=os.path.join(REPO, "results"))
     ap.add_argument("--out", help="also write the table to this markdown file")
     args = ap.parse_args()
 

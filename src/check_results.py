@@ -12,10 +12,11 @@ import sys
 import pandas as pd
 
 TOLERANCE_PP = 1.0  # success criterion: within about 1 percentage point of the paper
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # works from any folder
 
 
 def main():
-    folder = sys.argv[1] if len(sys.argv) > 1 else "results/A0_baseline"
+    folder = sys.argv[1] if len(sys.argv) > 1 else os.path.join(REPO, "results", "A0_baseline")
     found = sorted(glob.glob(os.path.join(folder, "*_summary.json")))
     if not found:
         sys.exit(f"No *_summary.json in {folder}/ (run the notebook on Kaggle first).")
