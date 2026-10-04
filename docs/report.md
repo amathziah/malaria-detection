@@ -27,6 +27,16 @@
 
 ![Ours vs. paper](../results/A0_baseline/A0_vs_paper.png)
 
+**Deviations from the paper.** We kept every setting the paper reports. Where it is silent or our compute was limited, we chose:
+
+| Setting | Paper | Ours | Why |
+|---|---|---|---|
+| Augmentation | Albumentations (details not listed) | Flips + 90° rotations | Paper doesn't specify its pipeline |
+| Epochs | Not reported | ≤ 15, early stopping (patience 5) | Fits a free GPU session |
+| Folds trained | 10 | 3 of 10 | Free GPU budget (~21 min per fold) |
+| Batch size | Not reported | 64 per GPU, 128 global (2× T4) | Kaggle provided two GPUs |
+| Test set | Not described | 10 % hold-out, never used in training | Clean ensemble evaluation |
+
 **Takeaway.** Both headline accuracies are within 1 pp of the paper, so the reproduction succeeds and A0 is our baseline. Recall is 2 pp lower: on the test set the model missed 44 infected cells and wrongly flagged 23 healthy ones. Training all 10 folds (as the paper did) may close part of this gap.
 
 ## 2. Hypothesis results
