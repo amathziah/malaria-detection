@@ -2,6 +2,15 @@
 
 Reproduction of Marques et al. (2022) — EfficientNet-B0 on the NIH malaria cell images — plus our hypothesis experiments on slide-level leakage (H1) and YUV stain normalisation (H2).
 
+## Team
+
+| Member | GitHub | Role |
+|---|---|---|
+| Amathziah J | [@amathziah](https://github.com/amathziah) | Kaggle runs, repo |
+| Murali Madhav C | [@HackHeroic](https://github.com/HackHeroic) | Code (notebook, script) |
+| Ravi Yadav | [@RAVIYADAV6522](https://github.com/RAVIYADAV6522) | Slides |
+| Pugazhendhi J | [@pugazhjs9](https://github.com/pugazhjs9) | Report |
+
 ## Folder structure
 
 ```
