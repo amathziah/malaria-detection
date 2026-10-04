@@ -1,4 +1,5 @@
-# Teammates: only needed if you want to open/edit the slides with a script.
+# Teammates: enough to run the helper scripts in src/ (check_results, compare_experiments, fill_slide_table).
+pandas
 python-pptx
 
 # Repo owner only (runs training on Kaggle; Kaggle itself provides TensorFlow 2.20):
