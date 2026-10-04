@@ -53,7 +53,7 @@ Within 1 pp of the paper on both headline accuracies; recall is 2 pp lower. Two 
 
 ## Running on Kaggle (repo owner only)
 
-Teammates don't need Kaggle. Open a PR saying what to run (see CONTRIBUTING.md).
+Teammates don't need Kaggle. They push code, then tell the owner what to run (see CONTRIBUTING.md).
 
 ```bash
 cp notebooks/Phase2_Baseline_Reproduction_Marques2022.ipynb kaggle_run/

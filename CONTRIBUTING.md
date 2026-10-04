@@ -1,66 +1,55 @@
 # How we work (4 people)
 
-**Only the repo owner runs Kaggle.** Everyone else changes code, slides or docs, opens a pull request, and the owner runs anything that needs a GPU.
+**Only amathziah runs Kaggle.** Everyone else edits code, slides or the report and uploads straight to `main`. No branches, no pull requests.
 
-## Roles (fill in names)
+## 1. Setup
 
-| Who | Works on | Files they edit |
-|---|---|---|
-| Owner: amathziah| runs Kaggle, merges PRs, commits results | `results/`, `kaggle_run/` |
-| Member 2:murali| code (A1–A3 experiments, fixes) | `notebooks/`, `src/` |
-| Member 3: ravi| slides | `slides/` |
-| Member 4: pugal| report / write-up | `docs/`, `README.md` |
+None. We all use **amathziah's Mac**, folder `~/Downloads/Malaria_detection`, opened in VS Code. No Kaggle, GitHub login or GPU needed.
 
-Swap roles freely. The point is that **two people shouldn't edit the same file at the same time.**
-
-## One-time setup (on your own Mac)
+## 2. Every time you work: two commands (in the VS Code terminal)
 
 ```bash
-git config --global user.name  "Your Name"
-git config --global user.email "the-email-on-your-github-account"
-
-brew install gh          # skip if you already have it
-gh auth login            # GitHub.com → HTTPS → log in with browser
-
-# accept the collaborator invite from your email first, then:
-gh repo clone <owner>/malaria-detection
-cd malaria-detection
+./sync.sh                                   # BEFORE you start: get the latest
+# ... edit your files ...
+./sync.sh ravi "Slides: fixed footer"       # WHEN DONE: your name + a short note
 ```
 
-No Kaggle, TensorFlow or GPU needed.
+Use **your own name**: `amathziah`, `murali`, `ravi` or `pugal`. That's how GitHub credits the work to you.
+It only uploads **your** folder (murali → `notebooks/` `src/`, ravi → `slides/`, pugal → `docs/` `README.md`), so someone else's unfinished edits are never uploaded under your name.
 
-## Every change: branch → commit → pull request
+- Save before you hand the laptop to the next person.
+- Close the `.pptx` in PowerPoint before saving (PowerPoint keeps a lock file while it's open).
 
-```bash
-git checkout main && git pull          # always start from the latest main
-git checkout -b slides-results         # short name describing your change
+## 3. Who does what
 
-# ...edit files...
+### amathziah — owner, Kaggle runs
+- Runs experiments on Kaggle when someone asks, then saves the output to `results/<experiment>/` and runs `./sync.sh amathziah "A1 results"`.
+- Next up: run **A1, A2 and A3** (turn on all three flags in the `kaggle_run/` copy; about 4–5 h on 2× T4, one session).
 
-git add <the files you changed>
-git commit -m "Slides: add A1 results to slide 19"
-git push -u origin slides-results
-gh pr create --fill                    # or open the PR on github.com
-```
+### murali — code (`notebooks/`, `src/`)
+- The notebook and `src/phase2_baseline_marques2022.py` hold the same code. **Change one, change the other.**
+- Don't change the training settings in `CFG` (LR, epochs, image size, batch size, folds).
+- Keep the A1–A3 flags `False` in what you upload. Tell amathziah which experiment to run.
+- Before uploading the notebook: *Clear All Outputs* in VS Code.
+- First task: read sections 8–11 of the notebook (A1–A3 experiments + conclusion), check they make sense, and fill in section 11's blanks with the A0 numbers from `results/A0_baseline/A0_summary.json`.
 
-The owner reviews and merges. Afterwards everyone runs `git checkout main && git pull`.
+### ravi — slides (`slides/`)
+- Work in `slides/Malaria_Phase2_Baseline_Hypothesis_filled.pptx`. Leave the original as-is.
+- **Only you edit the deck.** If someone else needs a change, they tell you.
+- Take numbers from `results/<experiment>/` files, never from memory.
+- First task: check slide 18. The A0 results are filled in. Change the footer "(Kaggle T4 GPU)" to "(Kaggle 2× T4 GPU)".
+- After A1–A3 run: add their results (`results/A1_slide_split/` etc.).
 
-## Rules
+### pugal — report (`docs/`)
+- Write the report in `docs/report.md` (or a `.docx` in `docs/`, but then only you edit it).
+- First task: write the **Baseline reproduction** section: the method (from the notebook's intro and `README.md`), the A0 table (`results/A0_baseline/A0_vs_paper.csv`), and the plots `A0_curves_cm_roc.png` and `A0_vs_paper.png`.
+- After A1–A3 run: write the **Hypothesis results** section.
 
-**Code (`notebooks/`, `src/`)**
-- The notebook and `src/phase2_baseline_marques2022.py` contain the same code. If you change one, make the same change in the other.
-- Don't change the training settings in `CFG` (LR, epochs, image size, batch size, folds). Every experiment has to use the paper's recipe to be comparable.
-- Keep the A1–A3 flags `False` in your PR. In the PR, write which experiment you want run, and the owner turns the flag on for that Kaggle run.
-- Before committing the notebook: *Clear All Outputs* (VS Code / Jupyter). This keeps diffs small.
+## 4. Rules for everyone
+- Stick to your own folder. Don't edit someone else's files. Tell them instead.
+- Never upload models (`.keras`), `.zip` files or anything from `~/.kaggle/`. `.gitignore` already blocks these.
+- Never use `git push -f`. It deletes other people's work.
 - Never set `MALARIA_SMOKE_TEST`.
 
-**Slides (`slides/`)**
-- `.pptx` files can't be merged by git. **Only one person edits the deck at a time.** Say in the group chat "I'm editing the slides" and pull right before you start.
-- Edit `Malaria_Phase2_Baseline_Hypothesis_filled.pptx` (the working deck). Leave the original as-is.
-- Take numbers from `results/<experiment>/` files. Don't type them from memory.
-
-**Never commit:** `.keras` models, `.zip` files, anything from `~/.kaggle/`. `.gitignore` already blocks these.
-
-## When you need a run
-
-Open a PR (or a GitHub issue) saying what to run, e.g. *"Run A1 with my change from PR #3"*. The owner runs it on Kaggle and commits the output to `results/<experiment>/`. Then you pull to get the numbers.
+## Need a Kaggle run?
+Save your code with `./sync.sh <your-name> "..."`, then tell amathziah what to run, e.g. *"Run A1 with my latest change"*. The results appear in `results/<experiment>/` on this Mac.

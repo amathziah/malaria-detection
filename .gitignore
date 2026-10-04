@@ -27,3 +27,6 @@ venv/
 .kaggle/
 kaggle.json
 access_token
+
+# Office lock files (created while a .pptx/.docx is open)
+~$*
