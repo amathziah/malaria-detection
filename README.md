@@ -61,7 +61,7 @@ Malaria_detection/
 
 Within 1 pp of the paper on both headline accuracies; recall is 2 pp lower. Two GPUs → global batch 128 (64 per GPU). Details: `results/A0_baseline/`.
 
-**Full write-up:** [docs/report.md](docs/report.md) · **File guide:** [results/README.md](results/README.md) · **Team workflow:** [CONTRIBUTING.md](CONTRIBUTING.md)
+**Full write-up:** [docs/report.md](docs/report.md) · **File guide:** [results/README.md](results/README.md) · **Team workflow:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Team tasks:** [TEAM_TASKS.md](TEAM_TASKS.md)
 
 ## Running on Kaggle (repo owner only)
 
