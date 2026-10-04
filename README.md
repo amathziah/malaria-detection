@@ -1,0 +1,65 @@
+# Automated Malaria Cell Detection — Phase 2
+
+Reproduction of Marques et al. (2022) — EfficientNet-B0 on the NIH malaria cell images — plus our hypothesis experiments on slide-level leakage (H1) and YUV stain normalisation (H2).
+
+## Folder structure
+
+```
+Malaria_detection/
+├── README.md               this file
+├── CONTRIBUTING.md         team roles + git workflow (read this first)
+├── requirements.txt
+├── notebooks/
+│   └── Phase2_Baseline_Reproduction_Marques2022.ipynb   ← source of truth (run on Kaggle)
+├── src/
+│   └── phase2_baseline_marques2022.py                    same code as a plain script
+├── kaggle_run/
+│   └── kernel-metadata.json                              owner only: Kaggle push config
+├── results/
+│   ├── A0_baseline/        paper reproduction (done)
+│   ├── A1_slide_split/     H1  (to do)
+│   ├── A2_yuv_slide/       H2  (to do)
+│   └── A3_yuv_image/       control (to do)
+├── docs/                   report / write-up
+├── slides/
+│   ├── Malaria_Phase2_Baseline_Hypothesis.pptx           original
+│   └── Malaria_Phase2_Baseline_Hypothesis_filled.pptx    slide 18 filled with A0 results
+├── models/                 trained .keras files (git-ignored, 47 MB each)
+└── archive/                failed v1 run, results zip (git-ignored)
+```
+
+## Experiments
+
+| ID | Split | Preprocessing | Tests | Status |
+|---|---|---|---|---|
+| A0 | image-level (paper) | none | baseline reproduction | **done** |
+| A1 | slide-grouped | none | H1: does accuracy drop once leakage is removed? | to do |
+| A2 | slide-grouped | YUV + hist-eq | H2: does stain normalisation recover it? (vs A1) | to do |
+| A3 | image-level | YUV + hist-eq | control: is the gain specific to unseen slides? (vs A0) | to do |
+
+## A0 baseline result (Kaggle, 2× Tesla T4, 3 of 10 folds)
+
+| Metric | Paper | Ours |
+|---|---|---|
+| Mean single-fold accuracy | 97.70 % | 97.38 ± 0.74 % |
+| Ensemble accuracy | 98.29 % | 97.57 % |
+| Recall | 98.82 % | 96.81 % |
+| Precision | 97.74 % | 98.31 % |
+| F1 | 98.28 % | 97.55 % |
+| ROC-AUC | 99.76 % | 99.76 % |
+| MCC | — | 0.95 |
+
+Within 1 pp of the paper on both headline accuracies; recall is 2 pp lower. Two GPUs → global batch 128 (64 per GPU). Details: `results/A0_baseline/`.
+
+## Running on Kaggle (repo owner only)
+
+Teammates don't need Kaggle. Open a PR saying what to run (see CONTRIBUTING.md).
+
+```bash
+cp notebooks/Phase2_Baseline_Reproduction_Marques2022.ipynb kaggle_run/
+#   (turn on an A1–A3 flag in the kaggle_run/ copy only, if needed)
+kaggle kernels push -p kaggle_run
+kaggle kernels status akoshi/malaria-phase2-baseline
+kaggle kernels output akoshi/malaria-phase2-baseline -p results/<experiment>
+mv results/<experiment>/outputs/*.keras models/      # keep models out of git
+```

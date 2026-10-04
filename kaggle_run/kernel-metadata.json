@@ -1,0 +1,15 @@
+{
+  "id": "akoshi/malaria-phase2-baseline",
+  "title": "malaria-phase2-baseline",
+  "code_file": "Phase2_Baseline_Reproduction_Marques2022.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "iarunava/cell-images-for-detecting-malaria"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}

@@ -1,0 +1,65 @@
+{
+  "config": {
+    "SEED": 42,
+    "IMG_SIZE": 224,
+    "BATCH_SIZE": 64,
+    "EPOCHS": 15,
+    "LR": 0.0001,
+    "MIN_LR": 1e-06,
+    "PLATEAU_PATIENCE": 6,
+    "PLATEAU_FACTOR": 0.1,
+    "EARLY_STOP_PATIENCE": 5,
+    "N_FOLDS": 10,
+    "FOLDS_TO_RUN": 3,
+    "TEST_FRACTION": 0.1,
+    "DROPOUT": 0.2,
+    "AUGMENT": true,
+    "MIXED_PRECISION": true,
+    "SAVE_MODELS": true,
+    "RUN_A1_SLIDE_SPLIT": false,
+    "RUN_A2_YUV_SLIDE": false,
+    "RUN_A3_YUV_IMAGE": false
+  },
+  "n_images": 27558,
+  "n_slides": 200,
+  "folds_run": 3,
+  "mean_fold": {
+    "accuracy": 97.38,
+    "precision": 98.09,
+    "recall": 96.64,
+    "specificity": 98.12,
+    "f1": 97.36,
+    "auc": 99.68,
+    "mcc": 94.78
+  },
+  "sd_fold": {
+    "accuracy": 0.74,
+    "precision": 0.18,
+    "recall": 1.6,
+    "specificity": 0.2,
+    "f1": 0.77,
+    "auc": 0.1,
+    "mcc": 1.45
+  },
+  "ensemble": {
+    "accuracy": 97.57,
+    "precision": 98.31,
+    "recall": 96.81,
+    "specificity": 98.33,
+    "f1": 97.55,
+    "auc": 99.76,
+    "mcc": 95.15,
+    "TP": 1334,
+    "TN": 1355,
+    "FP": 23,
+    "FN": 44
+  },
+  "paper": {
+    "mean_fold_accuracy": 97.7,
+    "accuracy": 98.29,
+    "recall": 98.82,
+    "precision": 97.74,
+    "f1": 98.28,
+    "auc": 99.76
+  }
+}

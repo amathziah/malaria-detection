@@ -1,0 +1,6 @@
+# Teammates: only needed if you want to open/edit the slides with a script.
+python-pptx
+
+# Repo owner only (runs training on Kaggle; Kaggle itself provides TensorFlow 2.20):
+# kaggle
+# tensorflow scikit-learn pandas matplotlib kagglehub

@@ -1,0 +1,29 @@
+# Trained models (47 MB each) - share via Kaggle output or Google Drive, not git
+models/
+*.keras
+*.h5
+
+# Kaggle push folder: the notebook is copied in right before each push
+kaggle_run/*.ipynb
+
+# Bundles, old runs, local scratch
+archive/
+*.zip
+cell_images/
+dummy_cell_images/
+outputs/
+
+# Python / editor / OS
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+.vscode/
+.idea/
+.DS_Store
+
+# Never commit credentials
+.kaggle/
+kaggle.json
+access_token
