@@ -66,8 +66,9 @@ malaria-detection/
 
 Within 1 pp of the paper on both headline accuracies; recall is 2 pp lower. Two GPUs → global batch 128 (64 per GPU). Details: `results/A0_baseline/`.
 
-To print the per-fold results and check them against the paper (needs only `pandas`, no GPU):
+To print the per-fold results and check them against the paper (no GPU needed):
 
+    pip install -r requirements.txt                  # once: pandas + python-pptx
     python src/check_results.py                      # A0 baseline
     python src/check_results.py results/<experiment>
     python src/compare_experiments.py                # A0–A3 table + H1/H2 differences
