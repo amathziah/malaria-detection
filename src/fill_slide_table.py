@@ -10,6 +10,7 @@ Only run.text is edited, so the deck's fonts and colours stay as they are.
 """
 import argparse
 import json
+import os
 import sys
 
 from pptx import Presentation
@@ -23,6 +24,7 @@ ROWS = {  # slide row label -> (section in the summary JSON, metric key)
     "ROC-AUC":              ("ensemble", "auc"),
     "MCC":                  ("ensemble", "mcc"),
 }
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # works from any folder
 
 
 def fmt(label, value):
@@ -36,8 +38,8 @@ def is_results_table(shape):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--summary", default="results/A0_baseline/A0_summary.json")
-    ap.add_argument("--deck", default="slides/Malaria_Phase2_Baseline_Hypothesis_filled.pptx")
+    ap.add_argument("--summary", default=os.path.join(REPO, "results", "A0_baseline", "A0_summary.json"))
+    ap.add_argument("--deck", default=os.path.join(REPO, "slides", "Malaria_Phase2_Baseline_Hypothesis_filled.pptx"))
     ap.add_argument("--slide", type=int, help="slide number (default: search the whole deck)")
     args = ap.parse_args()
 
