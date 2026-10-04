@@ -19,7 +19,7 @@ except NameError:
 # **Team:** J Amathziah (230139): Kaggle runs, repo · C Murali Madhav (230115): code (notebook, scripts) · Ravi Yadav (230131): slides · Pugazhendhi J (230066): report  
 # **Base paper:** G. Marques, A. Ferreras, I. de la Torre-Díez, "An ensemble-based approach for automated medical diagnosis of malaria using EfficientNet," *Multimedia Tools and Applications*, 81, 28061–28078, 2022.
 # 
-# **Results:** this notebook is saved without outputs. The reproduced A0 results (tables and figures) are in `Phase2_A0_Results.ipynb`, which loads `results/A0_baseline/`.
+# **Results:** this notebook is saved without outputs. The same code as run on Kaggle, with all its outputs, is `Phase2_Baseline_Reproduction_Marques2022_executed.ipynb`; `Phase2_A0_Results.ipynb` shows the saved results from `results/A0_baseline/`.
 # 
 # ### What this notebook does
 # 1. Loads the **NIH Malaria Cell Images Dataset** (27,558 single-cell images, parasitized vs. uninfected).

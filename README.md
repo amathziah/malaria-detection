@@ -20,6 +20,7 @@ Malaria_detection/
 ├── requirements.txt
 ├── notebooks/
 │   ├── Phase2_Baseline_Reproduction_Marques2022.ipynb   ← source of truth (run on Kaggle)
+│   ├── Phase2_Baseline_Reproduction_Marques2022_executed.ipynb   the actual Kaggle A0 run, with all outputs
 │   └── Phase2_A0_Results.ipynb                           reproduced A0 results, with outputs
 ├── src/
 │   ├── phase2_baseline_marques2022.py                    same code as a plain script
@@ -71,7 +72,7 @@ To print the per-fold results and check them against the paper (needs only `pand
     python src/check_results.py results/<experiment>
     python src/compare_experiments.py                # A0–A3 table + H1/H2 differences
 
-**Results notebook:** [notebooks/Phase2_A0_Results.ipynb](notebooks/Phase2_A0_Results.ipynb) · **Full write-up:** [docs/report.md](docs/report.md) · **File guide:** [results/README.md](results/README.md) · **Team workflow:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Team tasks:** [TEAM_TASKS.md](TEAM_TASKS.md)
+**Executed Kaggle run:** [notebooks/Phase2_Baseline_Reproduction_Marques2022_executed.ipynb](notebooks/Phase2_Baseline_Reproduction_Marques2022_executed.ipynb) · **Results notebook:** [notebooks/Phase2_A0_Results.ipynb](notebooks/Phase2_A0_Results.ipynb) · **Full write-up:** [docs/report.md](docs/report.md) · **File guide:** [results/README.md](results/README.md) · **Team workflow:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Team tasks:** [TEAM_TASKS.md](TEAM_TASKS.md)
 
 ## Running on Kaggle (repo owner only)
 
