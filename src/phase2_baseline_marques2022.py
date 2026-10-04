@@ -529,5 +529,5 @@ print("Results bundle:", os.path.abspath("phase2_results.zip"))
 
 # %% [markdown]
 # ## 11 · Conclusion (fill in after running)
-# * **Reproduction:** our EfficientNet-B0 reached a mean single-fold accuracy of **__ %** (paper: 97.70 %) and an ensemble accuracy of **__ %** (paper: 98.29 %) on the NIH dataset. That is within **__ pp** of the reported results, so this is our **Phase 2 baseline**.
+# * **Reproduction:** our EfficientNet-B0 reached a mean single-fold accuracy of **97.38 ± 0.74 %** (paper: 97.70 %) and an ensemble accuracy of **97.57 %** (paper: 98.29 %) on the NIH dataset (3 of 10 folds). That is within **0.72 pp** of the reported results, so this is our **Phase 2 baseline**.
 # * **Why it matters for our hypothesis:** the paper (like this reproduction) splits **images** at random, so cells from the same slide can land in both training and testing. Our hypotheses test what happens once that leakage is removed (H1), and whether YUV stain normalisation closes the gap (H2).
