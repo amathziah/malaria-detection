@@ -21,7 +21,10 @@ Malaria_detection/
 ├── notebooks/
 │   └── Phase2_Baseline_Reproduction_Marques2022.ipynb   ← source of truth (run on Kaggle)
 ├── src/
-│   └── phase2_baseline_marques2022.py                    same code as a plain script
+│   ├── phase2_baseline_marques2022.py                    same code as a plain script
+│   ├── check_results.py                                  one experiment vs. the paper
+│   ├── compare_experiments.py                            A0–A3 side by side (H1/H2)
+│   └── fill_slide_table.py                               results table on the slides
 ├── kaggle_run/
 │   └── kernel-metadata.json                              owner only: Kaggle push config
 ├── results/
@@ -60,6 +63,12 @@ Malaria_detection/
 | MCC | — | 0.95 |
 
 Within 1 pp of the paper on both headline accuracies; recall is 2 pp lower. Two GPUs → global batch 128 (64 per GPU). Details: `results/A0_baseline/`.
+
+To print the per-fold results and check them against the paper (needs only `pandas`, no GPU):
+
+    python src/check_results.py                      # A0 baseline
+    python src/check_results.py results/<experiment>
+    python src/compare_experiments.py                # A0–A3 table + H1/H2 differences
 
 **Full write-up:** [docs/report.md](docs/report.md) · **File guide:** [results/README.md](results/README.md) · **Team workflow:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Team tasks:** [TEAM_TASKS.md](TEAM_TASKS.md)
 
