@@ -23,6 +23,7 @@ One folder per experiment. Every number in the slides and report comes from thes
 | `kaggle_run_v2.log` | Full Kaggle log of the run |
 
 A1–A3 get the same files under their own prefix (`A1_summary.json`, `A1_slide_split_per_fold_val.csv`, ...).
+When more than one experiment runs in a session, the notebook also writes `ablation.csv`: one row per experiment (fold accuracy mean ± SD, fold recall and MCC, ensemble test accuracy and MCC).
 `python src/check_results.py results/<folder>` prints any of them; `python src/compare_experiments.py` puts them side by side.
 
 Metrics are in %, including MCC (×100). The slides show MCC as a coefficient (0.95).
