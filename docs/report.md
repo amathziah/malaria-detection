@@ -1,6 +1,14 @@
 # Phase 2 Report: Automated Malaria Cell Detection
 
-## 1. Baseline reproduction (Marques et al., 2022)
+## 1. Introduction
+
+Malaria is diagnosed by looking at Giemsa-stained blood smears under a microscope, where a trained technician checks each red blood cell for parasites. This works, but it is slow (each slide holds hundreds of cells), it depends on scarce expert skill (especially in the rural regions where malaria is common), and results vary between observers and labs.
+
+Our goal is an automated deep-learning system that classifies single red-blood-cell images as **parasitized** or **uninfected**, accurately and consistently, and light enough to eventually run at the point of care.
+
+Phase 1 surveyed 11 published studies. In Phase 2 (this report) we reproduce the strongest-documented one, Marques et al. (2022), as our baseline, then test whether its accuracy holds up once slide-level leakage is removed.
+
+## 2. Baseline reproduction (Marques et al., 2022)
 
 **Goal.** Rebuild the paper's model on the same data and check we land within about 1 percentage point of its reported results. This becomes our Phase 2 baseline (experiment A0).
 
@@ -39,6 +47,6 @@
 
 **Takeaway.** Both headline accuracies are within 1 pp of the paper, so the reproduction succeeds and A0 is our baseline. Recall is 2 pp lower: on the test set the model missed 44 infected cells and wrongly flagged 23 healthy ones. Training all 10 folds (as the paper did) may close part of this gap.
 
-## 2. Hypothesis results
+## 3. Hypothesis results
 
 *To do after the A1–A3 runs.*
