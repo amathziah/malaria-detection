@@ -14,7 +14,7 @@ Reproduction of Marques et al. (2022) — EfficientNet-B0 on the NIH malaria cel
 ## Folder structure
 
 ```
-Malaria_detection/
+malaria-detection/
 ├── README.md               this file
 ├── CONTRIBUTING.md         team roles + git workflow (read this first)
 ├── requirements.txt
