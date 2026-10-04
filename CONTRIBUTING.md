@@ -1,22 +1,31 @@
 # How we work (4 people)
 
-**Only amathziah runs Kaggle.** Everyone edits code, slides or the report together on amathziah's Mac and uploads straight to `main`. No branches, no pull requests.
+**Only amathziah runs Kaggle.** Everyone edits code, slides or the report on their own laptop and uploads straight to `main`. No branches, no pull requests.
 
-## 1. Setup
-
-None. We all use **amathziah's Mac**, folder `~/Downloads/Malaria_detection`, opened in VS Code. No Kaggle, GitHub login or GPU needed.
-
-## 2. Every time you work: two commands (in the VS Code terminal)
+## 1. One-time setup (on YOUR OWN laptop)
 
 ```bash
-./sync.sh                                        # BEFORE you start: get the latest
-# ... edit files together ...
-./sync.sh "Slides: add team slide" ravi pugal    # WHEN DONE: note + who worked on it
+git config --global user.name  "Your Name"
+git config --global user.email "the-email-on-your-github-account"
+gh auth login            # GitHub.com → HTTPS → browser → YOUR account
+gh auth setup-git
+gh repo clone amathziah/malaria-detection
+cd malaria-detection
 ```
 
-Commits are made from amathziah's account. List the people who **actually worked on that change** after the note (`murali`, `ravi`, `pugal`), and GitHub credits them as **co-authors**: their name and avatar appear on the commit and it counts in their contribution graph. Only list people who really worked on it.
+Windows: install Git for Windows + GitHub CLI and use **Git Bash**. No Kaggle, TensorFlow or GPU needed.
 
-- Close the `.pptx` in PowerPoint before saving (PowerPoint keeps a lock file while it's open).
+## 2. Every time you work: two commands
+
+```bash
+./sync.sh                                # BEFORE you start: get the latest
+# ... edit your files ...
+./sync.sh "Slides: add team slide"       # WHEN DONE: save + upload under your account
+```
+
+If you worked on a change **together** with someone, add their names to credit them as co-authors: `./sync.sh "note" murali ravi`. Only list people who really worked on it.
+
+- Close the `.pptx` in PowerPoint before saving.
 
 ## 3. Who does what
 
@@ -51,4 +60,4 @@ Commits are made from amathziah's account. List the people who **actually worked
 - Never set `MALARIA_SMOKE_TEST`.
 
 ## Need a Kaggle run?
-Save your code with `./sync.sh "..." <names>`, then tell amathziah what to run, e.g. *"Run A1 with my latest change"*. The results appear in `results/<experiment>/` on this Mac.
+Save your code with `./sync.sh "..." <names>`, then tell amathziah what to run, e.g. *"Run A1 with my latest change"*. When the results are uploaded, run `./sync.sh` to get them.
