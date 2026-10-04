@@ -489,7 +489,7 @@ if len(RESULTS) > 1:
     for name, r in RESULTS.items():
         f = r["folds"]
         tab.append(dict(experiment=name, split=r["split"], preprocess=r["preprocess"],
-                        fold_acc_mean=f["accuracy"].mean(), fold_acc_sd=f["accuracy"].std(ddof=1),
+                        fold_acc_mean=f["accuracy"].mean(), fold_acc_sd=f["accuracy"].std(ddof=1) if len(f) > 1 else 0.0,
                         fold_recall_mean=f["recall"].mean(), fold_mcc_mean=f["mcc"].mean(),
                         ens_test_acc=r["ensemble"]["accuracy"], ens_test_mcc=r["ensemble"]["mcc"]))
     ablation = pd.DataFrame(tab).round(2); ablation.to_csv(f"{OUT_DIR}/ablation.csv", index=False)
