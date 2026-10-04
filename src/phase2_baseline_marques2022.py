@@ -39,7 +39,7 @@ except NameError:
 # * **Kaggle (recommended):** New Notebook → *File → Import Notebook* → upload this file. Then *Add Input* → search **"cell-images-for-detecting-malaria"** (by *iarunava*) → add it. *Settings → Accelerator → GPU T4 ×2 (or P100)*. Click **Run All**.
 # * **VS Code + free Colab GPU:** install the official **Google Colab** extension in VS Code → open this `.ipynb` → *Select Kernel → Colab → New Colab Server → GPU (T4)* → sign in with Google → **Run All**. Files are saved on the Colab machine (not your laptop); download `phase2_results.zip` at the end.
 # * **Google Colab (browser):** *Runtime → Change runtime type → T4 GPU*. Run All. The dataset downloads automatically (from the NIH, or from Kaggle through `kagglehub`).
-# * **Runtime:** about 6–9 min per fold on a T4. The default `FOLDS_TO_RUN = 3` takes about 25–30 min. Set it to `10` for the full paper protocol (about 1.5 h).
+# * **Runtime:** about 21 min per fold on Kaggle's 2× T4 (measured in our A0 run). The default `FOLDS_TO_RUN = 3` takes about 70 min. Set it to `10` for the full paper protocol (about 3.5–4 h).
 
 # %% [markdown]
 # ## 1 · Setup and configuration
@@ -73,7 +73,7 @@ CFG = dict(
     PLATEAU_FACTOR  = 0.1,
     EARLY_STOP_PATIENCE = 5,   # our addition, to fit a free GPU budget (restores best weights)
     N_FOLDS         = 10,      # paper: stratified 10-fold CV
-    FOLDS_TO_RUN    = 3,       # set to 10 for the full protocol (≈1.5 h on a T4)
+    FOLDS_TO_RUN    = 3,       # set to 10 for the full protocol (≈3.5–4 h on Kaggle 2× T4)
     TEST_FRACTION   = 0.10,    # untouched hold-out set, used to evaluate the ensemble
     DROPOUT         = 0.2,
     AUGMENT         = True,    # light, label-preserving flips/rotations
@@ -528,6 +528,6 @@ with zipfile.ZipFile("phase2_results.zip", "w") as z:
 print("Results bundle:", os.path.abspath("phase2_results.zip"))
 
 # %% [markdown]
-# ## 11 · Conclusion (fill in after running)
+# ## 11 · Conclusion (A0 results)
 # * **Reproduction:** our EfficientNet-B0 reached a mean single-fold accuracy of **97.38 ± 0.74 %** (paper: 97.70 %) and an ensemble accuracy of **97.57 %** (paper: 98.29 %) on the NIH dataset (3 of 10 folds). That is within **0.72 pp** of the reported results, so this is our **Phase 2 baseline**.
 # * **Why it matters for our hypothesis:** the paper (like this reproduction) splits **images** at random, so cells from the same slide can land in both training and testing. Our hypotheses test what happens once that leakage is removed (H1), and whether YUV stain normalisation closes the gap (H2).
