@@ -469,7 +469,7 @@ plt.tight_layout(); plt.savefig(f"{OUT_DIR}/A0_vs_paper.png", dpi=140); plt.show
 
 # %% [markdown]
 # ## 9 · (Next milestone) Hypothesis experiments
-# Both are switched off for Milestone 2. Set the flags in the config to `True` to run them later. Each experiment changes **one thing** relative to the experiment it is compared with:
+# All three (A1–A3) are switched off for Milestone 2. Set the flags in the config to `True` to run them later. Each experiment changes **one thing** relative to the experiment it is compared with:
 # 
 # | ID | Split | Preprocessing | Tests |
 # |---|---|---|---|
