@@ -20,7 +20,8 @@ Malaria_detection/
 │   ├── A1_slide_split/     H1  (to do)
 │   ├── A2_yuv_slide/       H2  (to do)
 │   └── A3_yuv_image/       control (to do)
-├── docs/                   report / write-up
+├── docs/
+│   └── report.md           report / write-up
 ├── slides/
 │   ├── Malaria_Phase2_Baseline_Hypothesis.pptx           original
 │   └── Malaria_Phase2_Baseline_Hypothesis_filled.pptx    slide 18 filled with A0 results
@@ -50,6 +51,8 @@ Malaria_detection/
 | MCC | — | 0.95 |
 
 Within 1 pp of the paper on both headline accuracies; recall is 2 pp lower. Two GPUs → global batch 128 (64 per GPU). Details: `results/A0_baseline/`.
+
+**Full write-up:** [docs/report.md](docs/report.md) · **File guide:** [results/README.md](results/README.md) · **Team workflow:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Running on Kaggle (repo owner only)
 
