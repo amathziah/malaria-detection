@@ -282,7 +282,7 @@ def build_model():
     return model
 
 m = build_model()
-print(f"Trainable parameters: {m.count_params():,}")
+print(f"Parameters: {m.count_params():,} (trainable: {sum(int(tf.size(w)) for w in m.trainable_weights):,})")
 del m; tf.keras.backend.clear_session()
 
 # %% [markdown]
