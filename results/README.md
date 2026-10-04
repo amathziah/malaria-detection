@@ -22,5 +22,8 @@ One folder per experiment. Every number in the slides and report comes from thes
 | `samples.png`, `yuv_preview.png` | Example cells, and what the YUV preprocessing looks like |
 | `kaggle_run_v2.log` | Full Kaggle log of the run |
 
+A1–A3 get the same files under their own prefix (`A1_summary.json`, `A1_slide_split_per_fold_val.csv`, ...).
+`python src/check_results.py results/<folder>` prints any of them; `python src/compare_experiments.py` puts them side by side.
+
 Metrics are in %, including MCC (×100). The slides show MCC as a coefficient (0.95).
 Trained models (`.keras`, 47 MB each) are kept out of git, in `models/` on the owner's Mac.
