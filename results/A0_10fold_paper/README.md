@@ -26,7 +26,7 @@ Two evaluation views:
 | `runpod/` | Pod ids, GPU, timings (`pods.json`), the setup/training scripts and logs |
 
 Metrics are in %, MCC ×100, like `results/A0_baseline/`. `python src/check_results.py results/A0_10fold_paper`
-prints the summary. The trained weights (`fold_k_best.h5`, 17 MB each) are in `models/A0_10fold_paper/` (git-ignored).
+prints the summary. The trained weights (`fold_k_best.h5`, 17 MB each) are attached to the [`v1.0-a0-10fold` release](https://github.com/amathziah/malaria-detection/releases/tag/v1.0-a0-10fold); download them into `models/A0_10fold_paper/` (git-ignored).
 
 **Comparing with the paper:** its text swaps the ensemble's precision and recall. Its own printed report
 (2,744 parasitized cells, 62 missed; 2,768 uninfected, 32 flagged) gives recall 97.74 % and precision 98.82 %,
