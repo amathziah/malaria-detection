@@ -160,8 +160,9 @@ python -m pytest tests/ -q        # in the pinned environment; ~15 s on a laptop
 ## Documentation
 
 - **[Project guide](docs/PROJECT_GUIDE.md)** ([PDF](docs/PROJECT_GUIDE.pdf)): a visual, plain-language walkthrough of the
-  dataset, the model and its 4.2 M parameters, the training recipe, the code function by function, the results and the
-  hypotheses, with a glossary and a one-page presentation cheat sheet.
+  dataset, the model and its 4.2 M parameters, the training recipe, the code function by function, how we evaluate
+  (folds, ensemble, precision, recall, F1/F2, ROC-AUC, MCC, pp, what a good value is), the results and the hypotheses,
+  with a glossary and a one-page presentation cheat sheet.
 - [Project report](docs/report.md): method, results, deviations from the paper, findings.
 - [Results guide](results/README.md): every output file explained.
 - [Slides](slides/): a full 30-slide deck and an 11-slide short version, both with speaker notes.

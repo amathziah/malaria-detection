@@ -1,7 +1,7 @@
 # Automated Malaria Cell Detection — Project Guide
 
 *A plain-language, visual walkthrough of what we built in Phase 2, why we built it that way, and how every piece works.*
-*Read it top to bottom once (about 30 minutes); use the [cheat sheet](#7-presentation-cheat-sheet) at the end while presenting.*
+*Read it top to bottom once (about 30 minutes); use the [cheat sheet](#8-presentation-cheat-sheet) at the end while presenting.*
 
 | | |
 |---|---|
@@ -17,9 +17,10 @@
 3. [Feature engineering](#3-feature-engineering) — what we do (and don't do) to the images
 4. [Architecture and training, in depth](#4-architecture-and-training-in-depth) — layers, recipe, ensemble, GPU engineering
 5. [Code walkthrough](#5-code-walkthrough) — every important function, with snippets
-6. [Results, improvements and hypotheses](#6-results-improvements-and-hypotheses) — what is validated and what comes next
-7. [Presentation cheat sheet](#7-presentation-cheat-sheet) — 10 numbers, 6 sentences, likely questions
-8. [Glossary](#8-glossary) — every technical term on one page
+6. [How we evaluate: folds, ensemble, metrics](#6-how-we-evaluate-folds-ensemble-metrics) — fold, 10-fold, ensemble, precision, recall, F1/F2, pp, what a good value is
+7. [Results, improvements and hypotheses](#7-results-improvements-and-hypotheses) — what is validated and what comes next
+8. [Presentation cheat sheet](#8-presentation-cheat-sheet) — 10 numbers, 6 sentences, likely questions
+9. [Glossary](#9-glossary) — every technical term on one page
 
 ---
 
@@ -54,7 +55,7 @@
 
 ![Distribution of image sizes](figures/dataset_sizes.png)
 
-**File names carry the slide ID.** For example `C100P61ThinF_IMG_20150918_144104_cell_162.png`: `C100` is the slide/patient, then the photo, then the cell number. Parasitized cells come from 150 slides; uninfected cells come from all 200 (infected patients also have many healthy cells). **150 slides contribute cells to both classes.** This matters: if we split images at random, cells from the same slide (same patient, same stain batch, same microscope light) land in both training and testing — see hypothesis H1 in section 6.
+**File names carry the slide ID.** For example `C100P61ThinF_IMG_20150918_144104_cell_162.png`: `C100` is the slide/patient, then the photo, then the cell number. Parasitized cells come from 150 slides; uninfected cells come from all 200 (infected patients also have many healthy cells). **150 slides contribute cells to both classes.** This matters: if we split images at random, cells from the same slide (same patient, same stain batch, same microscope light) land in both training and testing — see hypothesis H1 in section 7.
 
 ### Is it clean? Is it "proper"?
 
@@ -171,7 +172,7 @@ Compose([RandomRotate90(),                                    # 0/90/180/270 deg
 
 > 💡 **What is data augmentation?** Making many slightly different copies of each training image (rotated, flipped, blurred, re-coloured) on the fly, so the model sees a new version every epoch. It is cheap extra data and reduces overfitting. Every transform here keeps the label: a rotated infected cell is still infected.
 
-**Not used in the baseline:** YUV colour conversion + histogram equalisation (stain normalisation). That is our hypothesis **H2** (section 6) and will be switched on only in experiments A2 and A3.
+**Not used in the baseline:** YUV colour conversion + histogram equalisation (stain normalisation). That is our hypothesis **H2** (section 7) and will be switched on only in experiments A2 and A3.
 
 ![YUV histogram equalisation, the H2 preprocessing](../results/A0_baseline/yuv_preview.png)
 
@@ -488,11 +489,131 @@ Run them with `python -m pytest tests/ -q` (needs the environment in `src/runpod
 
 ---
 
-## 6. Results, improvements and hypotheses
+## 6. How we evaluate: folds, ensemble, metrics
+
+> **In one sentence:** we train 10 models on 10 different 90 % slices of the data (10-fold cross-validation), let them vote as one ensemble, and score everything by counting four kinds of answers (caught, missed, false alarm, correct all-clear); every metric is a different ratio of those four counts.
+
+### 6.1 Train, test and hold-out: who sees which images
+
+| Set | Size | Used for | Analogy |
+|---|---|---|---|
+| **Train part** of a fold | 19,841–19,842 | the model learns from these | the textbook |
+| **Test part** of a fold | 2,204–2,205 | checked after every epoch; picks the best epoch and lowers the learning rate | mock exams |
+| **Hold-out set** | 5,512 (20 %) | never touched in training; the final score of every model and of the ensemble | the final exam |
+
+> 💡 **The paper's words.** The paper calls the hold-out set the *validation* set and the fold's test part the *test* set. Many courses use the opposite names, so always say which one you mean.
+
+### 6.2 What a "fold" is: 1 fold, 2-fold, 10-fold
+
+**k-fold cross-validation** cuts the learning set (22,046 images) into *k* equal parts. You then train *k* models: model *i* learns from every part **except** part *i* and is tested on part *i*. Every image is tested exactly once and used for training *k − 1* times.
+
+![k-fold cross-validation: 2-fold vs. 10-fold, and the separate hold-out set](figures/kfold.png)
+
+| Phrase | What it means here |
+|---|---|
+| **"a fold"** / **"fold 3"** | One round of the procedure: one model trained on 9 of the 10 parts and tested on the remaining part (part 3). We number them 0–9 like the paper's code. "Fold 3 took 16.6 min" = that round's training time. |
+| **2-fold** | Two halves: train on half A, test on half B, then the other way round. Two models, each trained on only 50 % of the data, so each is weaker. |
+| **10-fold** (ours, the paper's) | Ten parts, ten models, each trained on 90 % of the data. More training data per model and ten test scores instead of two. |
+| **"1-fold"** | Not real cross-validation (k must be at least 2). People mean a single train/test split, which gives one score and no idea of the spread. |
+| **"3 of 10 folds"** | Our first run: the data was cut into 10 parts, but only 3 of the 10 rounds were trained (Kaggle time limit), so 3 models. |
+| **Stratified** | Every part keeps the class balance (about 50 % parasitized), so no fold is accidentally easier. |
+| **97.55 ± 0.30 %** | The mean of the 10 test-part accuracies, ± their standard deviation: folds differ from each other by about 0.3 pp. |
+
+### 6.3 The ensemble: ten models voting as one
+
+For each hold-out cell, every fold model outputs a probability that it is parasitized. The **ensemble averages the ten probabilities** (called *soft voting*) and says "parasitized" when the average is at least 0.5. No extra training is needed: the ten models already exist.
+
+| | Model 0 | Model 1 | Model 2 | … | Model 9 | **Average** | Decision |
+|---|---|---|---|---|---|---|---|
+| A hard cell (example) | 0.62 | 0.41 | 0.58 | … | 0.47 | **0.53** | parasitized |
+
+Each model makes slightly different mistakes, because each saw a different 90 % of the data; averaging cancels part of them. Ours: the average single model scores **97.37 %** on the hold-out set, the ensemble **97.62 %** (+0.25 pp; the paper gained +0.60 pp). *Hard voting* (majority of yes/no answers) is the alternative; averaging probabilities keeps more information.
+
+### 6.4 The confusion matrix: the four boxes behind every metric
+
+![Our ensemble's confusion matrix with the formulas for recall, specificity, precision and accuracy](figures/metrics_confusion.png)
+
+| Box | Name | Plain meaning | Ours |
+|---|---|---|---|
+| **TP** | true positive | infected cell, model says infected (**caught**) | 2,650 |
+| **FN** | false negative | infected cell, model says healthy (**missed**, the dangerous error) | 80 |
+| **FP** | false positive | healthy cell, model says infected (**false alarm**) | 51 |
+| **TN** | true negative | healthy cell, model says healthy (correct all-clear) | 2,731 |
+
+"Positive" just means "the thing we are looking for" (parasitized). It is not good or bad.
+
+### 6.5 Every metric, worked out with our numbers
+
+| Metric | The question it answers | Formula | Ours (ensemble) | Paper |
+|---|---|---|---:|---:|
+| **Accuracy** | Of all cells, how many did we get right? | (TP + TN) / all | (2,650 + 2,731) / 5,512 = **97.62 %** | 98.29 % |
+| **Precision** | When the model says "parasitized", how often is it right? | TP / (TP + FP) | 2,650 / 2,701 = **98.11 %** | 98.82 % |
+| **Recall** (= sensitivity, true-positive rate) | Of all infected cells, how many did we catch? | TP / (TP + FN) | 2,650 / 2,730 = **97.07 %** | 97.74 % |
+| **Specificity** (true-negative rate) | Of all healthy cells, how many did we clear? | TN / (TN + FP) | 2,731 / 2,782 = **98.17 %** | 98.84 % |
+| **F1** | One number that balances precision and recall | 2·P·R / (P + R) = 2TP / (2TP + FP + FN) | 5,300 / 5,431 = **97.59 %** | 98.28 % |
+| **F2** *(not used in the paper; shown to learn)* | Like F1, but recall counts more | 5·P·R / (4·P + R) = 5TP / (5TP + 4FN + FP) | 13,250 / 13,621 = **97.28 %** | 97.95 % |
+| **ROC-AUC** | Pick one infected and one healthy cell at random: how often does the infected one get the higher "parasitized" score? | area under the ROC curve | **99.73 %** | 99.76 % |
+| **MCC** | How strongly do prediction and truth agree, on a −1 to +1 scale? | (TP·TN − FP·FN) / √((TP+FP)(TP+FN)(TN+FP)(TN+FN)) | **0.95** | 0.97 |
+
+**How to remember them**
+- **Recall is about the sick:** of everyone who is sick, how many did we find? Missing them (FN) lowers recall.
+- **Precision is about the alarms:** of all the alarms we raised, how many were real? False alarms (FP) lower precision.
+- **Specificity is about the healthy:** of everyone who is healthy, how many did we correctly send home?
+- **Accuracy** mixes everything. It is fine here because the classes are 50/50, but misleading when one class is rare: if only 1 % of cells were infected, a model that always says "healthy" would score 99 % accuracy and 0 % recall.
+- **F1** is the *harmonic* mean of precision and recall, which punishes imbalance: precision 100 % with recall 50 % averages to 75 %, but F1 is only 67 %.
+- **F-beta** generalises F1: F_β = (1 + β²)·P·R / (β²·P + R). β = 1 gives F1 (equal weight). β = 2 gives **F2**, where recall weighs more, the usual choice for screening tests where a miss is worse than a false alarm. β = 0.5 gives F0.5, where precision weighs more (ours: 97.90 %). We report F1 because the paper does; F2 is a sensible extra metric for our hypothesis experiments.
+- **ROC-AUC** does not depend on the 0.5 threshold: it measures how well the scores *rank* infected above healthy cells. 50 % = coin flip, 100 % = perfect ranking.
+- **MCC** uses all four boxes and stays honest even when classes are unbalanced: 0 = no better than chance, 1 = perfect.
+
+> 💡 **Macro vs. weighted average.** The paper's Tables 5 and 6 compute precision, recall and F1 for each class (parasitized and uninfected) and then average the two, weighted by how many cells each class has. With 50/50 classes this weighted average is almost the same as accuracy. Everywhere else (and in our summaries) "precision" and "recall" mean the **parasitized** class.
+
+> 💡 **The paper's swap.** The paper's text says "recall 98.82 %, precision 97.74 %". Its own printed report gives 2,682 caught, 62 missed, 32 false alarms, so recall = 2,682 / 2,744 = 97.74 % and precision = 2,682 / 2,714 = 98.82 %: the two numbers were swapped.
+
+### 6.6 The threshold trade-off
+
+The model gives a probability; we call a cell parasitized when it is at least 0.5. Move that threshold and precision and recall move in opposite directions:
+
+![Precision and recall of our ensemble as the decision threshold changes](figures/metrics_threshold.png)
+
+At 0.5 our ensemble has recall 97.07 % and precision 98.11 %. At 0.3 it would catch more infections (recall 98.17 %) but raise more false alarms (precision 96.79 %). For a screening tool you may prefer the lower threshold. We keep 0.5 because the paper does (it takes the larger of the two softmax outputs).
+
+### 6.7 What counts as a "good" value?
+
+There is no universal cut-off: it depends on the cost of each mistake, on chance level, and on what other methods achieve on the same data. For this dataset (two balanced classes, single-cell crops):
+
+| Metric | Chance level | What published work reports | Ours (ensemble) | Verdict |
+|---|---|---|---:|---|
+| Accuracy | 50 % | 95.9–99.96 % across the 11 studies we reviewed; only one above 99.5 % | 97.62 % | good, inside the published range |
+| Recall | 50 % (random guessing) | 82–98.8 % in the paper's comparison table (Table 7); thin-smear models mostly 92–98 % | 97.07 % | good; the metric to push up first (misses are the dangerous error) |
+| Precision | 50 % | 89–98.8 % in Table 7 for thin-smear models | 98.11 % | good |
+| Specificity | 50 % | rarely reported | 98.17 % | good |
+| F1 | about 50 % | 88–98.3 % in Table 7 for thin-smear models | 97.59 % | good |
+| ROC-AUC | 50 % | 99.76 % for the paper; rarely reported elsewhere | 99.73 % | excellent |
+| MCC | 0 | rarely reported; above 0.9 is very strong agreement | 0.95 | very strong |
+
+**Rules of thumb (not official standards)**
+- On this benchmark, above 95 % is solid, around 97–98 % is competitive with published work, and above 99.5 % deserves suspicion: random image splits let cells of the same patient sit in both training and test (hypothesis H1), which can inflate scores.
+- In medicine, **recall comes first** (a missed infection can be fatal; a false alarm costs a second look), but precision and specificity must stay high or clinics drown in false alarms.
+- A metric only means something next to a baseline: compare with chance, with the paper (here within 1 pp) and with the spread between folds (± 0.3 pp).
+- These are **per-cell** numbers. A patient's slide contains hundreds of cells, so the per-patient decision can be more reliable than any single cell's, but we have not measured it; that is a proposed next step.
+
+### 6.8 Talking about differences: pp, %, ± and standard error
+
+| Term | Meaning | Our example |
+|---|---|---|
+| **pp (percentage points)** | Plain subtraction of two percentages | 97.62 − 98.29 = **−0.67 pp** |
+| **% change (relative)** | The difference divided by the reference value | −0.67 / 98.29 = **−0.68 %** |
+| **Error-rate view** | The same gap, seen through the mistakes | error 2.38 % vs. 1.71 % → +0.67 pp, but **39 % more errors** in relative terms |
+| **± (standard deviation)** | How much the 10 folds differ from each other | 97.55 **± 0.30** % |
+| **Standard error (SE)** | How much an accuracy would wobble on another test set of the same size: √(p·(1 − p) / n) | √(0.976 × 0.024 / 5,512) ≈ **0.21 pp**, so our 0.67 pp gap to the paper is about 3 SE: probably not just luck |
+
+"Within 1 pp of the paper" (our success criterion) means every metric differs from the paper's by at most one percentage point.
+
+## 7. Results, improvements and hypotheses
 
 > **In one sentence:** the paper-exact 10-fold reproduction lands within 1 percentage point of the paper on every headline metric (mean fold accuracy 97.55 % vs. 97.56 %), so our baseline is validated; the two hypotheses about slide leakage and stain normalisation are designed and coded but not yet run.
 
-### 6.1 Ours vs. the paper
+### 7.1 Ours vs. the paper
 
 | Metric | Paper | Ours (paper protocol) | Δ (pp) | Ours (clean images) |
 |---|---:|---:|---:|---:|
@@ -531,7 +652,7 @@ On the 5,512 hold-out cells the ensemble **missed 80 of 2,730 infected cells** a
 > **Confusion matrix** — the 2 × 2 table of true vs. predicted class: correct infected, missed infected, false alarms, correct healthy.
 > **pp (percentage points)** — the plain difference between two percentages: 97.62 % vs. 98.29 % is −0.67 pp.
 
-### 6.2 What reading the paper's code revealed
+### 7.2 What reading the paper's code revealed
 
 The paper's supplementary file is its authors' executed Jupyter notebook. It differs from the paper's text — and from our first reproduction — in eight settings:
 
@@ -551,7 +672,7 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 1. **Its code augments the test and hold-out images too** (one augmenting generator feeds training, testing and validation). We kept this for the headline numbers and report clean evaluation alongside.
 2. **Its text swaps the ensemble's precision and recall.** It says "recall 98.82 %, precision 97.74 %", but its own printed report (2,744 infected cells, 62 missed; 2,768 healthy, 32 flagged) gives **recall 97.74 %** and **precision 98.82 %**. Our first report said "recall is 2 pp lower than the paper"; against the correct number the gap was 0.9 pp, and it is now 0.67 pp. (Also, Table 6's "accuracy" column is the mean of precision and recall, 97.70 on average; the true mean accuracy in its output is 97.69.)
 
-### 6.3 What is validated, and what is not yet
+### 7.3 What is validated, and what is not yet
 
 | Claim | Status | Evidence |
 |---|---|---|
@@ -561,7 +682,7 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 | H1: random image splits inflate accuracy (slide leakage) | ⏳ **not yet tested** | Experiment A1 (designed, coded, not run) |
 | H2: YUV stain normalisation helps on unseen slides | ⏳ **not yet tested** | Experiments A2 and A3 (designed, coded, not run) |
 
-### 6.4 Our hypotheses and how we test them
+### 7.4 Our hypotheses and how we test them
 
 ![Ablation plan: A0–A3](figures/ablation_plan.png)
 
@@ -582,7 +703,7 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 - **H2 is rejected** if its gain over A1 is smaller than the fold-to-fold standard deviation.
 - **H1 is rejected** (leakage is not a real issue on this dataset) if grouped and random splits score the same.
 
-### 6.5 Proposed next steps *(proposals, not yet done)*
+### 7.5 Proposed next steps *(proposals, not yet done)*
 
 1. **Run A1, A2, A3** with the same parallel RunPod setup: 10 folds each in about 15–20 minutes of wall-clock time and roughly $2 per experiment. The grouped split and the YUV switch already exist in the first notebook; they need to be added to the paper-exact module.
 2. **Report per-slide (per-patient) results**, not only per-cell, since a diagnosis is made per patient.
@@ -594,7 +715,7 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 
 ---
 
-## 7. Presentation cheat sheet
+## 8. Presentation cheat sheet
 
 **10 numbers to remember**
 
@@ -634,7 +755,7 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 
 ---
 
-## 8. Glossary
+## 9. Glossary
 
 | Term | Plain meaning |
 |---|---|
