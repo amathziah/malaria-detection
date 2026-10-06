@@ -184,5 +184,6 @@ Rishihood University. Course project, Phase 2.
   using EfficientNet," *Multimedia Tools and Applications*, 81, 28061–28078, 2022. doi:10.1007/s11042-022-12624-6 ·
   [PDF](https://drive.google.com/file/d/1kMiYQorrZFmbL632-3BGuVndGzLHqF6o/view?usp=sharing)
 - S. Rajaraman et al., "Pre-trained convolutional neural networks as feature extractors toward improved malaria parasite
-  detection in thin blood smear images," *PeerJ*, 6:e4568, 2018 (the NIH Malaria Cell Images dataset).
+  detection in thin blood smear images," *PeerJ*, 6:e4568, 2018 (the NIH Malaria Cell Images dataset) ·
+  [PDF](https://drive.google.com/file/d/1DLsZUgCazbFQD3RCq2p3JH9yNGUq7_Yr/view?usp=sharing)
 - M. Tan, Q. V. Le, "EfficientNet: Rethinking model scaling for convolutional neural networks," *ICML*, 2019.
