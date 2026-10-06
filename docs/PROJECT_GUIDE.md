@@ -176,6 +176,27 @@ Compose([RandomRotate90(),                                    # 0/90/180/270 deg
 
 ![YUV histogram equalisation, the H2 preprocessing](../results/A0_baseline/yuv_preview.png)
 
+### The network does its own feature engineering, in pictures
+
+Instead of hand-made features, a convolutional network learns **kernels**: small grids of weights (3 × 3 or 5 × 5) that slide over the image. At every position a kernel multiplies the pixels under it by its weights and adds them up; doing this everywhere produces a **feature map** that is bright wherever the kernel's pattern appears.
+
+![How one kernel turns pixels into a feature map](figures/teach_kernel.png)
+
+- The kernel in the picture is a hand-made "spot / edge" detector, only to show the arithmetic: 8 × 241 − (the 8 neighbours) = 165.
+- A real kernel also spans the 3 colour channels (3 × 3 × 3 = 27 weights). Our first layer **learns** 32 of them: 3 · 3 · 3 · 32 = **864 weights**.
+- **Stride** is the step size: stride 1 visits every pixel; stride 2 jumps two pixels, so the output is half the size (224 → 112).
+
+Here is what our **trained** fold-0 model actually computes for a hold-out cell it never trained on:
+
+![Real feature maps of our trained model and the Grad-CAM heatmap of where it looks](figures/teach_feature_maps.png)
+
+- **Early layers** (112 × 112) keep the picture recognisable: colour, edges, the cell border, the dark stain spot.
+- **Middle layers** (28 × 28) respond to spots and textures.
+- **Deep layers** (7 × 7) are small and abstract: each number summarises a large part of the cell ("is there a parasite-like structure here?").
+- **Grad-CAM** (right) colours the regions that pushed the answer towards *parasitized*: the model looks at the parasite, not at the background. This is the honest answer to "do you do feature engineering?": no, the network learns the features, and we can show which ones it uses.
+
+> 💡 **Batch size vs. kernel size vs. "patch".** *Batch size* (16) is how many images are processed before one weight update; it has nothing to do with the architecture. *Kernel size* (3 × 3 or 5 × 5) is the window a convolution looks at. *Patches* belong to Vision Transformers, which cut the image into squares; EfficientNet is a CNN and does not.
+
 ---
 
 ## 4. Architecture and training, in depth
@@ -185,6 +206,12 @@ Compose([RandomRotate90(),                                    # 0/90/180/270 deg
 ### 4.1 EfficientNet-B0, layer by layer
 
 ![EfficientNet-B0 architecture with the paper's head](figures/architecture.png)
+
+**The same journey, drawn to scale.** Each stride-2 layer halves the image (224 → 112 → 56 → 28 → 14 → 7) while the number of feature maps grows (3 → 32 → … → 1,280): the network gives up *where* things are to learn *what* they are. Global average pooling then turns the 7 × 7 × 1,280 block into 1,280 numbers, and the dense head turns those into two probabilities.
+
+![The tensor shapes from input to softmax](figures/teach_shapes.png)
+
+> 💡 **How the numbers are calculated.** Output size of a convolution = input size ÷ stride (with "same" padding), e.g. 224 ÷ 2 = 112. Weights of a convolution = kernel height × kernel width × input channels × output channels, e.g. the stem: 3 × 3 × 3 × 32 = 864. Weights of a dense layer = inputs × outputs + biases (the *b* in *W·x + b*), e.g. 1,280 × 128 + 128 = 163,968. The kernel sizes and strides themselves are design choices, found by an automated search when EfficientNet was invented.
 
 | Stage | Block | Repeats | Kernel | Stride | Output channels | Output size | Parameters |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -207,6 +234,18 @@ Compose([RandomRotate90(),                                    # 0/90/180/270 deg
 **One MBConv block** (MBConv6 = expansion factor 6):
 
 ![Inside an MBConv block](figures/mbconv.png)
+
+**A real block, worked through: block 2b of our model.**
+
+![Block 2b with its real shapes and weight counts](figures/teach_mbconv.png)
+
+1. **Expand** (1 × 1 conv): 24 feature maps become 144, giving the block more room to describe the cell (24 × 144 = 3,456 weights).
+2. **Depthwise** (3 × 3 conv): each of the 144 maps is filtered on its own with one small 3 × 3 filter (3 × 3 × 144 = 1,296 weights). A normal 3 × 3 conv over all 144 channels would need 186,624.
+3. **Squeeze-and-excitation**: the block averages each map to one number (144 numbers), squeezes them to 6, expands back to 144 and turns them into scores between 0 and 1; each map is multiplied by its score, so maps that matter for *this* cell are turned up (1,878 weights).
+4. **Project** (1 × 1 conv): back down to 24 maps (3,456 weights).
+5. **Skip**: the block's input is added to its output, so the block only has to learn a correction; this keeps deep networks easy to train.
+
+The whole block has 11,334 weights including batch-norm. Sixteen such blocks (with different sizes) make up the backbone.
 
 > 💡 **What is a depthwise convolution?** A convolution that filters each channel separately (one small filter per channel) instead of mixing all channels at every position. Together with the 1 × 1 convolutions around it, it does the job of a normal 3 × 3 convolution for about 8–9 times less computation, which is why EfficientNet is small.
 >
