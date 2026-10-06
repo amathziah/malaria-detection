@@ -21,7 +21,7 @@ NIH Malaria Cell Images dataset. Phase 2 of our project reproduces the base pape
   not only the paper text. That code differs from the text in eight places, from the pretrained weights to the
   hold-out size. [32 tests](tests/test_marques2022_exact.py) check our implementation against the paper, including
   the exact parameter count of its Table 2 (4,223,934).
-- **All 10 folds, in parallel.** One RunPod RTX 4090 per fold, about **11 minutes per fold** against 4 h 40 min
+- **All 10 folds, in parallel.** One RunPod RTX 4090 per fold, about **11 minutes per fold** against 4 h 46 min
   in the paper. The speed-ups (decoded-image cache, seeded multi-process augmentation, XLA) leave the maths unchanged.
 - **Within 1 percentage point of the paper** on every headline metric (table below).
 - **Two errors found in the paper**: its text swaps the ensemble's precision and recall, and its code evaluates
@@ -95,8 +95,10 @@ malaria-detection/
 │   ├── A0_10fold_paper/              10-fold reproduction: tables, figures, per-fold outputs, pod logs
 │   ├── A0_baseline/                  first reproduction (3 folds)
 │   └── A1_slide_split/ A2_yuv_slide/ A3_yuv_image/   hypothesis experiments (planned)
-├── docs/report.md                    project report
-├── slides/                           presentation decks
+├── docs/
+│   ├── PROJECT_GUIDE.md / .pdf       visual walkthrough of the whole project (+ figures/)
+│   └── report.md                     project report
+├── slides/                           long and short presentation decks (+ archive/ of earlier decks)
 ├── kaggle_run/                       Kaggle kernel configuration used for A0
 └── requirements.txt                  dependencies of the helper scripts
 ```
@@ -157,9 +159,12 @@ python -m pytest tests/ -q        # in the pinned environment; ~15 s on a laptop
 
 ## Documentation
 
+- **[Project guide](docs/PROJECT_GUIDE.md)** ([PDF](docs/PROJECT_GUIDE.pdf)): a visual, plain-language walkthrough of the
+  dataset, the model and its 4.2 M parameters, the training recipe, the code function by function, the results and the
+  hypotheses, with a glossary and a one-page presentation cheat sheet.
 - [Project report](docs/report.md): method, results, deviations from the paper, findings.
 - [Results guide](results/README.md): every output file explained.
-- [Slides](slides/): long and short presentation decks.
+- [Slides](slides/): a full 30-slide deck and an 11-slide short version, both with speaker notes.
 
 ## Team
 

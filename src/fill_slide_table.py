@@ -39,7 +39,7 @@ def is_results_table(shape):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--summary", default=os.path.join(REPO, "results", "A0_baseline", "A0_summary.json"))
-    ap.add_argument("--deck", default=os.path.join(REPO, "slides", "Malaria_Phase2_Baseline_Hypothesis_filled.pptx"))
+    ap.add_argument("--deck", default=os.path.join(REPO, "slides", "archive", "Malaria_Phase2_Baseline_Hypothesis_filled.pptx"))
     ap.add_argument("--slide", type=int, help="slide number (default: search the whole deck)")
     args = ap.parse_args()
 
