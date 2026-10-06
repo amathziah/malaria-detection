@@ -1,0 +1,128 @@
+{
+  "experiment": "A0_10fold",
+  "split": "image (paper: 20 % hold-out + stratified 10-fold)",
+  "preprocess": "none (paper's albumentations augmentation)",
+  "config": {
+    "N_FOLDS": 10,
+    "SEED": 1234,
+    "KFOLD": 10,
+    "KFOLD_SEED": 50,
+    "EPOCHS": 33,
+    "BATCH_SIZE": 16,
+    "IMG_SIZE": 224,
+    "LR": 0.0001,
+    "LR_FACTOR": 0.5,
+    "PATIENCE": 6,
+    "MIN_LR": 1e-06,
+    "LABEL_SMOOTHING": 0.1,
+    "VAL_FRACTION": 0.2,
+    "WEIGHTS": "noisy-student",
+    "DENSE": [
+      128,
+      64,
+      32
+    ],
+    "DROPOUT": 0.3
+  },
+  "n_images": 27558,
+  "n_slides": 200,
+  "folds_run": 10,
+  "split_fingerprint": "a0cc112e4a820ffb",
+  "mean_fold": {
+    "accuracy": 97.55,
+    "precision": 98.04,
+    "recall": 97.06,
+    "specificity": 98.04,
+    "f1": 97.54,
+    "auc": 99.61,
+    "mcc": 95.11
+  },
+  "sd_fold": {
+    "accuracy": 0.3,
+    "precision": 0.29,
+    "recall": 0.54,
+    "specificity": 0.29,
+    "f1": 0.31,
+    "auc": 0.1,
+    "mcc": 0.6
+  },
+  "holdout_mean": {
+    "accuracy": 97.37,
+    "precision": 97.79,
+    "recall": 96.88,
+    "specificity": 97.85,
+    "f1": 97.33,
+    "auc": 99.52,
+    "mcc": 94.74
+  },
+  "ensemble": {
+    "accuracy": 97.62,
+    "precision": 98.11,
+    "recall": 97.07,
+    "specificity": 98.17,
+    "f1": 97.59,
+    "auc": 99.73,
+    "mcc": 95.25,
+    "TP": 2650,
+    "TN": 2731,
+    "FP": 51,
+    "FN": 80
+  },
+  "ensemble_clean": {
+    "accuracy": 97.64,
+    "precision": 98.04,
+    "recall": 97.18,
+    "specificity": 98.09,
+    "f1": 97.61,
+    "auc": 99.68,
+    "mcc": 95.29,
+    "TP": 2653,
+    "TN": 2729,
+    "FP": 53,
+    "FN": 77
+  },
+  "mean_fold_clean": {
+    "accuracy": 97.78,
+    "precision": 98.24,
+    "recall": 97.32,
+    "specificity": 98.24,
+    "f1": 97.78,
+    "auc": 99.66,
+    "mcc": 95.57
+  },
+  "paper": {
+    "mean_fold_accuracy": 97.56,
+    "holdout_mean_accuracy": 97.69,
+    "accuracy": 98.29,
+    "recall": 97.74,
+    "precision": 98.82,
+    "f1": 98.28,
+    "auc": 99.76,
+    "specificity": 98.84
+  },
+  "minutes_per_fold": [
+    10.9,
+    10.5,
+    11.1,
+    16.6,
+    10.6,
+    10.8,
+    10.7,
+    10.9,
+    10.6,
+    10.5
+  ],
+  "gpus": [
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090",
+    "NVIDIA GeForce RTX 4090"
+  ],
+  "notes": "paper protocol = evaluation on augmented images, as in the paper's code; *_clean = un-augmented"
+}

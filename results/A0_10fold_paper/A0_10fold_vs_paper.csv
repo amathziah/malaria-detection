@@ -1,0 +1,10 @@
+Metric,Paper,Ours (paper),Ours (clean),Δ paper protocol (pp)
+Mean CV-fold accuracy (Table 5),97.56,97.55,97.78,-0.01
+Mean single-model hold-out accuracy (Table 6),97.69,97.37,97.48,-0.32
+Mean single-model hold-out ROC-AUC (Table 6),99.65,99.52,99.52,-0.13
+Ensemble accuracy,98.29,97.62,97.64,-0.67
+Ensemble recall (parasitized),97.74,97.07,97.18,-0.67
+Ensemble precision (parasitized),98.82,98.11,98.04,-0.71
+Ensemble F1 (parasitized),98.28,97.59,97.61,-0.69
+Ensemble specificity (uninfected recall),98.84,98.17,98.09,-0.67
+Ensemble ROC-AUC,99.76,99.73,99.68,-0.03
