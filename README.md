@@ -165,7 +165,7 @@ python -m pytest tests/ -q        # in the pinned environment; ~15 s on a laptop
   with a glossary and a one-page presentation cheat sheet.
 - [Project report](docs/report.md): method, results, deviations from the paper, findings.
 - [Results guide](results/README.md): every output file explained.
-- [Slides](slides/): a full 30-slide deck and an 11-slide short version, both with speaker notes.
+- [Slides](slides/): a full 31-slide deck and a 13-slide short version, both with speaker notes and PDF copies.
 
 ## Team
 

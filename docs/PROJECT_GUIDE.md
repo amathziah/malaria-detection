@@ -292,7 +292,7 @@ The paper trained on a laptop GTX 1050: **4 h 46 min per fold on average, 1 day 
 
 ![Speed-ups](figures/speedups.png)
 
-**Result:** about 19 s per epoch and **10.8 minutes per fold** (median; one slower host took 16.6 min) — about 26× faster per fold than the paper's run, with the same recipe. The whole cloud run cost about $4.8.
+**Result:** about 19 s per epoch and about **11 minutes per fold** (mean 11.3, median 10.8; one slower host took 16.6 min) — about 25× faster per fold than the paper's 4 h 46 min, with the same recipe. The whole cloud run cost about $4.8.
 
 > 💡 **What is a GPU / CUDA / cuDNN?** A GPU runs thousands of small calculations at once. CUDA is NVIDIA's programming platform for GPUs; cuDNN is NVIDIA's library of fast deep-learning operations (convolutions etc.) that TensorFlow calls.
 >
@@ -725,7 +725,7 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 | **4,223,934** | parameters (4,181,918 trainable) — exactly the paper's Table 2 | **99.73 %** | ensemble ROC-AUC (paper 99.76 %) |
 | **10 × 33 × 1,240** | folds × epochs × steps of 16 images | **97.07 %** | ensemble recall (paper 97.74 % — its text wrongly says 98.82 %) |
 | **97.55 %** | mean fold accuracy (paper 97.56 %) | **80 / 51** | infected cells missed / healthy cells flagged, out of 5,512 |
-| **32** | automated tests proving the recipe matches the paper | **10.8 min** | per fold on an RTX 4090 (paper: 4 h 46 min on a GTX 1050) |
+| **32** | automated tests proving the recipe matches the paper | **≈ 11 min** | per fold on an RTX 4090 (mean 11.3; paper: 4 h 46 min on a GTX 1050) |
 
 **6 sentences**
 
