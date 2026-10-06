@@ -292,7 +292,7 @@ The paper trained on a laptop GTX 1050: **4 h 46 min per fold on average, 1 day 
 
 ![Speed-ups](figures/speedups.png)
 
-**Result:** about 19 s per epoch and about **11 minutes per fold** (mean 11.3, median 10.8; one slower host took 16.6 min) — about 25× faster per fold than the paper's 4 h 46 min, with the same recipe. The whole cloud run cost about $4.8.
+**Result:** about 19 s per epoch and about **11 minutes per fold** (mean 11.3, median 10.8; one slower host took 16.6 min) — about 25× faster per fold than the paper's 4 h 46 min, with the same recipe.
 
 > 💡 **What is a GPU / CUDA / cuDNN?** A GPU runs thousands of small calculations at once. CUDA is NVIDIA's programming platform for GPUs; cuDNN is NVIDIA's library of fast deep-learning operations (convolutions etc.) that TensorFlow calls.
 >
