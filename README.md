@@ -182,7 +182,9 @@ Rishihood University. Course project, Phase 2.
 
 - G. Marques, A. Ferreras, I. de la Torre-Díez, "An ensemble-based approach for automated medical diagnosis of malaria
   using EfficientNet," *Multimedia Tools and Applications*, 81, 28061–28078, 2022. doi:10.1007/s11042-022-12624-6 ·
-  [PDF](https://drive.google.com/file/d/1kMiYQorrZFmbL632-3BGuVndGzLHqF6o/view?usp=sharing)
+  [PDF](https://drive.google.com/file/d/1kMiYQorrZFmbL632-3BGuVndGzLHqF6o/view?usp=sharing) ·
+  [Authors' code](https://static-content.springer.com/esm/art%3A10.1007%2Fs11042-022-12624-6/MediaObjects/11042_2022_12624_MOESM1_ESM.pdf)
+  (Springer supplementary file MOESM1: their executed notebook, which our 10-fold reproduction follows)
 - S. Rajaraman et al., "Pre-trained convolutional neural networks as feature extractors toward improved malaria parasite
   detection in thin blood smear images," *PeerJ*, 6:e4568, 2018 (the NIH Malaria Cell Images dataset) ·
   [PDF](https://drive.google.com/file/d/1DLsZUgCazbFQD3RCq2p3JH9yNGUq7_Yr/view?usp=sharing)
