@@ -1,0 +1,790 @@
+[22:27:29] train-A1-fold-7
+Input Notebook:  Phase3_Ablation_A1_A3.ipynb
+Output Notebook: /workspace/out/executed/A1_fold_7.ipynb
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+Executing notebook with kernel: paper311
+Executing Cell 1---------------------------------------
+Ending Cell 1------------------------------------------
+Executing Cell 2---------------------------------------
+Ending Cell 2------------------------------------------
+Executing Cell 3---------------------------------------
+Ending Cell 3------------------------------------------
+Executing Cell 4---------------------------------------
+Ending Cell 4------------------------------------------
+Executing Cell 5---------------------------------------
+      split preprocess                                           question
+A0    image       none                     Baseline: the paper's protocol
+A1  patient       none  H1: how much does patient leakage inflate the ...
+A2  patient        yuv  H2: does YUV stain normalisation help on unsee...
+A3    image        yuv  Control: does YUV change anything when patient...
+Recipe (A0's, from the paper's code): {"SEED": 1234, "KFOLD": 10, "KFOLD_SEED": 50, "EPOCHS": 33, "BATCH_SIZE": 16, "IMG_SIZE": 224, "LR": 0.0001, "LR_FACTOR": 0.5, "PATIENCE": 6, "MIN_LR": 1e-06, "LABEL_SMOOTHING": 0.1, "VAL_FRACTION": 0.2, "WEIGHTS": "noisy-student", "DENSE": [128, 64, 32], "DROPOUT": 0.3}
+Experiments here: ['A1'] | folds to train: [7]
+
+Ending Cell 5------------------------------------------
+Executing Cell 6---------------------------------------
+Ending Cell 6------------------------------------------
+Executing Cell 7---------------------------------------
+Images: 27,558 {'Parasitized': 13779, 'Uninfected': 13779}
+A1: patient split, fingerprint ff94f8c3b200e708 (committed: ff94f8c3b200e708)
+
+patient split
+
+                           cells  patients parasitized
+part                                                  
+learning set (10-fold CV)  22008       160      49.8 %
+hold-out set                5550        40      50.7 %
+fold 0: test part           3245        16      66.6 %
+fold 1: test part           1661        16      29.8 %
+fold 2: test part           2887        15      64.1 %
+fold 3: test part           2194        16      49.3 %
+fold 4: test part           1892        16      41.5 %
+fold 5: test part           2005        17      42.4 %
+fold 6: test part           3011        16      63.8 %
+fold 7: test part           1432        16      23.4 %
+fold 8: test part           2080        16      47.1 %
+fold 9: test part           1601        16      31.5 %
+Ending Cell 7------------------------------------------
+Executing Cell 8---------------------------------------
+Ending Cell 8------------------------------------------
+Executing Cell 9---------------------------------------
+Ending Cell 9------------------------------------------
+Executing Cell 10--------------------------------------
+Ending Cell 10-----------------------------------------
+Executing Cell 11--------------------------------------
+Image cache (none) built in 3 s
+
+2026-11-01 22:27:37.667229: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2026-11-01 22:27:37.667310: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-11-01 22:27:37.669008: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+************************************************** 
+** A1 · patient split · preprocess=none · fold 7   (25 augmentation workers)
+Found 20576 / 1432 / 5550 images (train / test / hold-out)
+
+2026-11-01 22:27:37.667229: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2026-11-01 22:27:37.667310: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-11-01 22:27:37.669008: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+
+2026-11-01 22:27:38.658443: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-11-01 22:27:38.658443: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+
+Downloading data from https://github.com/qubvel/efficientnet/releases/download/v0.0.1/efficientnet-b0_noisy-student_notop.h5
+
+    8192/16696600 [..............................] - ETA: 0s
+ 5668864/16696600 [=========>....................] - ETA: 0s
+10493952/16696600 [=================>............] - ETA: 0s
+13877248/16696600 [=======================>......] - ETA: 0s
+16696600/16696600 [==============================] - 0s 0us/step
+
+Epoch 1/33
+
+2026-11-01 22:27:51.222601: W tensorflow/compiler/tf2xla/kernels/random_ops.cc:59] Warning: Using tf.random.uniform with XLA compilation will ignore seeds; consider using tf.random.stateless_uniform instead if reproducible behavior is desired. efficientnetb0_marques2022/efficientnet-b0/block2b_drop/dropout/random_uniform/RandomUniform
+2026-11-01 22:27:51.222601: W tensorflow/compiler/tf2xla/kernels/random_ops.cc:59] Warning: Using tf.random.uniform with XLA compilation will ignore seeds; consider using tf.random.stateless_uniform instead if reproducible behavior is desired. efficientnetb0_marques2022/efficientnet-b0/block2b_drop/dropout/random_uniform/RandomUniform
+
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793572104.957199    1807 device_compiler.h:186] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793572104.957199    1807 device_compiler.h:186] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+
+1286/1286 - 74s - loss: 0.3533 - accuracy: 0.9218 - val_loss: 0.2585 - val_accuracy: 0.9658 - lr: 1.0000e-04 - epoch_seconds: 74.2527 - 74s/epoch - 58ms/step
+
+Epoch 2/33
+
+1286/1286 - 30s - loss: 0.2950 - accuracy: 0.9596 - val_loss: 0.2643 - val_accuracy: 0.9637 - lr: 1.0000e-04 - epoch_seconds: 29.9220 - 30s/epoch - 23ms/step
+
+Epoch 3/33
+
+1286/1286 - 31s - loss: 0.2836 - accuracy: 0.9626 - val_loss: 0.2539 - val_accuracy: 0.9679 - lr: 1.0000e-04 - epoch_seconds: 31.0739 - 31s/epoch - 24ms/step
+
+Epoch 4/33
+
+1286/1286 - 30s - loss: 0.2762 - accuracy: 0.9659 - val_loss: 0.2516 - val_accuracy: 0.9672 - lr: 1.0000e-04 - epoch_seconds: 30.3899 - 30s/epoch - 24ms/step
+
+Epoch 5/33
+
+1286/1286 - 30s - loss: 0.2704 - accuracy: 0.9676 - val_loss: 0.2467 - val_accuracy: 0.9777 - lr: 1.0000e-04 - epoch_seconds: 30.1295 - 30s/epoch - 23ms/step
+
+Epoch 6/33
+
+1286/1286 - 31s - loss: 0.2695 - accuracy: 0.9684 - val_loss: 0.2495 - val_accuracy: 0.9714 - lr: 1.0000e-04 - epoch_seconds: 30.8246 - 31s/epoch - 24ms/step
+
+Epoch 7/33
+
+1286/1286 - 29s - loss: 0.2643 - accuracy: 0.9706 - val_loss: 0.2533 - val_accuracy: 0.9707 - lr: 1.0000e-04 - epoch_seconds: 28.9512 - 29s/epoch - 23ms/step
+
+Epoch 8/33
+
+1286/1286 - 31s - loss: 0.2619 - accuracy: 0.9713 - val_loss: 0.2489 - val_accuracy: 0.9700 - lr: 1.0000e-04 - epoch_seconds: 30.7187 - 31s/epoch - 24ms/step
+
+Epoch 9/33
+
+1286/1286 - 31s - loss: 0.2601 - accuracy: 0.9718 - val_loss: 0.2481 - val_accuracy: 0.9700 - lr: 1.0000e-04 - epoch_seconds: 30.5441 - 31s/epoch - 24ms/step
+
+Epoch 10/33
+
+1286/1286 - 30s - loss: 0.2588 - accuracy: 0.9729 - val_loss: 0.2457 - val_accuracy: 0.9756 - lr: 1.0000e-04 - epoch_seconds: 30.2267 - 30s/epoch - 24ms/step
+
+Epoch 11/33
+
+1286/1286 - 31s - loss: 0.2578 - accuracy: 0.9736 - val_loss: 0.2467 - val_accuracy: 0.9707 - lr: 1.0000e-04 - epoch_seconds: 30.5236 - 31s/epoch - 24ms/step
+
+Epoch 12/33
+
+1286/1286 - 31s - loss: 0.2559 - accuracy: 0.9744 - val_loss: 0.2467 - val_accuracy: 0.9742 - lr: 1.0000e-04 - epoch_seconds: 30.6740 - 31s/epoch - 24ms/step
+
+Epoch 13/33
+
+1286/1286 - 30s - loss: 0.2553 - accuracy: 0.9744 - val_loss: 0.2476 - val_accuracy: 0.9749 - lr: 1.0000e-04 - epoch_seconds: 30.3604 - 30s/epoch - 24ms/step
+
+Epoch 14/33
+
+1286/1286 - 30s - loss: 0.2543 - accuracy: 0.9751 - val_loss: 0.2448 - val_accuracy: 0.9735 - lr: 1.0000e-04 - epoch_seconds: 30.1420 - 30s/epoch - 23ms/step
+
+Epoch 15/33
+
+1286/1286 - 31s - loss: 0.2528 - accuracy: 0.9748 - val_loss: 0.2415 - val_accuracy: 0.9735 - lr: 1.0000e-04 - epoch_seconds: 31.1689 - 31s/epoch - 24ms/step
+
+Epoch 16/33
+
+1286/1286 - 30s - loss: 0.2524 - accuracy: 0.9756 - val_loss: 0.2461 - val_accuracy: 0.9735 - lr: 1.0000e-04 - epoch_seconds: 30.0294 - 30s/epoch - 23ms/step
+
+Epoch 17/33
+
+1286/1286 - 31s - loss: 0.2498 - accuracy: 0.9762 - val_loss: 0.2352 - val_accuracy: 0.9804 - lr: 1.0000e-04 - epoch_seconds: 31.2303 - 31s/epoch - 24ms/step
+
+Epoch 18/33
+
+1286/1286 - 30s - loss: 0.2479 - accuracy: 0.9774 - val_loss: 0.2498 - val_accuracy: 0.9700 - lr: 1.0000e-04 - epoch_seconds: 30.3751 - 30s/epoch - 24ms/step
+
+Epoch 19/33
+
+1286/1286 - 30s - loss: 0.2479 - accuracy: 0.9780 - val_loss: 0.2444 - val_accuracy: 0.9763 - lr: 1.0000e-04 - epoch_seconds: 30.3449 - 30s/epoch - 24ms/step
+
+Epoch 20/33
+
+1286/1286 - 31s - loss: 0.2472 - accuracy: 0.9781 - val_loss: 0.2486 - val_accuracy: 0.9721 - lr: 1.0000e-04 - epoch_seconds: 30.9257 - 31s/epoch - 24ms/step
+
+Epoch 21/33
+
+1286/1286 - 31s - loss: 0.2460 - accuracy: 0.9786 - val_loss: 0.2434 - val_accuracy: 0.9763 - lr: 1.0000e-04 - epoch_seconds: 30.6548 - 31s/epoch - 24ms/step
+
+Epoch 22/33
+
+1286/1286 - 31s - loss: 0.2441 - accuracy: 0.9791 - val_loss: 0.2404 - val_accuracy: 0.9791 - lr: 1.0000e-04 - epoch_seconds: 30.6753 - 31s/epoch - 24ms/step
+
+Epoch 23/33
+
+1286/1286 - 31s - loss: 0.2457 - accuracy: 0.9782 - val_loss: 0.2396 - val_accuracy: 0.9749 - lr: 1.0000e-04 - epoch_seconds: 30.5119 - 31s/epoch - 24ms/step
+
+Epoch 24/33
+
+1286/1286 - 31s - loss: 0.2406 - accuracy: 0.9825 - val_loss: 0.2376 - val_accuracy: 0.9777 - lr: 5.0000e-05 - epoch_seconds: 30.6707 - 31s/epoch - 24ms/step
+
+Epoch 25/33
+
+1286/1286 - 31s - loss: 0.2373 - accuracy: 0.9830 - val_loss: 0.2414 - val_accuracy: 0.9791 - lr: 5.0000e-05 - epoch_seconds: 30.5190 - 31s/epoch - 24ms/step
+
+Epoch 26/33
+
+1286/1286 - 31s - loss: 0.2382 - accuracy: 0.9831 - val_loss: 0.2499 - val_accuracy: 0.9679 - lr: 5.0000e-05 - epoch_seconds: 31.4763 - 31s/epoch - 24ms/step
+
+Epoch 27/33
+
+1286/1286 - 30s - loss: 0.2364 - accuracy: 0.9835 - val_loss: 0.2425 - val_accuracy: 0.9770 - lr: 5.0000e-05 - epoch_seconds: 30.4286 - 30s/epoch - 24ms/step
+
+Epoch 28/33
+
+1286/1286 - 30s - loss: 0.2370 - accuracy: 0.9829 - val_loss: 0.2455 - val_accuracy: 0.9735 - lr: 5.0000e-05 - epoch_seconds: 30.3549 - 30s/epoch - 24ms/step
+
+Epoch 29/33
+
+1286/1286 - 30s - loss: 0.2350 - accuracy: 0.9836 - val_loss: 0.2368 - val_accuracy: 0.9804 - lr: 5.0000e-05 - epoch_seconds: 30.3645 - 30s/epoch - 24ms/step
+
+Epoch 30/33
+
+1286/1286 - 31s - loss: 0.2344 - accuracy: 0.9851 - val_loss: 0.2418 - val_accuracy: 0.9749 - lr: 2.5000e-05 - epoch_seconds: 30.6291 - 31s/epoch - 24ms/step
+
+Epoch 31/33
+
+1286/1286 - 31s - loss: 0.2317 - accuracy: 0.9862 - val_loss: 0.2440 - val_accuracy: 0.9770 - lr: 2.5000e-05 - epoch_seconds: 30.7555 - 31s/epoch - 24ms/step
+
+Epoch 32/33
+
+1286/1286 - 30s - loss: 0.2322 - accuracy: 0.9861 - val_loss: 0.2379 - val_accuracy: 0.9777 - lr: 2.5000e-05 - epoch_seconds: 30.4880 - 30s/epoch - 24ms/step
+
+Epoch 33/33
+
+1286/1286 - 30s - loss: 0.2323 - accuracy: 0.9856 - val_loss: 0.2449 - val_accuracy: 0.9756 - lr: 2.5000e-05 - epoch_seconds: 30.4511 - 30s/epoch - 24ms/step
+
+Predicting... (CV test part, clean) 
+Accuracy 0.976257
+              precision    recall  f1-score   support
+
+ Parasitized   0.943953  0.955224  0.949555       335
+  Uninfected   0.986276  0.982680  0.984475      1097
+
+    accuracy                       0.976257      1432
+   macro avg   0.965115  0.968952  0.967015      1432
+weighted avg   0.976375  0.976257  0.976306      1432
+
+Validating... (hold-out set, clean) 
+Accuracy 0.981802
+              precision    recall  f1-score   support
+
+ Parasitized   0.989185  0.974778  0.981929      2815
+  Uninfected   0.974424  0.989031  0.981673      2735
+
+    accuracy                       0.981802      5550
+   macro avg   0.981804  0.981905  0.981801      5550
+weighted avg   0.981911  0.981802  0.981803      5550
+
+Validating... (hold-out set, augmented = paper protocol) 
+Accuracy 0.978739
+              precision    recall  f1-score   support
+
+ Parasitized   0.984201  0.973712  0.978929      2815
+  Uninfected   0.973237  0.983912  0.978545      2735
+
+    accuracy                       0.978739      5550
+   macro avg   0.978719  0.978812  0.978737      5550
+weighted avg   0.978798  0.978739  0.978740      5550
+
+Best epoch 17 of 33 · training 17.6 min (median epoch 31 s) · End of A1 fold 7 - Elapsed Time: 00:17:53
+
+Ending Cell 11-----------------------------------------
+Executing Cell 12--------------------------------------
+Ending Cell 12-----------------------------------------
+Executing Cell 13--------------------------------------
+A1: folds available [7]  → its tables need all 10 folds
+
+Ending Cell 13-----------------------------------------
+Executing Cell 14--------------------------------------
+Ending Cell 14-----------------------------------------
+Executing Cell 15--------------------------------------
+Ending Cell 15-----------------------------------------
+Executing Cell 16--------------------------------------
+Ending Cell 16-----------------------------------------
+Executing Cell 17--------------------------------------
+Ending Cell 17-----------------------------------------
+Executing Cell 18--------------------------------------
+Ending Cell 18-----------------------------------------
+[22:45:35] train-A2-fold-7
+Input Notebook:  Phase3_Ablation_A1_A3.ipynb
+Output Notebook: /workspace/out/executed/A2_fold_7.ipynb
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+Executing notebook with kernel: paper311
+Executing Cell 1---------------------------------------
+Ending Cell 1------------------------------------------
+Executing Cell 2---------------------------------------
+Ending Cell 2------------------------------------------
+Executing Cell 3---------------------------------------
+Ending Cell 3------------------------------------------
+Executing Cell 4---------------------------------------
+Ending Cell 4------------------------------------------
+Executing Cell 5---------------------------------------
+      split preprocess                                           question
+A0    image       none                     Baseline: the paper's protocol
+A1  patient       none  H1: how much does patient leakage inflate the ...
+A2  patient        yuv  H2: does YUV stain normalisation help on unsee...
+A3    image        yuv  Control: does YUV change anything when patient...
+Recipe (A0's, from the paper's code): {"SEED": 1234, "KFOLD": 10, "KFOLD_SEED": 50, "EPOCHS": 33, "BATCH_SIZE": 16, "IMG_SIZE": 224, "LR": 0.0001, "LR_FACTOR": 0.5, "PATIENCE": 6, "MIN_LR": 1e-06, "LABEL_SMOOTHING": 0.1, "VAL_FRACTION": 0.2, "WEIGHTS": "noisy-student", "DENSE": [128, 64, 32], "DROPOUT": 0.3}
+Experiments here: ['A2'] | folds to train: [7]
+
+Ending Cell 5------------------------------------------
+Executing Cell 6---------------------------------------
+Ending Cell 6------------------------------------------
+Executing Cell 7---------------------------------------
+Images: 27,558 {'Parasitized': 13779, 'Uninfected': 13779}
+A2: patient split, fingerprint ff94f8c3b200e708 (committed: ff94f8c3b200e708)
+
+patient split
+
+                           cells  patients parasitized
+part                                                  
+learning set (10-fold CV)  22008       160      49.8 %
+hold-out set                5550        40      50.7 %
+fold 0: test part           3245        16      66.6 %
+fold 1: test part           1661        16      29.8 %
+fold 2: test part           2887        15      64.1 %
+fold 3: test part           2194        16      49.3 %
+fold 4: test part           1892        16      41.5 %
+fold 5: test part           2005        17      42.4 %
+fold 6: test part           3011        16      63.8 %
+fold 7: test part           1432        16      23.4 %
+fold 8: test part           2080        16      47.1 %
+fold 9: test part           1601        16      31.5 %
+Ending Cell 7------------------------------------------
+Executing Cell 8---------------------------------------
+Ending Cell 8------------------------------------------
+Executing Cell 9---------------------------------------
+Ending Cell 9------------------------------------------
+Executing Cell 10--------------------------------------
+Ending Cell 10-----------------------------------------
+Executing Cell 11--------------------------------------
+Image cache (yuv) built in 3 s
+
+2026-11-01 22:45:41.218288: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2026-11-01 22:45:41.218366: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-11-01 22:45:41.219997: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+************************************************** 
+** A2 · patient split · preprocess=yuv · fold 7   (25 augmentation workers)
+Found 20576 / 1432 / 5550 images (train / test / hold-out)
+
+2026-11-01 22:45:41.218288: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2026-11-01 22:45:41.218366: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-11-01 22:45:41.219997: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+
+2026-11-01 22:45:42.174454: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-11-01 22:45:42.174454: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+
+Epoch 1/33
+
+2026-11-01 22:45:54.166528: W tensorflow/compiler/tf2xla/kernels/random_ops.cc:59] Warning: Using tf.random.uniform with XLA compilation will ignore seeds; consider using tf.random.stateless_uniform instead if reproducible behavior is desired. efficientnetb0_marques2022/efficientnet-b0/block2b_drop/dropout/random_uniform/RandomUniform
+2026-11-01 22:45:54.166528: W tensorflow/compiler/tf2xla/kernels/random_ops.cc:59] Warning: Using tf.random.uniform with XLA compilation will ignore seeds; consider using tf.random.stateless_uniform instead if reproducible behavior is desired. efficientnetb0_marques2022/efficientnet-b0/block2b_drop/dropout/random_uniform/RandomUniform
+
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793573187.291147   31824 device_compiler.h:186] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793573187.291147   31824 device_compiler.h:186] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+
+1286/1286 - 75s - loss: 0.3650 - accuracy: 0.9133 - val_loss: 0.2760 - val_accuracy: 0.9574 - lr: 1.0000e-04 - epoch_seconds: 75.0725 - 75s/epoch - 58ms/step
+
+Epoch 2/33
+
+1286/1286 - 32s - loss: 0.2990 - accuracy: 0.9565 - val_loss: 0.2614 - val_accuracy: 0.9651 - lr: 1.0000e-04 - epoch_seconds: 31.8516 - 32s/epoch - 25ms/step
+
+Epoch 3/33
+
+1286/1286 - 32s - loss: 0.2869 - accuracy: 0.9610 - val_loss: 0.2521 - val_accuracy: 0.9672 - lr: 1.0000e-04 - epoch_seconds: 31.5777 - 32s/epoch - 25ms/step
+
+Epoch 4/33
+
+1286/1286 - 32s - loss: 0.2784 - accuracy: 0.9651 - val_loss: 0.2521 - val_accuracy: 0.9693 - lr: 1.0000e-04 - epoch_seconds: 32.2669 - 32s/epoch - 25ms/step
+
+Epoch 5/33
+
+1286/1286 - 31s - loss: 0.2713 - accuracy: 0.9668 - val_loss: 0.2497 - val_accuracy: 0.9777 - lr: 1.0000e-04 - epoch_seconds: 30.8875 - 31s/epoch - 24ms/step
+
+Epoch 6/33
+
+1286/1286 - 31s - loss: 0.2702 - accuracy: 0.9676 - val_loss: 0.2544 - val_accuracy: 0.9686 - lr: 1.0000e-04 - epoch_seconds: 31.1487 - 31s/epoch - 24ms/step
+
+Epoch 7/33
+
+1286/1286 - 31s - loss: 0.2653 - accuracy: 0.9702 - val_loss: 0.2479 - val_accuracy: 0.9707 - lr: 1.0000e-04 - epoch_seconds: 31.0354 - 31s/epoch - 24ms/step
+
+Epoch 8/33
+
+1286/1286 - 29s - loss: 0.2637 - accuracy: 0.9713 - val_loss: 0.2514 - val_accuracy: 0.9693 - lr: 1.0000e-04 - epoch_seconds: 28.9030 - 29s/epoch - 22ms/step
+
+Epoch 9/33
+
+1286/1286 - 32s - loss: 0.2598 - accuracy: 0.9723 - val_loss: 0.2454 - val_accuracy: 0.9721 - lr: 1.0000e-04 - epoch_seconds: 31.6379 - 32s/epoch - 25ms/step
+
+Epoch 10/33
+
+1286/1286 - 31s - loss: 0.2589 - accuracy: 0.9735 - val_loss: 0.2418 - val_accuracy: 0.9784 - lr: 1.0000e-04 - epoch_seconds: 31.3213 - 31s/epoch - 24ms/step
+
+Epoch 11/33
+
+1286/1286 - 31s - loss: 0.2574 - accuracy: 0.9741 - val_loss: 0.2418 - val_accuracy: 0.9756 - lr: 1.0000e-04 - epoch_seconds: 30.6922 - 31s/epoch - 24ms/step
+
+Epoch 12/33
+
+1286/1286 - 31s - loss: 0.2564 - accuracy: 0.9742 - val_loss: 0.2379 - val_accuracy: 0.9797 - lr: 1.0000e-04 - epoch_seconds: 31.2070 - 31s/epoch - 24ms/step
+
+Epoch 13/33
+
+1286/1286 - 31s - loss: 0.2532 - accuracy: 0.9751 - val_loss: 0.2520 - val_accuracy: 0.9693 - lr: 1.0000e-04 - epoch_seconds: 31.1003 - 31s/epoch - 24ms/step
+
+Epoch 14/33
+
+1286/1286 - 31s - loss: 0.2538 - accuracy: 0.9757 - val_loss: 0.2448 - val_accuracy: 0.9707 - lr: 1.0000e-04 - epoch_seconds: 31.0774 - 31s/epoch - 24ms/step
+
+Epoch 15/33
+
+1286/1286 - 31s - loss: 0.2511 - accuracy: 0.9768 - val_loss: 0.2463 - val_accuracy: 0.9714 - lr: 1.0000e-04 - epoch_seconds: 31.0405 - 31s/epoch - 24ms/step
+
+Epoch 16/33
+
+1286/1286 - 31s - loss: 0.2504 - accuracy: 0.9775 - val_loss: 0.2467 - val_accuracy: 0.9735 - lr: 1.0000e-04 - epoch_seconds: 30.6794 - 31s/epoch - 24ms/step
+
+Epoch 17/33
+
+1286/1286 - 31s - loss: 0.2484 - accuracy: 0.9784 - val_loss: 0.2432 - val_accuracy: 0.9742 - lr: 1.0000e-04 - epoch_seconds: 31.1377 - 31s/epoch - 24ms/step
+
+Epoch 18/33
+
+1286/1286 - 31s - loss: 0.2474 - accuracy: 0.9792 - val_loss: 0.2419 - val_accuracy: 0.9770 - lr: 1.0000e-04 - epoch_seconds: 30.5761 - 31s/epoch - 24ms/step
+
+Epoch 19/33
+
+1286/1286 - 31s - loss: 0.2426 - accuracy: 0.9817 - val_loss: 0.2503 - val_accuracy: 0.9707 - lr: 5.0000e-05 - epoch_seconds: 30.7762 - 31s/epoch - 24ms/step
+
+Epoch 20/33
+
+1286/1286 - 31s - loss: 0.2412 - accuracy: 0.9811 - val_loss: 0.2429 - val_accuracy: 0.9763 - lr: 5.0000e-05 - epoch_seconds: 30.9075 - 31s/epoch - 24ms/step
+
+Epoch 21/33
+
+1286/1286 - 31s - loss: 0.2386 - accuracy: 0.9838 - val_loss: 0.2432 - val_accuracy: 0.9749 - lr: 5.0000e-05 - epoch_seconds: 30.8624 - 31s/epoch - 24ms/step
+
+Epoch 22/33
+
+1286/1286 - 31s - loss: 0.2386 - accuracy: 0.9830 - val_loss: 0.2406 - val_accuracy: 0.9777 - lr: 5.0000e-05 - epoch_seconds: 30.6562 - 31s/epoch - 24ms/step
+
+Epoch 23/33
+
+1286/1286 - 30s - loss: 0.2387 - accuracy: 0.9833 - val_loss: 0.2356 - val_accuracy: 0.9784 - lr: 5.0000e-05 - epoch_seconds: 30.4279 - 30s/epoch - 24ms/step
+
+Epoch 24/33
+
+1286/1286 - 30s - loss: 0.2361 - accuracy: 0.9850 - val_loss: 0.2449 - val_accuracy: 0.9756 - lr: 5.0000e-05 - epoch_seconds: 30.4364 - 30s/epoch - 24ms/step
+
+Epoch 25/33
+
+1286/1286 - 31s - loss: 0.2361 - accuracy: 0.9846 - val_loss: 0.2423 - val_accuracy: 0.9742 - lr: 5.0000e-05 - epoch_seconds: 30.6559 - 31s/epoch - 24ms/step
+
+Epoch 26/33
+
+1286/1286 - 31s - loss: 0.2354 - accuracy: 0.9845 - val_loss: 0.2473 - val_accuracy: 0.9714 - lr: 5.0000e-05 - epoch_seconds: 30.6870 - 31s/epoch - 24ms/step
+
+Epoch 27/33
+
+1286/1286 - 31s - loss: 0.2343 - accuracy: 0.9866 - val_loss: 0.2508 - val_accuracy: 0.9707 - lr: 5.0000e-05 - epoch_seconds: 30.7919 - 31s/epoch - 24ms/step
+
+Epoch 28/33
+
+1286/1286 - 31s - loss: 0.2356 - accuracy: 0.9844 - val_loss: 0.2449 - val_accuracy: 0.9763 - lr: 5.0000e-05 - epoch_seconds: 31.1302 - 31s/epoch - 24ms/step
+
+Epoch 29/33
+
+1286/1286 - 30s - loss: 0.2317 - accuracy: 0.9867 - val_loss: 0.2507 - val_accuracy: 0.9693 - lr: 5.0000e-05 - epoch_seconds: 29.9393 - 30s/epoch - 23ms/step
+
+Epoch 30/33
+
+1286/1286 - 28s - loss: 0.2336 - accuracy: 0.9857 - val_loss: 0.2460 - val_accuracy: 0.9770 - lr: 2.5000e-05 - epoch_seconds: 28.2894 - 28s/epoch - 22ms/step
+
+Epoch 31/33
+
+1286/1286 - 29s - loss: 0.2319 - accuracy: 0.9869 - val_loss: 0.2536 - val_accuracy: 0.9700 - lr: 2.5000e-05 - epoch_seconds: 29.0981 - 29s/epoch - 23ms/step
+
+Epoch 32/33
+
+1286/1286 - 28s - loss: 0.2310 - accuracy: 0.9871 - val_loss: 0.2443 - val_accuracy: 0.9756 - lr: 2.5000e-05 - epoch_seconds: 28.3546 - 28s/epoch - 22ms/step
+
+Epoch 33/33
+
+1286/1286 - 29s - loss: 0.2294 - accuracy: 0.9877 - val_loss: 0.2462 - val_accuracy: 0.9735 - lr: 2.5000e-05 - epoch_seconds: 28.7849 - 29s/epoch - 22ms/step
+
+Predicting... (CV test part, clean) 
+Accuracy 0.974162
+              precision    recall  f1-score   support
+
+ Parasitized   0.935673  0.955224  0.945347       335
+  Uninfected   0.986239  0.979945  0.983082      1097
+
+    accuracy                       0.974162      1432
+   macro avg   0.960956  0.967585  0.964214      1432
+weighted avg   0.974409  0.974162  0.974254      1432
+
+Validating... (hold-out set, clean) 
+Accuracy 0.980541
+              precision    recall  f1-score   support
+
+ Parasitized   0.983911  0.977620  0.980756      2815
+  Uninfected   0.977116  0.983547  0.980321      2735
+
+    accuracy                       0.980541      5550
+   macro avg   0.980514  0.980583  0.980538      5550
+weighted avg   0.980563  0.980541  0.980541      5550
+
+Validating... (hold-out set, augmented = paper protocol) 
+Accuracy 0.976036
+              precision    recall  f1-score   support
+
+ Parasitized   0.976885  0.975844  0.976364      2815
+  Uninfected   0.975164  0.976234  0.975699      2735
+
+    accuracy                       0.976036      5550
+   macro avg   0.976025  0.976039  0.976031      5550
+weighted avg   0.976037  0.976036  0.976036      5550
+
+Best epoch 23 of 33 · training 17.6 min (median epoch 31 s) · End of A2 fold 7 - Elapsed Time: 00:17:57
+
+Ending Cell 11-----------------------------------------
+Executing Cell 12--------------------------------------
+Ending Cell 12-----------------------------------------
+Executing Cell 13--------------------------------------
+A2: folds available [7]  → its tables need all 10 folds
+
+Ending Cell 13-----------------------------------------
+Executing Cell 14--------------------------------------
+Ending Cell 14-----------------------------------------
+Executing Cell 15--------------------------------------
+Ending Cell 15-----------------------------------------
+Executing Cell 16--------------------------------------
+Ending Cell 16-----------------------------------------
+Executing Cell 17--------------------------------------
+Ending Cell 17-----------------------------------------
+Executing Cell 18--------------------------------------
+Ending Cell 18-----------------------------------------
+[23:03:42] train-A3-fold-7
+Input Notebook:  Phase3_Ablation_A1_A3.ipynb
+Output Notebook: /workspace/out/executed/A3_fold_7.ipynb
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+Executing notebook with kernel: paper311
+Executing Cell 1---------------------------------------
+Ending Cell 1------------------------------------------
+Executing Cell 2---------------------------------------
+Ending Cell 2------------------------------------------
+Executing Cell 3---------------------------------------
+Ending Cell 3------------------------------------------
+Executing Cell 4---------------------------------------
+Ending Cell 4------------------------------------------
+Executing Cell 5---------------------------------------
+      split preprocess                                           question
+A0    image       none                     Baseline: the paper's protocol
+A1  patient       none  H1: how much does patient leakage inflate the ...
+A2  patient        yuv  H2: does YUV stain normalisation help on unsee...
+A3    image        yuv  Control: does YUV change anything when patient...
+Recipe (A0's, from the paper's code): {"SEED": 1234, "KFOLD": 10, "KFOLD_SEED": 50, "EPOCHS": 33, "BATCH_SIZE": 16, "IMG_SIZE": 224, "LR": 0.0001, "LR_FACTOR": 0.5, "PATIENCE": 6, "MIN_LR": 1e-06, "LABEL_SMOOTHING": 0.1, "VAL_FRACTION": 0.2, "WEIGHTS": "noisy-student", "DENSE": [128, 64, 32], "DROPOUT": 0.3}
+Experiments here: ['A3'] | folds to train: [7]
+
+Ending Cell 5------------------------------------------
+Executing Cell 6---------------------------------------
+Ending Cell 6------------------------------------------
+Executing Cell 7---------------------------------------
+Images: 27,558 {'Parasitized': 13779, 'Uninfected': 13779}
+A3: image split, fingerprint a0cc112e4a820ffb (committed: a0cc112e4a820ffb)
+
+image split
+
+                           cells  patients parasitized
+part                                                  
+learning set (10-fold CV)  22046       200      50.1 %
+hold-out set                5512       200      49.5 %
+fold 0: test part           2205       198      50.1 %
+fold 1: test part           2205       198      50.1 %
+fold 2: test part           2205       200      50.1 %
+fold 3: test part           2205       199      50.1 %
+fold 4: test part           2205       200      50.1 %
+fold 5: test part           2205       200      50.1 %
+fold 6: test part           2204       200      50.1 %
+fold 7: test part           2204       200      50.1 %
+fold 8: test part           2204       200      50.1 %
+fold 9: test part           2204       200      50.1 %
+Ending Cell 7------------------------------------------
+Executing Cell 8---------------------------------------
+Ending Cell 8------------------------------------------
+Executing Cell 9---------------------------------------
+Ending Cell 9------------------------------------------
+Executing Cell 10--------------------------------------
+Ending Cell 10-----------------------------------------
+Executing Cell 11--------------------------------------
+2026-11-01 23:03:45.499539: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2026-11-01 23:03:45.499612: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-11-01 23:03:45.501010: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+************************************************** 
+** A3 · image split · preprocess=yuv · fold 7   (25 augmentation workers)
+Found 19842 / 2204 / 5512 images (train / test / hold-out)
+
+2026-11-01 23:03:45.499539: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2026-11-01 23:03:45.499612: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-11-01 23:03:45.501010: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+
+2026-11-01 23:03:46.448086: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-11-01 23:03:46.448086: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+
+Epoch 1/33
+
+2026-11-01 23:03:58.314091: W tensorflow/compiler/tf2xla/kernels/random_ops.cc:59] Warning: Using tf.random.uniform with XLA compilation will ignore seeds; consider using tf.random.stateless_uniform instead if reproducible behavior is desired. efficientnetb0_marques2022/efficientnet-b0/block2b_drop/dropout/random_uniform/RandomUniform
+2026-11-01 23:03:58.314091: W tensorflow/compiler/tf2xla/kernels/random_ops.cc:59] Warning: Using tf.random.uniform with XLA compilation will ignore seeds; consider using tf.random.stateless_uniform instead if reproducible behavior is desired. efficientnetb0_marques2022/efficientnet-b0/block2b_drop/dropout/random_uniform/RandomUniform
+
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793574272.529822   61691 device_compiler.h:186] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793574272.529822   61691 device_compiler.h:186] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+
+1240/1240 - 76s - loss: 0.3633 - accuracy: 0.9134 - val_loss: 0.2756 - val_accuracy: 0.9605 - lr: 1.0000e-04 - epoch_seconds: 75.7591 - 76s/epoch - 61ms/step
+
+Epoch 2/33
+
+1240/1240 - 31s - loss: 0.2933 - accuracy: 0.9606 - val_loss: 0.2604 - val_accuracy: 0.9664 - lr: 1.0000e-04 - epoch_seconds: 31.2544 - 31s/epoch - 25ms/step
+
+Epoch 3/33
+
+1240/1240 - 31s - loss: 0.2840 - accuracy: 0.9628 - val_loss: 0.2586 - val_accuracy: 0.9651 - lr: 1.0000e-04 - epoch_seconds: 31.2343 - 31s/epoch - 25ms/step
+
+Epoch 4/33
+
+1240/1240 - 31s - loss: 0.2721 - accuracy: 0.9692 - val_loss: 0.2576 - val_accuracy: 0.9687 - lr: 1.0000e-04 - epoch_seconds: 30.9539 - 31s/epoch - 25ms/step
+
+Epoch 5/33
+
+1240/1240 - 31s - loss: 0.2704 - accuracy: 0.9682 - val_loss: 0.2563 - val_accuracy: 0.9682 - lr: 1.0000e-04 - epoch_seconds: 30.7051 - 31s/epoch - 25ms/step
+
+Epoch 6/33
+
+1240/1240 - 31s - loss: 0.2654 - accuracy: 0.9717 - val_loss: 0.2561 - val_accuracy: 0.9701 - lr: 1.0000e-04 - epoch_seconds: 30.9833 - 31s/epoch - 25ms/step
+
+Epoch 7/33
+
+1240/1240 - 30s - loss: 0.2615 - accuracy: 0.9723 - val_loss: 0.2526 - val_accuracy: 0.9710 - lr: 1.0000e-04 - epoch_seconds: 30.4880 - 30s/epoch - 25ms/step
+
+Epoch 8/33
+
+1240/1240 - 31s - loss: 0.2610 - accuracy: 0.9725 - val_loss: 0.2518 - val_accuracy: 0.9746 - lr: 1.0000e-04 - epoch_seconds: 30.6824 - 31s/epoch - 25ms/step
+
+Epoch 9/33
+
+1240/1240 - 31s - loss: 0.2561 - accuracy: 0.9754 - val_loss: 0.2548 - val_accuracy: 0.9701 - lr: 1.0000e-04 - epoch_seconds: 30.7806 - 31s/epoch - 25ms/step
+
+Epoch 10/33
+
+1240/1240 - 31s - loss: 0.2551 - accuracy: 0.9751 - val_loss: 0.2515 - val_accuracy: 0.9714 - lr: 1.0000e-04 - epoch_seconds: 30.9698 - 31s/epoch - 25ms/step
+
+Epoch 11/33
+
+1240/1240 - 31s - loss: 0.2531 - accuracy: 0.9759 - val_loss: 0.2492 - val_accuracy: 0.9719 - lr: 1.0000e-04 - epoch_seconds: 30.8701 - 31s/epoch - 25ms/step
+
+Epoch 12/33
+
+1240/1240 - 31s - loss: 0.2512 - accuracy: 0.9762 - val_loss: 0.2526 - val_accuracy: 0.9737 - lr: 1.0000e-04 - epoch_seconds: 30.8352 - 31s/epoch - 25ms/step
+
+Epoch 13/33
+
+1240/1240 - 30s - loss: 0.2505 - accuracy: 0.9780 - val_loss: 0.2504 - val_accuracy: 0.9710 - lr: 1.0000e-04 - epoch_seconds: 30.4742 - 30s/epoch - 25ms/step
+
+Epoch 14/33
+
+1240/1240 - 31s - loss: 0.2496 - accuracy: 0.9778 - val_loss: 0.2440 - val_accuracy: 0.9760 - lr: 1.0000e-04 - epoch_seconds: 30.7678 - 31s/epoch - 25ms/step
+
+Epoch 15/33
+
+1240/1240 - 31s - loss: 0.2483 - accuracy: 0.9788 - val_loss: 0.2499 - val_accuracy: 0.9723 - lr: 1.0000e-04 - epoch_seconds: 31.0792 - 31s/epoch - 25ms/step
+
+Epoch 16/33
+
+1240/1240 - 31s - loss: 0.2480 - accuracy: 0.9788 - val_loss: 0.2470 - val_accuracy: 0.9746 - lr: 1.0000e-04 - epoch_seconds: 30.8369 - 31s/epoch - 25ms/step
+
+Epoch 17/33
+
+1240/1240 - 30s - loss: 0.2465 - accuracy: 0.9797 - val_loss: 0.2432 - val_accuracy: 0.9769 - lr: 1.0000e-04 - epoch_seconds: 30.2318 - 30s/epoch - 24ms/step
+
+Epoch 18/33
+
+1240/1240 - 31s - loss: 0.2433 - accuracy: 0.9814 - val_loss: 0.2479 - val_accuracy: 0.9764 - lr: 1.0000e-04 - epoch_seconds: 31.2156 - 31s/epoch - 25ms/step
+
+Epoch 19/33
+
+1240/1240 - 31s - loss: 0.2431 - accuracy: 0.9809 - val_loss: 0.2454 - val_accuracy: 0.9755 - lr: 1.0000e-04 - epoch_seconds: 30.9385 - 31s/epoch - 25ms/step
+
+Epoch 20/33
+
+1240/1240 - 31s - loss: 0.2428 - accuracy: 0.9816 - val_loss: 0.2464 - val_accuracy: 0.9760 - lr: 1.0000e-04 - epoch_seconds: 31.0998 - 31s/epoch - 25ms/step
+
+Epoch 21/33
+
+1240/1240 - 30s - loss: 0.2439 - accuracy: 0.9803 - val_loss: 0.2456 - val_accuracy: 0.9755 - lr: 1.0000e-04 - epoch_seconds: 30.4252 - 30s/epoch - 25ms/step
+
+Epoch 22/33
+
+1240/1240 - 32s - loss: 0.2425 - accuracy: 0.9818 - val_loss: 0.2491 - val_accuracy: 0.9710 - lr: 1.0000e-04 - epoch_seconds: 32.2998 - 32s/epoch - 26ms/step
+
+Epoch 23/33
+
+1240/1240 - 31s - loss: 0.2401 - accuracy: 0.9822 - val_loss: 0.2506 - val_accuracy: 0.9719 - lr: 1.0000e-04 - epoch_seconds: 30.6153 - 31s/epoch - 25ms/step
+
+Epoch 24/33
+
+1240/1240 - 30s - loss: 0.2362 - accuracy: 0.9851 - val_loss: 0.2462 - val_accuracy: 0.9741 - lr: 5.0000e-05 - epoch_seconds: 30.4774 - 30s/epoch - 25ms/step
+
+Epoch 25/33
+
+1240/1240 - 31s - loss: 0.2344 - accuracy: 0.9863 - val_loss: 0.2414 - val_accuracy: 0.9764 - lr: 5.0000e-05 - epoch_seconds: 30.9696 - 31s/epoch - 25ms/step
+
+Epoch 26/33
+
+1240/1240 - 31s - loss: 0.2333 - accuracy: 0.9863 - val_loss: 0.2436 - val_accuracy: 0.9764 - lr: 5.0000e-05 - epoch_seconds: 30.8486 - 31s/epoch - 25ms/step
+
+Epoch 27/33
+
+1240/1240 - 31s - loss: 0.2328 - accuracy: 0.9861 - val_loss: 0.2423 - val_accuracy: 0.9760 - lr: 5.0000e-05 - epoch_seconds: 31.0830 - 31s/epoch - 25ms/step
+
+Epoch 28/33
+
+1240/1240 - 31s - loss: 0.2314 - accuracy: 0.9870 - val_loss: 0.2434 - val_accuracy: 0.9760 - lr: 5.0000e-05 - epoch_seconds: 31.2132 - 31s/epoch - 25ms/step
+
+Epoch 29/33
+
+1240/1240 - 30s - loss: 0.2310 - accuracy: 0.9882 - val_loss: 0.2482 - val_accuracy: 0.9755 - lr: 5.0000e-05 - epoch_seconds: 30.4986 - 30s/epoch - 25ms/step
+
+Epoch 30/33
+
+1240/1240 - 31s - loss: 0.2307 - accuracy: 0.9866 - val_loss: 0.2498 - val_accuracy: 0.9723 - lr: 5.0000e-05 - epoch_seconds: 30.5157 - 31s/epoch - 25ms/step
+
+Epoch 31/33
+
+1240/1240 - 31s - loss: 0.2305 - accuracy: 0.9882 - val_loss: 0.2433 - val_accuracy: 0.9764 - lr: 5.0000e-05 - epoch_seconds: 30.9556 - 31s/epoch - 25ms/step
+
+Epoch 32/33
+
+1240/1240 - 31s - loss: 0.2275 - accuracy: 0.9888 - val_loss: 0.2507 - val_accuracy: 0.9728 - lr: 2.5000e-05 - epoch_seconds: 30.7352 - 31s/epoch - 25ms/step
+
+Epoch 33/33
+
+1240/1240 - 31s - loss: 0.2272 - accuracy: 0.9894 - val_loss: 0.2393 - val_accuracy: 0.9787 - lr: 2.5000e-05 - epoch_seconds: 30.9392 - 31s/epoch - 25ms/step
+
+Predicting... (CV test part, clean) 
+Accuracy 0.976407
+              precision    recall  f1-score   support
+
+ Parasitized   0.984361  0.968326  0.976277      1105
+  Uninfected   0.968666  0.984531  0.976534      1099
+
+    accuracy                       0.976407      2204
+   macro avg   0.976513  0.976429  0.976406      2204
+weighted avg   0.976535  0.976407  0.976405      2204
+
+Validating... (hold-out set, clean) 
+Accuracy 0.973512
+              precision    recall  f1-score   support
+
+ Parasitized   0.978164  0.968132  0.973122      2730
+  Uninfected   0.969039  0.978792  0.973891      2782
+
+    accuracy                       0.973512      5512
+   macro avg   0.973602  0.973462  0.973507      5512
+weighted avg   0.973559  0.973512  0.973510      5512
+
+Validating... (hold-out set, augmented = paper protocol) 
+Accuracy 0.973694
+              precision    recall  f1-score   support
+
+ Parasitized   0.979948  0.966667  0.973262      2730
+  Uninfected   0.967719  0.980590  0.974112      2782
+
+    accuracy                       0.973694      5512
+   macro avg   0.973834  0.973628  0.973687      5512
+weighted avg   0.973776  0.973694  0.973691      5512
+
+Best epoch 33 of 33 · training 17.8 min (median epoch 31 s) · End of A3 fold 7 - Elapsed Time: 00:18:06
+
+Ending Cell 11-----------------------------------------
+Executing Cell 12--------------------------------------
+Ending Cell 12-----------------------------------------
+Executing Cell 13--------------------------------------
+A3: folds available [7]  → its tables need all 10 folds
+
+Ending Cell 13-----------------------------------------
+Executing Cell 14--------------------------------------
+Ending Cell 14-----------------------------------------
+Executing Cell 15--------------------------------------
+Ending Cell 15-----------------------------------------
+Executing Cell 16--------------------------------------
+Ending Cell 16-----------------------------------------
+Executing Cell 17--------------------------------------
+Ending Cell 17-----------------------------------------
+Executing Cell 18--------------------------------------
+Ending Cell 18-----------------------------------------
+[23:21:56] done-fold-7

@@ -1,0 +1,59 @@
+{
+ "pods": {
+  "4": {
+   "fold": 4,
+   "id": "zw85z2342j1mc0",
+   "name": "malaria-ablation-fold4",
+   "created": 1793571962.5095758,
+   "costPerHr": 0.89,
+   "attempt": 1,
+   "ip": "213.173.109.5",
+   "port": 19636,
+   "gpu": null,
+   "vcpu": 16,
+   "ram": 61,
+   "setup": true,
+   "stage": "done-fold-4",
+   "started": 1793572204.921259,
+   "collected": true,
+   "ended": 1793574306.138138
+  },
+  "8": {
+   "fold": 8,
+   "id": "ci2bvcplkwqpxj",
+   "name": "malaria-ablation-fold8",
+   "created": 1793571962.710124,
+   "costPerHr": 0.89,
+   "attempt": 1,
+   "ip": "213.173.109.174",
+   "port": 44293,
+   "gpu": null,
+   "vcpu": 28,
+   "ram": 62,
+   "setup": true,
+   "stage": "done-fold-8",
+   "started": 1793572217.026121,
+   "collected": true,
+   "ended": 1793574665.27597
+  },
+  "5": {
+   "fold": 5,
+   "id": "dwyg9utvi3de87",
+   "name": "malaria-ablation-fold5",
+   "created": 1793571963.061596,
+   "costPerHr": 1.09,
+   "attempt": 1,
+   "ip": "160.250.71.214",
+   "port": 33519,
+   "gpu": null,
+   "vcpu": 16,
+   "ram": 94,
+   "setup": true,
+   "stage": "done-fold-5",
+   "started": 1793572409.733102,
+   "collected": true,
+   "ended": 1793574603.9574342
+  }
+ },
+ "replaced": []
+}
