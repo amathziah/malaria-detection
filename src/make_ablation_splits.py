@@ -12,7 +12,6 @@ differs from A1 only by the YUV preprocessing) and results/A2_yuv_slide/yuv_exam
     paired with A0 cell for cell.
 """
 import argparse
-import ast
 import glob
 import json
 import os
@@ -20,7 +19,6 @@ import re
 import sys
 import urllib.request
 
-import cv2
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

@@ -2,7 +2,6 @@
 
 Run:  python -m pytest tests/ -q   (same environment as tests/test_marques2022_exact.py)
 """
-import json
 import os
 import subprocess
 import sys

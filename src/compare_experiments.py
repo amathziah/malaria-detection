@@ -1,10 +1,11 @@
-"""Put every finished experiment side by side and answer H1/H2 from the numbers.
+"""Quick side-by-side of the finished experiments, from their summary JSONs (paper protocol, as in A0's tables).
 
 Usage:
     python src/compare_experiments.py                 # reads results/*/*_summary.json
     python src/compare_experiments.py --out docs/ablation.md
 
-Experiments that haven't been run yet are listed as "not run".
+Experiments that haven't been run yet are listed as "not run". The hypothesis tests themselves (patient
+bootstrap, corrected t-test, Holm) are in src/ablation_stats.py.
 """
 import argparse
 import glob
@@ -12,15 +13,15 @@ import json
 import os
 
 EXPERIMENTS = [  # id, folder, split, preprocessing
-    ("A0", "A0_baseline",    "image", "none"),
-    ("A1", "A1_slide_split", "slide", "none"),
-    ("A2", "A2_yuv_slide",   "slide", "YUV + hist-eq"),
+    ("A0", "A0_10fold_paper", "image", "none"),
+    ("A1", "A1_slide_split", "patient", "none"),
+    ("A2", "A2_yuv_slide",   "patient", "YUV + hist-eq"),
     ("A3", "A3_yuv_image",   "image", "YUV + hist-eq"),
 ]
 QUESTIONS = [  # (experiment, compared with, what the difference tells us)
-    ("A1", "A0", "H1: accuracy change once slide leakage is removed"),
-    ("A2", "A1", "H2: gain from YUV stain normalisation on unseen slides"),
-    ("A3", "A0", "Control: gain from YUV when slides are shared"),
+    ("A1", "A0", "H1: accuracy change once patient leakage is removed"),
+    ("A2", "A1", "H2: gain from YUV stain normalisation on unseen patients"),
+    ("A3", "A0", "Control: gain from YUV when patients are shared"),
 ]
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # works from any folder
 
