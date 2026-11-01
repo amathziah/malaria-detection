@@ -126,6 +126,8 @@ def test_analyse_answers_the_three_questions(results_root, tmp_path):
     assert "H1" in text and "H2" in text and "Holm" in text
     assert os.path.exists(os.path.join(tmp_path, "ablation_summary.csv"))
     assert os.path.exists(os.path.join(tmp_path, "ablation_per_patient.csv"))
+    saved = __import__("json").load(open(os.path.join(tmp_path, "ablation_summary.json")))
+    assert len(saved["verdicts"]) == 3 and saved["verdicts"][0].startswith("- **H1")
 
 
 def test_analyse_lists_missing_experiments_instead_of_failing(tmp_path):

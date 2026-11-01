@@ -423,7 +423,8 @@ def analyse(results_root=os.path.join(REPO, "results"), out_dir=None, n_boot=10_
         os.path.join(out_dir, "ablation_per_patient.csv"), index=False)
     with open(os.path.join(out_dir, "ablation_summary.json"), "w") as fh:
         json.dump(dict(protocol=protocol, n_boot=n_boot, seed=seed, missing=missing, experiments=rows,
-                       contrasts=[{k: v for k, v in c.items()} for c in contrasts]), fh, indent=1, default=float)
+                       contrasts=[{k: v for k, v in c.items()} for c in contrasts],
+                       verdicts=_verdicts(contrasts)), fh, indent=1, default=float)
     return dict(experiments=rows, contrasts=contrasts, missing=missing, text=text, found=found)
 
 

@@ -688,6 +688,7 @@ def main():
     ap.add_argument("--gpus", help="GPU type ids in order of preference, comma-separated (default: 4090, L40S, 6000 Ada)")
     ap.add_argument("--min-vcpu", type=int, default=MIN_VCPU, help="vCPUs per GPU (augmentation runs on the CPU)")
     ap.add_argument("--any-datacenter", action="store_true", help="don't restrict the data centres")
+    ap.add_argument("--state", help="a separate pods.json, e.g. for a second batch of folds while another run is live")
     sub = ap.add_subparsers(dest="cmd", required=True)
     up = sub.add_parser("up")
     up.add_argument("--folds", default="0-9")
@@ -718,6 +719,8 @@ def main():
     dn.add_argument("--folds", help="only these folds (default: all)")
     args = ap.parse_args()
     configure(args.experiments)
+    if args.state:
+        PROFILE["state"] = os.path.abspath(args.state)
     HARDWARE.update(cloud=args.cloud, min_vcpu=args.min_vcpu,
                     data_centers=[] if (args.any_datacenter or args.cloud == "COMMUNITY") else DATA_CENTERS)
     if args.gpus:
