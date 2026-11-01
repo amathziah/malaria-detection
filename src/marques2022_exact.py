@@ -50,6 +50,25 @@ PAPER = dict(
     DENSE=(128, 64, 32),
     DROPOUT=0.3,
 )
+# The ablation (Phase 2 hypotheses H1/H2): each experiment changes one thing against A0, everything else is PAPER.
+#   split="image":   the paper's random 80/20 split + stratified 10-fold CV (cells of one patient on both sides)
+#   split="patient": the same proportions, but whole patients go to one side (StratifiedGroupKFold)
+#   preprocess="yuv": RGB -> YUV, histogram-equalise Y, -> RGB, before the resize (Umer et al. 2020)
+EXPERIMENTS = {
+    "A0": dict(split="image", preprocess="none", folder="A0_10fold_paper", prefix="A0_10fold",
+               question="Baseline: the paper's protocol"),
+    "A1": dict(split="patient", preprocess="none", folder="A1_slide_split", prefix="A1",
+               question="H1: how much does patient leakage inflate the scores (A0 vs A1)?"),
+    "A2": dict(split="patient", preprocess="yuv", folder="A2_yuv_slide", prefix="A2",
+               question="H2: does YUV stain normalisation help on unseen patients (A2 vs A1)?"),
+    "A3": dict(split="image", preprocess="yuv", folder="A3_yuv_image", prefix="A3",
+               question="Control: does YUV change anything when patients are shared (A3 vs A0)?"),
+}
+SPLIT_TEXT = {"image": "image (paper: 20 % hold-out + stratified 10-fold)",
+              "patient": "patient (20 % of patients held out + stratified group 10-fold; no patient on both sides)"}
+PREPROCESS_TEXT = {"none": "none (paper's albumentations augmentation)",
+                   "yuv": "yuv (Y histogram-equalised at native size, then the paper's resize and augmentation)"}
+PATIENT_OUTER_SPLITS = 5  # 1/5 of the patients' cells ~ the paper's 20 % hold-out
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".gif")
 NIH_URL = "https://data.lhncbc.nlm.nih.gov/public/Malaria/cell_images.zip"
 
@@ -111,6 +130,100 @@ def paper_folds(learn, n_splits=PAPER["KFOLD"], seed=PAPER["KFOLD_SEED"]):
     return list(kf.split(learn, learn["label"]))
 
 
+def patient_id(file):
+    """The patient of an NIH cell image: the leading C-number of its file name ("C37BP2_thinF_..." -> "C37").
+
+    It matches NIH's patientid_cellmapping_*.csv (200 patients), which lists patient C47/P8 under two keys
+    (two microscopes); the C-number keeps those cells together.
+    """
+    m = re.match(r"^(C\d+)", os.path.basename(str(file)))
+    if not m:
+        raise ValueError(f"no patient C-number in file name {file!r}")
+    return m.group(1)
+
+
+def _binary_labels(frame):
+    return (frame["label"] == TIPOS[0]).astype(int).values
+
+
+def patient_split(df, seed=PAPER["SEED"], outer_splits=PATIENT_OUTER_SPLITS):
+    """Hold out whole patients: the leakage-free counterpart of paper_split.
+
+    StratifiedGroupKFold(5) gives five candidate hold-out sets of ~20 % of the cells. We take the one
+    closest to 20 % of the cells and 50 % parasitized (a rule on labels only, fixed before any training),
+    since patients differ a lot in size and parasite share.
+    """
+    from sklearn.model_selection import StratifiedGroupKFold
+    y, groups = _binary_labels(df), df["file"].map(patient_id).values
+    outer = StratifiedGroupKFold(outer_splits, shuffle=True, random_state=seed)
+    candidates = list(outer.split(df, y, groups))
+    scores = [abs(len(hold) / len(df) - 0.2) + abs(y[hold].mean() - 0.5) for _, hold in candidates]
+    learn_pos, hold_pos = candidates[int(np.argmin(scores))]
+    return df.iloc[learn_pos].reset_index(drop=True), df.iloc[hold_pos].reset_index(drop=True)
+
+
+def patient_folds(learn, n_splits=PAPER["KFOLD"], seed=PAPER["KFOLD_SEED"]):
+    """paper_folds with groups: StratifiedGroupKFold(10, shuffle=True, random_state=50) on the patients."""
+    from sklearn.model_selection import StratifiedGroupKFold
+    kf = StratifiedGroupKFold(n_splits, shuffle=True, random_state=seed)
+    return list(kf.split(learn, _binary_labels(learn), learn["file"].map(patient_id).values))
+
+
+def check_no_shared_patients(learn, val, folds):
+    """Raise ValueError if a patient is in the hold-out set and the learning set, or on both sides of a fold."""
+    pl, pv = learn["file"].map(patient_id), set(val["file"].map(patient_id))
+    shared = set(pl) & pv
+    if shared:
+        raise ValueError(f"patient(s) in both the learning and the hold-out set: {sorted(shared)[:5]}")
+    for k, (tr, te) in enumerate(folds):
+        shared = set(pl.iloc[tr]) & set(pl.iloc[te])
+        if shared:
+            raise ValueError(f"fold {k}: patient(s) in both training and test: {sorted(shared)[:5]}")
+
+
+def make_split(df, split):
+    """(learn, hold-out, folds) for split="image" (the paper's) or split="patient" (H1)."""
+    if split == "image":
+        learn, val = paper_split(df)
+        return learn, val, paper_folds(learn)
+    if split == "patient":
+        learn, val = patient_split(df)
+        folds = patient_folds(learn)
+        check_no_shared_patients(learn, val, folds)
+        return learn, val, folds
+    raise ValueError(f"unknown split {split!r}: use 'image' or 'patient'")
+
+
+def save_split(path, learn, val, folds):
+    """The split as a CSV (file, label, patient, role, fold), in learning-set order, then the hold-out set."""
+    fold_of = np.full(len(learn), -1)
+    for k, (_, te) in enumerate(folds):
+        fold_of[te] = k
+    rows = pd.concat([learn[["file", "label"]].assign(role="learn", fold=fold_of),
+                      val[["file", "label"]].assign(role="holdout", fold=-1)], ignore_index=True)
+    rows.insert(2, "patient", rows["file"].map(patient_id))
+    rows.to_csv(path, index=False)
+    return path
+
+
+def load_split(path, df):
+    """Rebuild (learn, hold-out, folds) from save_split's CSV, with df's cache_idx/path columns.
+
+    Every pod trains on exactly the committed split, whatever its scikit-learn version or file listing order.
+    """
+    saved = pd.read_csv(path)
+    if len(saved) != len(df) or set(zip(saved["file"], saved["label"])) != set(zip(df["file"], df["label"])):
+        raise ValueError(f"split file {path} does not list the same images as the dataset")
+    rows = saved.merge(df, on=["file", "label"], how="left", validate="one_to_one")
+    learn = rows[rows["role"] == "learn"].reset_index(drop=True)
+    val = rows[rows["role"] == "holdout"].reset_index(drop=True)
+    n_folds = int(learn["fold"].max()) + 1
+    folds = [(np.flatnonzero(learn["fold"].values != k), np.flatnonzero(learn["fold"].values == k))
+             for k in range(n_folds)]
+    cols = list(df.columns)
+    return learn[cols], val[cols], folds
+
+
 def split_fingerprint(learn, val, folds=None):
     """Short hash of the split, so results from different machines can be checked to share it."""
     h = hashlib.sha1("\n".join(val["file"]).encode() + b"|" + "\n".join(learn["file"]).encode())
@@ -154,34 +267,78 @@ def build_paper_augmentation():
                     ], p=1)
 
 
-def load_resized(path, size=PAPER["IMG_SIZE"]):
-    """ImageDataAugmentor.utils.load_img(color_mode='rgb', target_size=(size, size)): cv2, nearest neighbour."""
-    img = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB)
+PREPROCESSING = ("none", "yuv")
+
+
+def yuv_equalize(bgr):
+    """Umer et al. (2020) stain normalisation: BGR -> YUV, histogram-equalise the luma (Y) only, -> BGR.
+
+    Global cv2.equalizeHist: it maps the lowest occupied grey level to 0, so the NIH crops' pure black
+    background stays black and barely affects the mapping of the cell's own grey levels.
+    """
+    if bgr.dtype != np.uint8 or bgr.ndim != 3 or bgr.shape[2] != 3:
+        raise ValueError(f"yuv_equalize needs a uint8 H x W x 3 image, got {bgr.dtype} {bgr.shape}")
+    yuv = cv2.cvtColor(bgr, cv2.COLOR_BGR2YUV)
+    yuv[..., 0] = cv2.equalizeHist(yuv[..., 0])
+    return cv2.cvtColor(yuv, cv2.COLOR_YUV2BGR)
+
+
+def load_resized(path, size=PAPER["IMG_SIZE"], preprocess="none"):
+    """ImageDataAugmentor.utils.load_img(color_mode='rgb', target_size=(size, size)): cv2, nearest neighbour.
+
+    preprocess="yuv" equalises at the image's native size, before the resize (one change against A0).
+    """
+    if preprocess not in PREPROCESSING:
+        raise ValueError(f"unknown preprocess {preprocess!r}: use one of {PREPROCESSING}")
+    bgr = cv2.imread(path)
+    if preprocess == "yuv":
+        bgr = yuv_equalize(bgr)
+    img = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
     if img.shape[0:2] != (size, size):
         img = cv2.resize(img, dsize=(size, size), interpolation=cv2.INTER_NEAREST)
     return img
 
 
 def _decode_into(args):
-    cache_path, start, paths = args
+    cache_path, start, paths, preprocess = args
     cv2.setNumThreads(1)
     cache = np.load(cache_path, mmap_mode="r+")
     for k, p in enumerate(paths):
-        cache[start + k] = load_resized(p, cache.shape[1])
+        cache[start + k] = load_resized(p, cache.shape[1], preprocess)
     cache.flush()
     return len(paths)
 
 
-def build_image_cache(paths, cache_path, workers=None, size=PAPER["IMG_SIZE"]):
-    """Decode + resize every image once into a uint8 .npy (27,558 x 224 x 224 x 3 = 4.1 GB for NIH)."""
+def _cache_info_path(cache_path):
+    return cache_path + ".json"
+
+
+def cache_preprocess(cache_path):
+    """The preprocessing an image cache was built with ("none" for caches built before the ablation)."""
+    try:
+        with open(_cache_info_path(cache_path)) as fh:
+            return json.load(fh)["preprocess"]
+    except FileNotFoundError:
+        return "none"
+
+
+def build_image_cache(paths, cache_path, workers=None, size=PAPER["IMG_SIZE"], preprocess="none"):
+    """Decode + resize every image once into a uint8 .npy (27,558 x 224 x 224 x 3 = 4.1 GB for NIH).
+
+    A small <cache>.json next to it records the preprocessing, so a fold can't train on the wrong cache.
+    """
+    if preprocess not in PREPROCESSING:
+        raise ValueError(f"unknown preprocess {preprocess!r}: use one of {PREPROCESSING}")
     np.lib.format.open_memmap(cache_path, mode="w+", dtype=np.uint8, shape=(len(paths), size, size, 3)).flush()
-    chunks = [(cache_path, s, list(paths[s:s + 256])) for s in range(0, len(paths), 256)]
+    chunks = [(cache_path, s, list(paths[s:s + 256]), preprocess) for s in range(0, len(paths), 256)]
     if workers == 0:
         for c in chunks:
             _decode_into(c)
     else:
         with _spawn_pool(workers or available_cpus()) as pool:
             pool.map(_decode_into, chunks)
+    with open(_cache_info_path(cache_path), "w") as fh:
+        json.dump({"preprocess": preprocess, "n_images": len(paths), "size": size}, fh)
     return cache_path
 
 
@@ -487,11 +644,17 @@ def _jsonable(o):
 
 def train_fold(fold, *, learn, val, folds, pool, out_dir, weights=PAPER["WEIGHTS"], xla=True,
                epochs=PAPER["EPOCHS"], batch_size=PAPER["BATCH_SIZE"], steps_per_execution=1,
-               max_steps_per_epoch=None, verbose=2):
+               max_steps_per_epoch=None, verbose=2, experiment="A0"):
     """Train one fold like the paper's section 2.4 loop and evaluate it on its test part and on the hold-out set.
 
     Saves fold_<k>/fold_<k>_best.h5 (best val_loss weights), fold_<k>_predictions.npz and fold_<k>.json.
+    `experiment` (A0-A3) is recorded; the pool's image cache must have that experiment's preprocessing.
     """
+    exp = EXPERIMENTS[experiment]
+    built_with = cache_preprocess(pool.cache_path)
+    if built_with != exp["preprocess"]:
+        raise ValueError(f"{experiment} needs preprocess={exp['preprocess']!r}, but the image cache "
+                         f"{pool.cache_path} was built with preprocess={built_with!r}")
     import tensorflow as tf
     tr, te = folds[fold]
     df_train, df_test = learn.iloc[tr], learn.iloc[te]
@@ -544,7 +707,8 @@ def train_fold(fold, *, learn, val, folds, pool, out_dir, weights=PAPER["WEIGHTS
                   n_train=len(df_train), n_test=len(df_test), n_val=len(val),
                   split_fingerprint=split_fingerprint(learn, val, folds), xla=bool(xla),
                   steps_per_execution=steps_per_execution, weights=weights,
-                  tensorflow=tf.__version__,
+                  experiment=experiment, split=exp["split"], preprocess=exp["preprocess"],
+                  cache=os.path.basename(pool.cache_path), tensorflow=tf.__version__,
                   gpu=[tf.config.experimental.get_device_details(g).get("device_name") for g in gpus])
     save_fold_outputs(out_dir, record, probs, test_files=df_test["file"].values, val_files=val["file"].values,
                       test_true=y["test"].argmax(1), val_true=y["val"].argmax(1))
@@ -587,9 +751,13 @@ def _pct(x):
 def _binary(m):
     """Parasitized = positive class, in %, the way results/A0_baseline reports it."""
     (tp, fn), (fp, tn) = m["confusion"]
+    recall, specificity = m["Parasitized"]["recall"], m["Uninfected"]["recall"]
+    f2_den = 5 * tp + 4 * fn + fp  # F2 = 5TP / (5TP + 4FN + FP): recall weighted 4x precision
     return dict(accuracy=100 * m["accuracy"], precision=100 * m["Parasitized"]["precision"],
-                recall=100 * m["Parasitized"]["recall"], specificity=100 * m["Uninfected"]["recall"],
+                recall=100 * recall, specificity=100 * specificity,
                 f1=100 * m["Parasitized"]["f1"], auc=100 * m.get("auc", float("nan")), mcc=100 * m["mcc"],
+                balanced_accuracy=100 * (recall + specificity) / 2,
+                f2=100 * 5 * tp / f2_den if f2_den else 0.0,
                 TP=int(tp), TN=int(tn), FP=int(fp), FN=int(fn))
 
 
@@ -609,12 +777,23 @@ def aggregate(folds_dir, n_folds=PAPER["KFOLD"]):
     "clean" = the same models on un-augmented images.
     """
     records = [load_fold(os.path.join(folds_dir, f"fold_{k}")) for k in range(n_folds)]
+    experiments = {r.get("experiment", "A0") for r in records}  # A0 records predate the "experiment" key
+    if len(experiments) != 1:
+        raise ValueError("folds come from different experiments: " + str([r.get("experiment", "A0") for r in records]))
+    experiment = experiments.pop()
     if len({r["split_fingerprint"] for r in records}) != 1:
         raise ValueError("folds were trained on different splits: " + str([r["split_fingerprint"] for r in records]))
     val_files = records[0]["npz"]["val_files"]
     if not all(np.array_equal(r["npz"]["val_files"], val_files) for r in records):
         raise ValueError("folds disagree on the hold-out set")
     val_true = records[0]["npz"]["val_true"]
+    if EXPERIMENTS[experiment]["split"] == "patient":  # re-check from what was actually evaluated
+        test_patients = [set(map(patient_id, r["npz"]["test_files"])) for r in records]
+        holdout_patients = set(map(patient_id, val_files))
+        for k, tp in enumerate(test_patients):
+            others = set().union(*(p for j, p in enumerate(test_patients) if j != k))  # fold k's training patients
+            if tp & holdout_patients or tp & others:
+                raise ValueError(f"fold {k}: a test patient is also in the hold-out set or in its training set")
 
     per_fold, ensemble, ens_probs = {}, {}, {}
     for proto, suffix in [("paper", "aug"), ("clean", "clean")]:
@@ -650,17 +829,22 @@ def aggregate(folds_dir, n_folds=PAPER["KFOLD"]):
     comparison["Δ paper protocol (pp)"] = (comparison["Ours (paper)"] - comparison["Paper"]).round(2)
 
     all_files = set(val_files.tolist()).union(*[r["npz"]["test_files"].tolist() for r in records])
+    group = lambda f: re.match(r"^(C\d+)", f).group(1) if re.match(r"^(C\d+)", f) else f.split("_")[0]
     return dict(records=records, per_fold=per_fold, ensemble=ensemble, ens_probs=ens_probs, val_true=val_true,
-                comparison=comparison, n_folds=n_folds, n_images=len(all_files),
-                n_slides=len({re.match(r"^(C\d+)", f).group(1) if re.match(r"^(C\d+)", f) else f.split("_")[0]
-                              for f in all_files}),
+                val_files=val_files, comparison=comparison, n_folds=n_folds, n_images=len(all_files),
+                n_slides=len({group(f) for f in all_files}), experiment=experiment,
+                n_patients_holdout=len({group(f) for f in val_files.tolist()}),
+                holdout_class_counts={t: int((val_true == k).sum()) for k, t in enumerate(TIPOS)},
                 split_fingerprint=records[0]["split_fingerprint"])
 
 
-def write_results(agg, out_dir, prefix="A0_10fold"):
+def write_results(agg, out_dir, prefix=None):
     """CSV/JSON files in the layout of results/A0_baseline, so src/check_results.py can read them."""
+    experiment = agg.get("experiment", "A0")
+    exp = EXPERIMENTS[experiment]
+    prefix = prefix or exp["prefix"]
     os.makedirs(out_dir, exist_ok=True)
-    cols = ["accuracy", "precision", "recall", "specificity", "f1", "auc", "mcc"]
+    cols = ["accuracy", "precision", "recall", "specificity", "f1", "auc", "mcc", "balanced_accuracy", "f2"]
     paths = []
     for proto, df in agg["per_fold"].items():
         name = f"{prefix}_per_fold_val.csv" if proto == "paper" else f"{prefix}_per_fold_val_clean.csv"
@@ -675,10 +859,11 @@ def write_results(agg, out_dir, prefix="A0_10fold"):
     paper_df = agg["per_fold"]["paper"]
     cv_cols = [f"cv_{c}" for c in cols]
     summary = dict(
-        experiment=prefix, split="image (paper: 20 % hold-out + stratified 10-fold)",
-        preprocess="none (paper's albumentations augmentation)",
+        experiment=experiment, prefix=prefix, question=exp["question"],
+        split=SPLIT_TEXT[exp["split"]], preprocess=PREPROCESS_TEXT[exp["preprocess"]],
         config=dict(N_FOLDS=agg["n_folds"], **{k: v for k, v in PAPER.items()}),
         n_images=agg["n_images"], n_slides=agg["n_slides"], folds_run=len(agg["records"]),
+        n_patients_holdout=agg["n_patients_holdout"], holdout_class_counts=agg["holdout_class_counts"],
         split_fingerprint=agg["split_fingerprint"],
         mean_fold={c: round(paper_df[f"cv_{c}"].mean(), 2) for c in cols},
         sd_fold={c: round(paper_df[f"cv_{c}"].std(ddof=1) if len(paper_df) > 1 else 0.0, 2) for c in cols},
