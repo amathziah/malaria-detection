@@ -650,7 +650,7 @@ There is no universal cut-off: it depends on the cost of each mistake, on chance
 
 ## 7. Results, improvements and hypotheses
 
-> **In one sentence:** the paper-exact 10-fold reproduction lands within 1 percentage point of the paper on every headline metric (mean fold accuracy 97.55 % vs. 97.56 %), so our baseline is validated; the two hypotheses about slide leakage and stain normalisation are designed and coded but not yet run.
+> **In one sentence:** the paper-exact 10-fold reproduction lands within 1 percentage point of the paper on every headline metric (mean fold accuracy 97.55 % vs. 97.56 %), so our baseline is validated; in Phase 3 the two hypotheses were tested: the accuracy largely survives unseen patients (98.45 % on 40 held-out patients, a small leakage effect in cross-validation), and YUV stain normalisation does not help (section 7.5).
 
 ### 7.1 Ours vs. the paper
 
@@ -711,19 +711,23 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 1. **Its code augments the test and hold-out images too** (one augmenting generator feeds training, testing and validation). We kept this for the headline numbers and report clean evaluation alongside.
 2. **Its text swaps the ensemble's precision and recall.** It says "recall 98.82 %, precision 97.74 %", but its own printed report (2,744 infected cells, 62 missed; 2,768 healthy, 32 flagged) gives **recall 97.74 %** and **precision 98.82 %**. Our first report said "recall is 2 pp lower than the paper"; against the correct number the gap was 0.9 pp, and it is now 0.67 pp. (Also, Table 6's "accuracy" column is the mean of precision and recall, 97.70 on average; the true mean accuracy in its output is 97.69.)
 
-### 7.3 What is validated, and what is not yet
+### 7.3 What is validated
 
 | Claim | Status | Evidence |
 |---|---|---|
 | Our code is the paper's recipe | ✅ validated | 32 tests (Table 2 parameters, the paper's printed numbers, verbatim augmentation) |
 | We reproduce the paper's results | ✅ validated (A0) | All headline metrics within 1 pp on all 10 folds |
 | The ensemble improves on single models | ✅ yes, +0.25 pp | Smaller gain than the paper's +0.60 pp |
-| H1: random image splits inflate accuracy (slide leakage) | ⏳ **not yet tested** | Experiment A1 (designed, coded, not run) |
-| H2: YUV stain normalisation helps on unseen slides | ⏳ **not yet tested** | Experiments A2 and A3 (designed, coded, not run) |
+| H1: random image splits inflate accuracy (patient leakage) | ✗ **not supported** (pre-registered test); small effect in CV | A1: 98.45 % on 40 unseen patients; CV over 160 patients: fold MCC −1.65 pp, 2.5× the spread (section 7.5) |
+| H2: YUV stain normalisation helps on unseen patients | ✗ **rejected** | A2 vs A1: fold MCC −0.60 pp (< 1.51 pp SD); A3 vs A0 (control): no change (section 7.5) |
 
 ### 7.4 Our hypotheses and how we test them
 
-![Ablation plan: A0–A3](figures/ablation_plan.png)
+![Ablation plan: A0–A3 (as designed; all four have since been run, see section 7.5)](figures/ablation_plan.png)
+
+*The plan as drawn in Phase 2. A1–A3 have since been run; their results are in section 7.5 and in the figure below.*
+
+![Every fold of A0–A3 (Phase 3)](../results/ablation/ablation_fold_mcc.png)
 
 | ID | Split | Preprocessing | Question it answers |
 |---|---|---|---|
@@ -786,7 +790,7 @@ The analysis plan was committed before the runs ([`phase3_analysis_plan.md`](pha
 3. Reading their code showed that the paper's text leaves out or differs from the real recipe (weights, head, batch size, epochs, augmentation, hold-out size), and that the paper swaps precision and recall.
 4. We made each fold about 26 times faster without changing the maths: decode once, parallel augmentation, XLA, and ten GPUs in parallel.
 5. The baseline still splits images at random, so cells from the same patient can be in training and testing — our hypothesis H1 measures that leakage.
-6. Next we run A1–A3 to measure the leakage and test whether YUV stain normalisation (H2) recovers accuracy on unseen patients.
+6. Then we tested it on unseen patients: the ~98 % largely survives (98.45 % on 40 held-out patients), the leakage effect is small (about 0.5 pp of accuracy in cross-validation), and YUV stain normalisation does not help.
 
 **Likely questions and short answers**
 
