@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Run the paper-exact 10-fold replication on RunPod: one pod per fold, results copied back here.
+"""Run the paper-exact 10-fold experiments on RunPod: one pod per fold, results copied back here.
+
+Two profiles, chosen with --experiments before the command:
+    A0 (default)    the paper-exact replication (results/A0_10fold_paper/runpod/pods.json)
+    A1,A2,A3        the ablation: each pod trains fold k of every listed experiment, one after another
+                    (results/ablation_runpod/pods.json); e.g.
+                    python src/runpod_10fold.py --experiments A1,A2,A3 up --folds 0-9 --setup-only
+                    python src/runpod_10fold.py --experiments A1,A2,A3 go --folds 0-9
+                    python src/runpod_10fold.py --experiments A1,A2,A3 watch
+                    python src/runpod_10fold.py --experiments A1,A2,A3 start --folds 4 --only A2   # re-run one
 
 Usage:
     python src/runpod_10fold.py up --folds 0          # create pods, install, start training (fold list: 0-9, 1,4,7)
@@ -26,12 +35,46 @@ import urllib.error
 import urllib.request
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-RESULTS = os.path.join(REPO, "results", "A0_10fold_paper")
-MODELS = os.path.join(REPO, "models", "A0_10fold_paper")
-STATE = os.path.join(RESULTS, "runpod", "pods.json")
-NOTEBOOK = "Phase2_A0_10fold_PaperExact.ipynb"
-UPLOADS = ["src/marques2022_exact.py", "src/runpod_requirements.txt", f"notebooks/{NOTEBOOK}"]
 SSH_KEY = os.path.expanduser("~/.ssh/id_ed25519")
+# Same names as marques2022_exact.EXPERIMENTS (a test checks it); kept here so the launcher needs no ML packages
+EXPERIMENT_FOLDERS = {"A0": "A0_10fold_paper", "A1": "A1_slide_split", "A2": "A2_yuv_slide", "A3": "A3_yuv_image"}
+PATIENT_SPLIT = {"A1", "A2"}  # these train on the committed results/<folder>/split.csv
+ABLATION_NOTEBOOK = "Phase3_Ablation_A1_A3.ipynb"
+PROFILE = {}  # filled by configure(): which experiments, notebook, uploads, state file, limits
+
+
+def configure(experiments="A0"):
+    """Select the A0 profile (the replication, unchanged) or the ablation profile (any of A1-A3)."""
+    exps = [e.strip() for e in experiments.split(",") if e.strip()] if isinstance(experiments, str) else list(experiments)
+    unknown = [e for e in exps if e not in EXPERIMENT_FOLDERS]
+    if not exps or unknown:
+        raise SystemExit(f"unknown experiment(s) {unknown or exps}: choose from {sorted(EXPERIMENT_FOLDERS)}")
+    PROFILE.clear()
+    if exps == ["A0"]:
+        runpod_dir = os.path.join(REPO, "results", "A0_10fold_paper", "runpod")
+        notebook = "Phase2_A0_10fold_PaperExact.ipynb"
+        PROFILE.update(experiments=exps, name="a0-paper", notebook=notebook, runpod_dir=runpod_dir,
+                       state=os.path.join(runpod_dir, "pods.json"), watchdog=2 * 3600, max_spend=6.0, hours=0.65,
+                       uploads=["src/marques2022_exact.py", "src/runpod_requirements.txt", f"notebooks/{notebook}"])
+    elif "A0" in exps:
+        raise SystemExit("A0 is the replication profile: run it on its own (A0 is already trained)")
+    else:
+        runpod_dir = os.path.join(REPO, "results", "ablation_runpod")
+        splits = [f"results/{EXPERIMENT_FOLDERS[e]}/split.csv" for e in exps if e in PATIENT_SPLIT]
+        PROFILE.update(experiments=exps, name="ablation", notebook=ABLATION_NOTEBOOK, runpod_dir=runpod_dir,
+                       state=os.path.join(runpod_dir, "pods.json"), watchdog=3 * 3600, max_spend=12.0,
+                       hours=0.4 + 0.22 * len(exps),  # ~20 min setup + ~13 min per experiment and fold
+                       uploads=["src/marques2022_exact.py", "src/ablation_stats.py", "src/ablation_figures.py",
+                                "src/runpod_requirements.txt", f"notebooks/{ABLATION_NOTEBOOK}",
+                                "results/ablation_splits.json"] + splits)
+    return PROFILE
+
+
+def pod_name(fold):
+    return f"malaria-{PROFILE['name']}-fold{fold}"
+
+
+configure("A0")
 
 IMAGE = "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04"
 GPU_TYPES = ["NVIDIA GeForce RTX 4090", "NVIDIA L40S", "NVIDIA RTX 6000 Ada Generation"]  # in order of preference
@@ -39,7 +82,8 @@ MIN_VCPU = 16   # the paper's augmentation runs on the CPU; fewer cores would st
 # EU-RO-1 had RTX 4090s in stock; an EUR-IS host could not download from PyPI (path-MTU blackhole to Fastly)
 DATA_CENTERS = ["EU-RO-1", "EU-NL-1", "US-TX-4", "US-WA-1", "CA-MTL-1", "US-KS-2", "US-GA-2"]
 MIN_RAM_GB = 40
-WATCHDOG_SECONDS = 2 * 3600  # a pod removes itself after this, whatever happens here
+PRICE_ESTIMATE = 0.8  # $/h per pod, for the balance check (RTX 4090 Secure Cloud was $0.74/h)
+# A pod removes itself after PROFILE["watchdog"] seconds, whatever happens here
 
 # Exact, pinned environment (TF 2.15 = last Keras 2; numpy<1.24 for imgaug 0.4.0), installed with uv:
 # unpinned, pip backtracks for many minutes on sub-dependencies that now require a newer numpy.
@@ -88,6 +132,37 @@ papermill NOTEBOOK $W/out/executed/fold_$FOLD.ipynb -k paper311 --log-output \
   && stage done-fold-$FOLD || stage failed-fold-$FOLD
 """
 
+# Ablation: fold k of each experiment in turn. A failed experiment doesn't stop the next one; the pod then ends
+# in stage partial-fold-k-failed-<exps> (collect copies what finished; `start --only` re-runs the rest).
+POD_TRAIN_ABLATION = r"""#!/bin/bash
+set -uo pipefail
+FOLD=$1; EXPS=${2:-__EXPERIMENTS__}; W=__WORKSPACE__
+stage() { echo "$1" > $W/STAGE; echo "[$(date +%T)] $1"; }
+NV=$(python -c "import site, os; print(os.path.join(site.getsitepackages()[0], 'nvidia', 'cuda_nvcc'))")
+export XLA_FLAGS="--xla_gpu_cuda_data_dir=$NV" PATH="$NV/bin:$PATH" TF_GPU_THREAD_MODE=gpu_private TF_CPP_MIN_LOG_LEVEL=1
+mkdir -p $W/out/executed
+cd $W/repo/notebooks
+: > $W/FAILED
+for EXP in ${EXPS//,/ }; do
+  stage train-$EXP-fold-$FOLD
+  if papermill __NOTEBOOK__ $W/out/executed/${EXP}_fold_$FOLD.ipynb -k paper311 --log-output \
+      -y "{EXPERIMENTS: [$EXP], FOLDS_TO_TRAIN: [$FOLD], AGGREGATE: false, DATA_DIR: $W/data, CACHE_DIR: $W, RESULTS_ROOT: $W/repo/results, FOLDS_ROOT: $W/out, N_WORKERS: null}"; then
+    echo $EXP >> $W/DONE
+  else
+    echo $EXP >> $W/FAILED
+  fi
+done
+if [ -s $W/FAILED ]; then stage partial-fold-$FOLD-failed-$(paste -sd, $W/FAILED); else stage done-fold-$FOLD; fi
+"""
+
+
+def render_train_script(workspace="/workspace"):
+    """The pod's pod_train.sh for the current profile."""
+    if PROFILE["experiments"] == ["A0"]:
+        return POD_TRAIN.replace("NOTEBOOK", PROFILE["notebook"])
+    return (POD_TRAIN_ABLATION.replace("__EXPERIMENTS__", " ".join(PROFILE["experiments"]))
+            .replace("__NOTEBOOK__", PROFILE["notebook"]).replace("__WORKSPACE__", workspace))
+
 
 # ----------------------------------------------------------------------------- RunPod API
 def api_key():
@@ -126,15 +201,16 @@ def balance():
 
 # ----------------------------------------------------------------------------- local state
 def load_state():
-    if os.path.exists(STATE):
-        with open(STATE) as fh:
+    if os.path.exists(PROFILE["state"]):
+        with open(PROFILE["state"]) as fh:
             return json.load(fh)
     return {"pods": {}}
 
 
 def save_state(state):
     """Write the state, keeping "ended"/"collected" flags another launcher process may have written meanwhile."""
-    os.makedirs(os.path.dirname(STATE), exist_ok=True)
+    path = PROFILE["state"]
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     on_disk = load_state()
     for k, disk_pod in on_disk["pods"].items():
         pod = state["pods"].get(k)
@@ -144,9 +220,9 @@ def save_state(state):
                     pod[flag] = disk_pod[flag]
     known = {p["id"] for p in state.get("replaced", [])}
     state.setdefault("replaced", []).extend(p for p in on_disk.get("replaced", []) if p["id"] not in known)
-    with open(STATE + ".tmp", "w") as fh:
+    with open(path + ".tmp", "w") as fh:
         json.dump(state, fh, indent=1)
-    os.replace(STATE + ".tmp", STATE)
+    os.replace(path + ".tmp", path)
 
 
 def spent(state):
@@ -185,7 +261,7 @@ def scp(pod, src, dst, upload):
 
 # ----------------------------------------------------------------------------- pod lifecycle
 def create_pod(fold):
-    body = {"name": f"malaria-a0-paper-fold{fold}", "imageName": IMAGE, "gpuTypeIds": GPU_TYPES,
+    body = {"name": pod_name(fold), "imageName": IMAGE, "gpuTypeIds": GPU_TYPES,
             "gpuTypePriority": "custom", "gpuCount": 1, "cloudType": "SECURE",
             "dataCenterIds": DATA_CENTERS, "dataCenterPriority": "custom",
             "minVCPUPerGPU": MIN_VCPU, "minRAMPerGPU": MIN_RAM_GB, "containerDiskInGb": 60, "volumeInGb": 0,
@@ -213,31 +289,37 @@ def wait_ready(pod, timeout=900):
     raise TimeoutError(f"{pod['name']} not reachable after {timeout}s")
 
 
+def _upload_repo(pod):
+    """Copy the profile's files to /workspace/repo/<same relative path> (latest notebook, module, splits)."""
+    dirs = sorted({os.path.dirname(f"/workspace/repo/{rel}") for rel in PROFILE["uploads"]})
+    ssh(pod, "mkdir -p /workspace/out " + " ".join(dirs))
+    for rel in PROFILE["uploads"]:
+        scp(pod, os.path.join(REPO, rel), f"/workspace/repo/{rel}", upload=True)
+
+
 def setup(pod):
-    ssh(pod, "mkdir -p /workspace/repo/src /workspace/repo/notebooks /workspace/out")
-    for rel in UPLOADS:
-        if os.path.exists(os.path.join(REPO, rel)):
-            scp(pod, os.path.join(REPO, rel), f"/workspace/repo/{rel}", upload=True)
-    script = (POD_SETUP.replace("WATCHDOG", str(WATCHDOG_SECONDS)).replace("REQUIREMENTS", REQUIREMENTS)
+    _upload_repo(pod)
+    script = (POD_SETUP.replace("WATCHDOG", str(PROFILE["watchdog"])).replace("REQUIREMENTS", REQUIREMENTS)
               .replace("NO_DEPS", NO_DEPS))
     _push_script(pod, "pod_setup.sh", script)
-    _push_script(pod, "pod_train.sh", POD_TRAIN.replace("NOTEBOOK", NOTEBOOK))
+    _push_script(pod, "pod_train.sh", render_train_script())
     ssh(pod, "cd /workspace; setsid nohup bash pod_setup.sh > setup.log 2>&1 < /dev/null &")
 
 
 def _push_script(pod, name, text):
-    local = os.path.join(RESULTS, "runpod", name)
+    local = os.path.join(PROFILE["runpod_dir"], name)
     os.makedirs(os.path.dirname(local), exist_ok=True)
     with open(local, "w") as fh:
         fh.write(text)
     scp(pod, local, f"/workspace/{name}", upload=True)
 
 
-def start(pod):
-    for rel in UPLOADS:  # latest notebook/module
-        scp(pod, os.path.join(REPO, rel), f"/workspace/repo/{rel}", upload=True)
+def start(pod, only=None):
+    """Start training on a set-up pod; `only` ("A2" or "A1,A3") re-runs some experiments of the ablation."""
+    _upload_repo(pod)  # latest notebook/module
+    extra = f" {only}" if only else ""
     # "cd ...; job &", not "cd ... && job &": the latter backgrounds a subshell that keeps this SSH session open
-    ssh(pod, f"cd /workspace; setsid nohup bash pod_train.sh {pod['fold']} > train.log 2>&1 < /dev/null &")
+    ssh(pod, f"cd /workspace; setsid nohup bash pod_train.sh {pod['fold']}{extra} > train.log 2>&1 < /dev/null &")
     pod["started"] = time.time()
 
 
@@ -245,19 +327,34 @@ def stage(pod):
     return ssh(pod, "cat /workspace/STAGE 2>/dev/null || echo booting", check=False, timeout=30).strip() or "?"
 
 
-def collect(pod):
+def collect(pod, root=REPO):
+    """Copy a pod's finished folds home (models to models/, which git ignores). Returns the experiments copied."""
     k = pod["fold"]
-    dest = os.path.join(RESULTS, "folds")
-    os.makedirs(dest, exist_ok=True)
-    os.makedirs(os.path.join(RESULTS, "executed"), exist_ok=True)
-    os.makedirs(MODELS, exist_ok=True)
-    scp(pod, f"/workspace/out/fold_{k}", dest, upload=False)
-    scp(pod, f"/workspace/out/executed/fold_{k}.ipynb", os.path.join(RESULTS, "executed", f"fold_{k}.ipynb"), upload=False)
+    if PROFILE["experiments"] == ["A0"]:
+        done, remote_fold = ["A0"], lambda folder: f"/workspace/out/fold_{k}"
+        remote_nb = lambda exp: f"/workspace/out/executed/fold_{k}.ipynb"
+    else:
+        listed = ssh(pod, "cat /workspace/DONE 2>/dev/null", check=False).split()
+        done = [e for i, e in enumerate(listed) if e in EXPERIMENT_FOLDERS and e not in listed[:i]]
+        remote_fold = lambda folder: f"/workspace/out/{folder}/fold_{k}"
+        remote_nb = lambda exp: f"/workspace/out/executed/{exp}_fold_{k}.ipynb"
+    for exp in done:
+        folder = EXPERIMENT_FOLDERS[exp]
+        dest = os.path.join(root, "results", folder, "folds")
+        executed = os.path.join(root, "results", folder, "executed")
+        models = os.path.join(root, "models", folder)
+        for d in (dest, executed, models):
+            os.makedirs(d, exist_ok=True)
+        scp(pod, remote_fold(folder), dest, upload=False)
+        scp(pod, remote_nb(exp), os.path.join(executed, f"fold_{k}.ipynb"), upload=False)
+        h5 = os.path.join(dest, f"fold_{k}", f"fold_{k}_best.h5")
+        if os.path.exists(h5):
+            os.replace(h5, os.path.join(models, f"fold_{k}_best.h5"))  # models stay out of git
+    runpod_dir = PROFILE["runpod_dir"] if root == REPO else os.path.join(root, "runpod")
+    os.makedirs(runpod_dir, exist_ok=True)
     for log in ["setup.log", "train.log"]:
-        scp(pod, f"/workspace/{log}", os.path.join(RESULTS, "runpod", f"fold_{k}_{log}"), upload=False)
-    h5 = os.path.join(dest, f"fold_{k}", f"fold_{k}_best.h5")
-    if os.path.exists(h5):
-        os.replace(h5, os.path.join(MODELS, f"fold_{k}_best.h5"))  # models stay out of git
+        scp(pod, f"/workspace/{log}", os.path.join(runpod_dir, f"fold_{k}_{log}"), upload=False)
+    return done
 
 
 def terminate(pod):
@@ -272,9 +369,13 @@ def terminate(pod):
 # ----------------------------------------------------------------------------- commands
 def cmd_up(args):
     state = load_state()
-    print(f"Balance before: ${balance()['clientBalance']:.2f}")
+    folds = parse_folds(args.folds)
+    have, estimate = balance()["clientBalance"], len(folds) * PRICE_ESTIMATE * PROFILE["hours"]
+    print(f"Balance before: ${have:.2f} · estimated cost of {len(folds)} pod(s): ${estimate:.2f}")
+    if have < estimate + 1 and not args.force:
+        raise SystemExit("balance too low for this run (add credit, or pass --force)")
     new = []
-    for k in parse_folds(args.folds):
+    for k in folds:
         if str(k) in state["pods"] and not state["pods"][str(k)].get("ended"):
             print(f"fold {k}: pod already running, skipped")
             continue
@@ -314,8 +415,8 @@ def cmd_start(args):
     state = load_state()
     for k in parse_folds(args.folds):
         pod = state["pods"][str(k)]
-        start(pod)
-        print(f"fold {k}: training started")
+        start(pod, only=args.only)
+        print(f"fold {k}: training started" + (f" ({args.only} only)" if args.only else ""))
     save_state(state)
 
 
@@ -347,7 +448,7 @@ def cmd_go(args):
                 start(pod)
                 todo.discard(k)
                 print(f"fold {k}: training started")
-            elif st.startswith("train-fold") or st.startswith("done"):
+            elif st.startswith(("train", "done", "partial")):
                 todo.discard(k)
             elif st.startswith("failed"):
                 print(f"fold {k}: {st}")
@@ -382,22 +483,31 @@ def cmd_collect(args, state=None):
             terminate(pod)
             pod["collected"] = True
             print(f"fold {k}: collected, pod terminated")
+        elif s.startswith("partial") and pod.get("partial") != s:
+            done = collect(pod)  # keep what finished; the pod stays up so the rest can be re-run with start --only
+            pod["partial"] = s
+            print(f"fold {k}: {s}; collected {done}; pod left running (start --folds {k} --only <exp>, or down)")
         elif s.startswith("failed"):
             print(f"fold {k}: FAILED at {s}; pod left running for inspection (see /workspace/*.log)")
         save_state(state)
 
 
 def cmd_watch(args):
+    cap = args.max_spend if args.max_spend is not None else PROFILE["max_spend"]
     while True:
         state = load_state()
         cmd_collect(args, state)
-        if spent(state) > args.max_spend:
-            print(f"Spend cap ${args.max_spend} reached: terminating everything")
+        if spent(state) > cap:
+            print(f"Spend cap ${cap} reached: terminating everything")
             cmd_down(args)
             return
         live = [p for p in state["pods"].values() if not p.get("ended")]
         if not live:
             print("All folds collected.")
+            return
+        waiting = [p for p in live if "port" not in p or not stage(p).startswith(("failed", "partial"))]
+        if not waiting:  # nothing is still running: don't keep paying for pods that need a person
+            print(f"Nothing left running; {len(live)} pod(s) need attention (status / start --only / down).")
             return
         cmd_status(args, state)
         time.sleep(args.every)
@@ -417,24 +527,28 @@ def cmd_down(args):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--experiments", default="A0", help="A0 (default) or a list of A1,A2,A3")
     sub = ap.add_subparsers(dest="cmd", required=True)
     up = sub.add_parser("up")
     up.add_argument("--folds", default="0-9")
     up.add_argument("--setup-only", action="store_true")
+    up.add_argument("--force", action="store_true", help="start even if the balance looks too low")
     se = sub.add_parser("setup")
     se.add_argument("--folds", required=True)
     st = sub.add_parser("start")
     st.add_argument("--folds", required=True)
+    st.add_argument("--only", help="ablation: re-run only these experiments on the pod, e.g. A2 or A1,A3")
     go = sub.add_parser("go")
     go.add_argument("--folds", default="0-9")
     sub.add_parser("status")
     sub.add_parser("collect")
     w = sub.add_parser("watch")
     w.add_argument("--every", type=int, default=60)
-    w.add_argument("--max-spend", type=float, default=6.0)
+    w.add_argument("--max-spend", type=float, default=None, help="default: $6 for A0, $12 for the ablation")
     dn = sub.add_parser("down")
     dn.add_argument("--folds", help="only these folds (default: all)")
     args = ap.parse_args()
+    configure(args.experiments)
     {"up": cmd_up, "setup": cmd_setup, "start": cmd_start, "go": cmd_go, "status": cmd_status, "collect": cmd_collect,
      "watch": cmd_watch, "down": cmd_down}[args.cmd](args)
 
