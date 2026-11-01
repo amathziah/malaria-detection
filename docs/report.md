@@ -1,4 +1,4 @@
-# Phase 2 Report: Automated Malaria Cell Detection
+# Project Report: Automated Malaria Cell Detection
 
 ## 1. Introduction
 
@@ -6,7 +6,7 @@ Malaria is diagnosed by looking at Giemsa-stained blood smears under a microscop
 
 Our goal is an automated deep-learning system that classifies single red-blood-cell images as **parasitized** or **uninfected**, accurately and consistently, and light enough to eventually run at the point of care.
 
-Phase 1 surveyed 11 published studies. In Phase 2 (this report) we reproduce the strongest-documented one, Marques et al. (2022), as our baseline, then test whether its accuracy holds up once slide-level leakage is removed.
+Phase 1 surveyed 11 published studies. In Phase 2 we reproduced the strongest-documented one, Marques et al. (2022), as our baseline. In Phase 3 we tested whether its accuracy holds once patient-level leakage is removed (H1) and whether YUV stain normalisation helps on unseen patients (H2). The IEEE-format paper is in [`docs/ieee/`](ieee/).
 
 ## 2. Baseline reproduction (Marques et al., 2022)
 
@@ -30,6 +30,8 @@ Phase 1 surveyed 11 published studies. In Phase 2 (this report) we reproduce the
 | F1 | 98.28 % | 97.55 % | −0.73 |
 | ROC-AUC | 99.76 % | 99.76 % | 0.00 |
 | MCC | — | 0.95 | — |
+
+*The paper column is the paper's text. Its recall and precision are swapped there: the authors' code gives recall 97.74 % and precision 98.82 % (see Section 3).*
 
 ![Training curves, confusion matrix and ROC](../results/A0_baseline/A0_curves_cm_roc.png)
 
@@ -100,6 +102,75 @@ On the hold-out set the ensemble missed 80 of 2,730 infected cells and flagged 5
 
 **Takeaway.** The fold models match the paper almost exactly (97.55 vs. 97.56 % on the CV test parts), and every headline metric is within 1 pp. The ensemble is 0.67 pp short of the paper's 98.29 %: our ensemble gains 0.25 pp over its average member where the paper's gained 0.60 pp. The gap is about three standard errors of a 5,512-image test set, so part of it is likely real; the paper's unrecoverable split and the different software and hardware are the remaining candidates. This 10-fold run replaces A0 as the reference for the hypothesis experiments.
 
-## 4. Hypothesis results
+## 4. Hypothesis results (Phase 3)
 
-*To do after the A1–A3 runs.*
+**Plan, fixed before the runs** ([`docs/phase3_analysis_plan.md`](phase3_analysis_plan.md)):
+- Each experiment changes one thing against A0's paper-exact recipe:
+  - A1: patient split.
+  - A2: patient split + YUV histogram equalisation.
+  - A3: the paper's split + YUV, as a control.
+- **Patient split.** Patients are the file names' C-numbers, checked against NIH's own patient mapping (200 patients). The hold-out set is 40 patients (5,550 cells, 50.7 % parasitized); the other 160 patients are split into 10 folds.
+- **Pairing.** A1 and A2 share their split. A3 reuses A0's split exactly, so both pairs compare the same cells.
+- **Analysis.**
+  - Primary protocol: clean evaluation. Primary metric: MCC.
+  - Every interval comes from a bootstrap over patients.
+  - Paired contrasts use the Nadeau–Bengio corrected t-test over folds.
+  - Holm correction over the three contrasts.
+
+**Compute.** 30 models (10 folds × 3 experiments) on 10 RunPod pods (7× RTX 4090, 3× L40S; each pod trained one fold of A1, A2 and A3 in turn). The run took about one hour of wall-clock time and cost $6.95.
+
+**Results** (`results/ablation/`, clean evaluation, %; MCC × 100; ensemble values with 95 % patient-bootstrap CIs):
+
+| ID | Split | Preprocessing | Hold-out cells / patients | Fold MCC (mean ± SD) | Fold accuracy (mean ± SD) | Ensemble accuracy | Ensemble MCC | Ensemble recall |
+|---|---|---|---|---|---|---|---|---|
+| A0 | image | none | 5,512 / 200 | 95.57 ± 0.60 | 97.78 ± 0.30 | 97.64 [97.02, 98.17] | 95.29 [94.03, 96.32] | 97.18 [96.03, 98.06] |
+| A1 | patient | none | 5,550 / 40 | 93.92 ± 1.51 | 97.24 ± 0.66 | **98.45** [97.94, 98.91] | 96.90 [95.70, 97.79] | 98.05 [96.79, 98.85] |
+| A2 | patient | YUV | 5,550 / 40 | 93.32 ± 1.66 | 96.96 ± 0.75 | 98.32 [97.71, 98.86] | 96.65 [95.23, 97.68] | 98.22 [97.02, 99.02] |
+| A3 | image | YUV | 5,512 / 200 | 95.20 ± 0.37 | 97.60 ± 0.19 | 97.64 [97.02, 98.17] | 95.29 [94.04, 96.32] | 97.14 [95.94, 98.05] |
+
+![Each fold of each experiment](../results/ablation/ablation_fold_mcc.png)
+
+![The three contrasts with 95 % CIs](../results/ablation/ablation_contrasts.png)
+
+**H1 (patient leakage): not supported by the pre-registered test. There is a small leakage effect.**
+- On the 40 unseen patients the A1 ensemble scores **98.45 %** (MCC 96.90). That is no lower than A0's 97.64 %: the difference in MCC is +1.62 pp, 95 % CI +0.01 to +3.12, Holm p = 0.146. **The paper's ~98 % survives unseen patients.**
+- Cross-validation over the other 160 patients is a broader test than one hold-out draw, and it shows what H1 predicted, at a small size:
+  - mean fold MCC 93.92 vs 95.57 (−1.65 pp; Welch p = 0.0075, Holm 0.023);
+  - fold accuracy 97.24 vs 97.78 %;
+  - 2.5× the fold-to-fold spread (MCC SD 1.51 vs 0.60).
+- The same A1 models score 98.22 % on the 40 held-out patients but 97.24 % in cross-validation, so this hold-out draw is about 1 pp easier than an average group of unseen patients. That difference is larger than the leakage effect itself.
+- With unseen-patient validation the best epoch also comes earlier (median 17 vs 28.5).
+
+**H2 (YUV stain normalisation): rejected.**
+- On the same unseen patients, A2 vs A1 changes mean fold MCC by −0.60 pp. That is below A1's fold SD of 1.51 pp, so the pre-registered rule rejects H2; the corrected t-test gives p = 0.13.
+- The ensemble MCC changes by −0.26 pp (95 % CI −0.85 to +0.23).
+- Specificity drops slightly (−0.44 pp; not significant after Holm correction).
+
+**Control (A3 vs A0).** YUV under the paper's split leaves the ensemble unchanged (MCC +0.00 pp, 95 % CI −0.52 to +0.53).
+
+All three verdicts are the same under the paper's augmented protocol (`results/ablation/paper_protocol/`).
+
+**For screening:**
+- A decision threshold chosen on the CV folds (max F2) raises hold-out recall to 98.7–99.2 %, at 91.7–95.2 % specificity.
+- The ensembles are slightly under-confident (ECE 0.05–0.07), as the paper's label smoothing predicts.
+
+![Each held-out patient, A1 vs A2](../results/ablation/ablation_per_patient.png)
+
+**Limitations.**
+- The task is single-cell classification, not patient diagnosis: 75 % of uninfected cells come from infected patients.
+- All data comes from one hospital, with no external test set.
+- Labels come from one expert.
+- There is one 40-patient hold-out draw and one training run per fold and arm.
+- A1–A3 ran on 7 RTX 4090s and 3 L40S, whereas A0 ran on RTX 4090s only. Within a fold, A1, A2 and A3 shared one GPU.
+
+## 5. Conclusion and next steps
+
+- The paper's recipe reproduces within 1 pp from its own code.
+- Its accuracy largely survives unseen patients: 98.45 % on 40 held-out patients, with a small leakage effect of about 0.5 pp accuracy and 1.7 pp MCC in cross-validation.
+- YUV histogram equalisation, a preprocessing step reported as very effective in the literature, does not help a strong augmented baseline.
+
+Next steps:
+- Report results per patient.
+- Test on an external dataset from another laboratory.
+- Re-score on the cleaned labels of Fuhad et al.
+- Distil the ensemble into one light model for point-of-care use.

@@ -742,15 +742,28 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 - **H2 is rejected** if its gain over A1 is smaller than the fold-to-fold standard deviation.
 - **H1 is rejected** (leakage is not a real issue on this dataset) if grouped and random splits score the same.
 
-### 7.5 Proposed next steps *(proposals, not yet done)*
+### 7.5 What the hypothesis experiments found (Phase 3)
 
-1. **Run A1, A2, A3** with the same parallel RunPod setup: 10 folds each in about 15–20 minutes of wall-clock time and roughly $2 per experiment. The grouped split and the YUV switch already exist in the first notebook; they need to be added to the paper-exact module.
-2. **Report per-slide (per-patient) results**, not only per-cell, since a diagnosis is made per patient.
-3. **Tune the decision threshold for recall.** Lowering it from 0.5 trades a few false alarms for fewer missed infections; choose it on the CV folds, report it on the hold-out set.
-4. **Check calibration** (does "90 % sure" mean right 90 % of the time?) with a reliability diagram.
-5. **Explain predictions** with Grad-CAM heat maps to show the model looks at the parasite, not the background or stain.
-6. **Make it phone-sized**: distil the 10-model ensemble into one model and quantise it (TensorFlow Lite), then measure speed on a phone.
-7. **Test on an external dataset** (a different hospital or microscope) — the real test of H2.
+A1–A3 ran with the paper-exact recipe:
+- 10 folds each, 30 models in total;
+- one RunPod pod per fold, training A1, A2 and A3 in turn;
+- about one hour of wall-clock time, $6.95.
+
+The analysis plan was committed before the runs ([`phase3_analysis_plan.md`](phase3_analysis_plan.md)), and the full write-up is in the [report](report.md#4-hypothesis-results-phase-3).
+
+| Question | Answer |
+|---|---|
+| **H1:** does a patient split lower the scores? | **Not supported** by the pre-registered test. On 40 unseen patients the ensemble scores **98.45 %** (A0: 97.64 %). Cross-validation over 160 patients shows a small drop (fold MCC −1.65 pp, accuracy −0.54 pp) and 2.5× the fold spread. The 40-patient hold-out set happens to be ~1 pp easier than an average fold. |
+| **H2:** does YUV help on unseen patients? | **Rejected.** Fold MCC −0.60 pp, smaller than the 1.51 pp fold SD; ensemble MCC −0.26 pp (95 % CI −0.85 to +0.23). |
+| **Control:** does YUV matter when patients are shared? | No: ensemble MCC +0.00 pp. |
+| Per-patient results (proposal 2) | `results/ablation/ablation_per_patient.csv` and the dumbbell figure: errors cluster in a few patients. |
+| Threshold for recall (proposal 3) | Chosen on the CV folds and applied once to the hold-out set: recall 98.7–99.2 % at 91.7–95.2 % specificity. |
+| Calibration (proposal 4) | ECE 0.05–0.07: slightly under-confident, as label smoothing predicts. |
+
+**Still open:**
+- Grad-CAM across all experiments.
+- Distilling the ensemble into one phone-sized model.
+- An external dataset from another lab: the real test of stain robustness.
 
 ---
 
