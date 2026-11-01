@@ -240,15 +240,23 @@ def compare(a, b, paired, n_boot=10_000, seed=0, protocol=PRIMARY):
         va, vb = fold_values(a, m, protocol), fold_values(b, m, protocol)
         row = dict(ref_mean=float(va.mean()), ref_sd=float(va.std(ddof=1)), new_mean=float(vb.mean()),
                    new_sd=float(vb.std(ddof=1)), diff=float(vb.mean() - va.mean()))
+        k = len(va)
         if paired:
+            d = vb - va
+            se = np.sqrt((1 / k + b["n_test"] / b["n_train"]) * d.var(ddof=1))
+            half = sps.t.ppf(0.975, k - 1) * se
             try:
-                row["t"], row["p"] = corrected_resampled_ttest(vb - va, b["n_train"], b["n_test"])
+                row["t"], row["p"] = corrected_resampled_ttest(d, b["n_train"], b["n_test"])
                 row["test"] = "corrected resampled t-test (paired folds)"
             except ValueError:
                 row["t"], row["p"], row["test"] = float("nan"), float("nan"), "undefined (identical differences)"
         else:  # different splits: folds are not paired; Welch's t on the fold scores, descriptive only
             row["t"], row["p"] = map(float, sps.ttest_ind(vb, va, equal_var=False))
             row["test"] = "Welch t-test on fold scores (unpaired, descriptive)"
+            se2a, se2b = va.var(ddof=1) / k, vb.var(ddof=1) / k
+            dof = (se2a + se2b) ** 2 / (se2a ** 2 / (k - 1) + se2b ** 2 / (k - 1)) if se2a + se2b else k - 1
+            half = sps.t.ppf(0.975, dof) * np.sqrt(se2a + se2b)
+        row.update(est=row["diff"], lo=float(row["diff"] - half), hi=float(row["diff"] + half))
         out["fold"][m] = row
 
         sa, sb = a[f"ens_{protocol}"], b[f"ens_{protocol}"]
