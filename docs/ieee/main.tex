@@ -1,0 +1,175 @@
+\documentclass[conference]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\sisetup{detect-all, group-minimum-digits=4}
+\graphicspath{{../../results/}{../../slides/figures/}{../figures/}{figures/}}
+\newcommand{\pp}{\,pp}
+
+\begin{document}
+
+\title{Does 98\,\% Survive Unseen Patients? A Code-Exact Reproduction and Patient-Level Ablation of an EfficientNet-B0 Ensemble for Malaria Cell Classification}
+
+\author{
+\IEEEauthorblockN{J Amathziah (230139), C Murali Madhav (230115), Ravi Yadav (230131), Pugazhendhi J (230066)}
+\IEEEauthorblockA{Department of Computer Science, Rishihood University, Sonipat, India\\
+Code, results and trained models: \url{https://github.com/amathziah/malaria-detection}}
+}
+
+\maketitle
+
+\begin{abstract}
+Deep-learning studies on the NIH malaria cell images report 96--99.9\,\% accuracy, mostly with random image-level splits that place cells of the same patient in both the training and the test set. We reproduce the EfficientNet-B0 ten-fold ensemble of Marques \emph{et al.}\ (2022) from the authors' executed code, then test with a pre-registered ablation whether its accuracy survives patients the model has never seen (H1) and whether YUV histogram-equalisation stain normalisation helps on them (H2).
+The code-exact reproduction lands within 1 percentage point (pp) of the paper on every metric (ensemble 97.62 vs.\ 98.29\,\%; mean fold 97.55 vs.\ 97.56\,\%). It also shows that the paper's text swaps precision and recall and that its evaluation images were augmented.
+On 40 held-out patients the ensemble reaches 98.45\,\% accuracy (95\,\% patient-bootstrap CI 97.94--98.91\,\%), so H1 is not supported by its pre-registered test. Cross-validation over the remaining 160 patients reveals a small leakage effect: Matthews correlation $-1.65$\,pp (Holm-adjusted $p=0.023$), with 2.5 times the fold-to-fold spread.
+YUV normalisation does not help on unseen patients (MCC $-0.26$\,pp, 95\,\% CI $-0.85$ to $+0.23$) and changes nothing under the original split. A recall-first threshold chosen on the folds raises sensitivity to 98.7--99.2\,\%.
+Each of the 40 models trains in about 11 minutes on an RTX~4090 cloud GPU.
+\end{abstract}
+
+\begin{IEEEkeywords}
+malaria, thin blood smear, EfficientNet, ensemble learning, reproducibility, data leakage, patient-level validation, stain normalisation
+\end{IEEEkeywords}
+
+\section{Introduction}
+Malaria is diagnosed by examining Giemsa-stained blood smears under a microscope, where a trained technician inspects red blood cells for parasites. The method is the clinical gold standard, but it is slow, it depends on scarce expertise in exactly the regions where malaria is common, and its results vary between observers and laboratories. Automated classification of single red-blood-cell images is therefore an active research topic, and on the public NIH Malaria Cell Images dataset~\cite{rajaraman2018} convolutional neural networks (CNNs) routinely report accuracies of 96--99.9\,\%~\cite{liang2016,rajaraman2018,rajaraman2019,umer2020,fuhad2020,zhao2020,masud2020,marques2022,madhu2023,hemachandran2023,mujahid2024}.
+
+Two questions decide whether such numbers can be trusted. First, \emph{can they be reproduced?} Papers rarely publish their full training code, and small undocumented choices (augmentation, label smoothing, checkpointing) move the results by more than the differences being claimed. Second, \emph{do they hold on patients the model has never seen?} Most studies split the 27{,}558 cell images at random, so cells of the same patient---sharing stain, illumination and the patient's own blood---appear in both the training and the test set. A model can then score well by recognising the patient rather than the parasite.
+
+This work addresses both questions for a strong, openly documented baseline: the EfficientNet-B0 ten-fold ensemble of Marques \emph{et al.}~\cite{marques2022}, whose authors published their executed notebook. Our contributions are:
+\begin{enumerate}
+\item A \emph{code-exact} reproduction of~\cite{marques2022} on all ten folds, built from the authors' notebook rather than the paper's text, verified by automated tests against the paper's printed outputs, and trained in about 11 minutes per fold instead of 4\,h\,46\,min.
+\item Three corrections to the paper's reporting: its text swaps the ensemble's precision and recall, its evaluation images were randomly augmented, and one table reports $(\text{precision}+\text{recall})/2$ as accuracy.
+\item A pre-registered ablation that changes one variable at a time: a patient-level split (hypothesis H1: random splits inflate the scores) and YUV histogram-equalisation stain normalisation~\cite{umer2020} (hypothesis H2: it helps on unseen patients), with a control that applies the normalisation under the original split.
+\item A patient-level statistical analysis---cluster bootstrap over patients, corrected resampled $t$-tests~\cite{nadeau2003} and Holm correction~\cite{holm1979}---with the hypotheses, decision rules and primary metric committed to the repository before any of the new models was trained.
+\end{enumerate}
+
+\section{Related Work}
+Liang \emph{et al.}~\cite{liang2016} showed that a 16-layer CNN trained from scratch (97.37\,\%) outperforms transferred AlexNet features (91.99\,\%). Rajaraman \emph{et al.}~\cite{rajaraman2018} released the NIH dataset and mapped which layers of pre-trained CNNs transfer best; importantly, they evaluated at the patient level as well as the cell level and observed lower scores at the patient level. Ensembles followed: Rajaraman \emph{et al.}~\cite{rajaraman2019} combined VGG-19 and SqueezeNet, and Marques \emph{et al.}~\cite{marques2022} averaged ten EfficientNet-B0 models from a ten-fold cross-validation (98.29\,\% accuracy, ROC-AUC 99.76\,\%). Lightweight models target point-of-care use: Fuhad \emph{et al.}~\cite{fuhad2020} reached 99.23\,\% with about 4{,}600 FLOPs on a phone after cleaning the dataset's labels, and Masud \emph{et al.}~\cite{masud2020} used a 409\,K-parameter CNN. Zhao \emph{et al.}~\cite{zhao2020} extended detection to a second species. Umer \emph{et al.}~\cite{umer2020} preprocessed images by YUV conversion and luma histogram equalisation before a stacked CNN and reported $\sim$99.9\,\%. Capsule networks~\cite{madhu2023} and systematic backbone comparisons~\cite{hemachandran2023,mujahid2024} complete the picture.
+
+Two gaps run through this literature. Protocols differ (5-fold, 10-fold and 80:20 splits; original or cleaned labels), so reported accuracies are not directly comparable. And most studies split images at random, so the same patient's cells sit on both sides of the split; only Rajaraman \emph{et al.}~\cite{rajaraman2018,rajaraman2019} report patient-level evaluation. We take the strongest reproducible baseline and measure how much of its accuracy survives a patient-level split.
+
+\section{Data}
+The NIH Malaria Cell Images dataset~\cite{rajaraman2018} contains \num{27558} segmented single-cell crops (\num{13779} parasitized, \num{13779} uninfected) from Giemsa-stained thin smears of 200 patients (150 infected with \emph{P.~falciparum}, 50 healthy), photographed through a microscope with a smartphone at Chittagong Medical College Hospital, Bangladesh. Crops vary in size and are resized to $224\times224$.
+
+\textbf{Patient identity.} Every file name begins with the patient's case number, e.g.\ \path{C33P1thinF_IMG_..._cell_179.png} belongs to patient C33. We verified this key against NIH's own patient-to-cell mapping files: all \num{27558} cells map, giving 200 patients. NIH lists one patient (C47) under two keys, one per microscope; the case number correctly merges them. Infected patients also contribute uninfected cells---\num{10364} of the \num{13779} uninfected cells come from infected patients' smears---so under a random split almost every patient has cells on both sides. Patients differ widely: 65 to 702 cells each, and 1 to 90\,\% parasitized among the infected.
+
+\section{Methods}
+\subsection{Code-exact reproduction of the baseline (A0)}
+The supplementary file of~\cite{marques2022} is the authors' executed notebook. It differs from the paper's text in several respects, and we follow the code: noisy-student EfficientNet-B0 weights~\cite{tan2019,xie2020} (qubvel \texttt{efficientnet} 1.1.1, all layers trainable) followed by global average pooling and dense layers of 128, 64 and 32 units (ReLU, dropout 0.3) and a two-way softmax; categorical cross-entropy with label smoothing 0.1; Adam (learning rate $10^{-4}$); learning-rate halving on a validation-loss plateau (patience 6, minimum $10^{-6}$); 33 epochs of batch size 16 with the best-validation-loss weights restored; and a heavy \texttt{albumentations} pipeline (flips, $90^\circ$ rotations, noise, blur, shift-scale-rotate, optical, grid and piecewise-affine distortions, CLAHE, sharpening, embossing, contrast and brightness changes). The data are split 80/20 into a learning set and an untouched hold-out set; a stratified ten-fold cross-validation on the learning set yields ten models, and the ensemble averages their softmax outputs on the hold-out set.
+
+We reimplemented this recipe in TensorFlow~2.15 with the same Keras~2 API and library versions, and wrote 32 tests that compare it with the paper: the parameter counts of its Table~2 (\num{4223934} total, \num{4181918} trainable), the split and fold sizes printed by its code, the exact augmentation pipeline, image loading identical to the authors' generator, the loss, optimiser and callbacks, and its classification reports. The paper's split was unseeded and cannot be recovered; we sort the file list and seed the split so that every machine builds the same one, and store a fingerprint of the split with every fold.
+
+\textbf{Speed without changing the computation.} Images are decoded once into a shared \texttt{uint8} array; the augmentation runs in worker processes, each batch seeded by (fold, epoch, batch) so results do not depend on the number of workers; batches reach the GPU as \texttt{uint8} and are scaled inside the model; and the training step is XLA-compiled. Arithmetic remains float32. Each fold trains on its own RTX~4090 in about 11 minutes, against 4\,h\,46\,min per fold reported for a GTX~1050.
+
+\subsection{Ablation design (A1--A3)}
+Each experiment changes one thing relative to A0 (Table~\ref{tab:design}); everything else, including the per-fold seeds, is identical.
+
+\begin{table}[t]
+\centering
+\caption{Ablation design. Every experiment uses A0's recipe and ten folds.}
+\label{tab:design}
+\begin{tabular}{@{}llll@{}}
+\toprule
+ID & Split & Preprocessing & Question \\
+\midrule
+A0 & image (paper) & none & baseline \\
+A1 & patient & none & H1: leakage (A1 vs A0) \\
+A2 & patient & YUV + hist.-eq. & H2: normalisation (A2 vs A1) \\
+A3 & image (paper) & YUV + hist.-eq. & control (A3 vs A0) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Patient split (A1, A2).} \texttt{StratifiedGroupKFold} with five groups proposes five hold-out sets of about 20\,\% of the cells; we take the one closest to 20\,\% of the cells and 50\,\% parasitized, a rule on labels only. This yields \num{5550} hold-out cells from 40 patients (28 infected; 50.7\,\% parasitized). The remaining 160 patients are split into ten folds of 15--17 patients by \texttt{StratifiedGroupKFold}. The split is committed to the repository and every training run verifies its fingerprint; A1 and A2 use the identical split, and A3 reuses A0's split exactly, so both pairs compare the same cells fold by fold.
+
+\textbf{YUV normalisation (A2, A3).} Following~\cite{umer2020}, each image is converted to YUV, the luma channel is histogram-equalised, and the result is converted back to RGB, at the image's native size and before the unchanged resize and augmentation. Chroma is untouched and the black background stays black. We omit the 120\,$\times$\,120 resize and the unspecified edge kernel of~\cite{umer2020}. Fig.~\ref{fig:yuv} shows the effect: the narrow brightness range of each cell is stretched over the full range, which also amplifies texture.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{A2_yuv_slide/yuv_examples.png}
+\caption{Input to H2. Top: original cells from eight different patients. Bottom: after YUV conversion and luma histogram equalisation.}
+\label{fig:yuv}
+\end{figure*}
+
+\subsection{Statistical analysis}
+All decisions below were committed to the repository before the A1--A3 models were trained. Patients are the unit of independence, so every confidence interval comes from a cluster bootstrap that resamples whole patients (\num{10000} resamples). The primary metric is the Matthews correlation coefficient (MCC), which is insensitive to the class mix that varies between patient folds; accuracy, recall (sensitivity for parasitized cells), specificity, balanced accuracy, $F_2$ and ROC-AUC are reported as well. The primary protocol evaluates clean (un-augmented) images; the paper's augmented protocol is reported alongside. Paired contrasts (A2 vs A1, A3 vs A0) use the Nadeau--Bengio corrected resampled $t$-test on the ten per-fold differences~\cite{nadeau2003}---a plain paired $t$-test is too optimistic because the folds' training sets overlap by about 89\,\%---and a paired patient bootstrap of the ensemble's hold-out difference. A1 and A0 have different hold-out sets, so their ensembles are compared with independent patient bootstraps. $p$-values are Holm-corrected over the three contrasts~\cite{holm1979}. The decision rules restate the hypotheses as registered in our Phase~2 plan: H1 is supported if A1's ensemble MCC is lower than A0's with a 95\,\% interval excluding zero; H2 is rejected if A2's mean fold-MCC gain over A1 is smaller than A1's fold-to-fold standard deviation; the control shows ``little change'' if $|$A3$-$A0$|$ is below A0's fold standard deviation.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{architecture.png}
+\caption{The reproduced model: noisy-student EfficientNet-B0 (stem, 16 MBConv blocks in seven stages, $1\times1$ top convolution) and the paper's dense head. 4{,}223{,}934 parameters, exactly the paper's Table~2.}
+\label{fig:arch}
+\end{figure*}
+
+\input{tables}
+
+\section{Results}
+\subsection{Reproduction}
+Table~\ref{tab:repro} compares our ten-fold reproduction with the outputs printed by the authors' code. The fold models match the paper almost exactly (97.55 vs.\ 97.56\,\% mean accuracy on their cross-validation test parts), and every headline metric is within 1\,pp. The ensemble is 0.67\,pp short of the paper's 98.29\,\%: our ensemble gains 0.25\,pp over its average member where the paper's gained 0.60\,pp. The gap is about three standard errors of a \num{5512}-cell test set; the paper's unrecoverable split and the newer TensorFlow are the remaining differences. Scoring clean instead of augmented images changes our numbers by at most 0.23\,pp, so the paper's augmented evaluation does not explain its results. Reading the authors' code also revealed that the paper's text swaps the ensemble's precision and recall (the true recall is 97.74\,\%, not 98.82\,\%), and that its Table~6 ``accuracy'' is $(\text{precision}+\text{recall})/2$ of each report.
+
+\subsection{H1: patient-level split}
+Table~\ref{tab:ablation} lists all four experiments and Table~\ref{tab:contrasts} the three contrasts. On the 40 held-out patients, the A1 ensemble reaches \textbf{98.45\,\%} accuracy (95\,\% CI 97.94--98.91) and an MCC of 96.90, no lower than A0's 97.64\,\% on its image-split hold-out set (MCC difference $+1.62$\,pp, 95\,\% CI $+0.01$ to $+3.12$, Holm $p=0.15$). By the pre-registered rule, \emph{H1 is not supported}: the paper's accuracy largely survives unseen patients.
+
+Cross-validation tells a more careful story (Fig.~\ref{fig:folds}). Its ten test parts together cover 160 patients, a broader test than one draw of 40. There the patient split lowers the mean fold MCC from 95.57 to 93.92 ($-1.65$\,pp; Welch $p=0.0075$, Holm $p=0.023$) and the mean fold accuracy from 97.78 to 97.24\,\%, and it widens the fold-to-fold spread 2.5-fold (MCC SD 0.60 to 1.51), as H1 predicted. The same A1 models score 98.22\,\% on the 40 held-out patients but 97.24\,\% in cross-validation: this particular hold-out draw is about 1\,pp easier than an average group of unseen patients, a variation larger than the leakage effect itself. Validation on unseen patients also stops improving earlier: the best epoch falls at a median of 17 instead of 28.5.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.78\textwidth]{ablation/ablation_fold_mcc.png}
+\caption{MCC of every fold model on its cross-validation test part (clean evaluation). Orange: the paper's image split; teal: the patient split. Grey lines join the same fold across the paired YUV change. Patient-split folds score lower and vary more; YUV changes little.}
+\label{fig:folds}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{ablation/ablation_contrasts.png}
+\caption{The three contrasts on the ensembles' hold-out sets, with 95\,\% patient-bootstrap intervals. None survives the Holm correction.}
+\label{fig:contrasts}
+\end{figure*}
+
+\subsection{H2: YUV stain normalisation}
+On the same unseen patients, adding YUV normalisation (A2 vs.\ A1) changes the mean fold MCC by $-0.60$\,pp, which is smaller than A1's fold-to-fold standard deviation of 1.51\,pp. The pre-registered rule therefore rejects H2, and the corrected resampled $t$-test agrees ($p=0.13$). On the hold-out set the ensemble MCC changes by $-0.26$\,pp (95\,\% CI $-0.85$ to $+0.23$); recall is unchanged ($+0.18$\,pp) and specificity is slightly lower ($-0.44$\,pp, not significant after correction) (Fig.~\ref{fig:contrasts}). The control A3 vs.\ A0 confirms that the step has no effect when patients are shared (ensemble MCC $+0.00$\,pp, 95\,\% CI $-0.52$ to $+0.53$). The analysis under the paper's augmented protocol gives the same three verdicts.
+
+\subsection{Screening-oriented analysis}
+For screening, a missed infected cell is costlier than a false alarm. Choosing the decision threshold on the pooled out-of-fold cross-validation predictions (maximum $F_2$) and applying it once to the hold-out set raises recall to 98.7--99.2\,\% at 91.7--95.2\,\% specificity (Table~\ref{tab:extras}). The ensembles are slightly under-confident (ECE 0.05--0.07), as the paper's label smoothing predicts. Errors cluster by patient: a few held-out patients account for most of A1's mistakes, which a single cell-level accuracy hides.
+
+\subsection{Compute}
+Each of the 40 models trains for 33 epochs in about 11 minutes on an RTX~4090 (10.2--12.8 minutes for A1--A3) and in 11--18 minutes on an L40S, against 4\,h\,46\,min per fold reported for a GTX~1050. A1--A3 ran as one cloud pod per fold that trains the three experiments in turn: 30 models in about one hour of wall-clock time for US\$6.95. At batch size 16 a training step takes about 16\,ms and is dominated by per-step overhead rather than arithmetic. The data-centre L40S was slower than the consumer RTX~4090 even with twice the CPU cores, so larger GPUs are unlikely to shorten training much without changing the recipe.
+
+\section{Discussion}
+\textbf{Why is the leakage effect small here?} Rajaraman \emph{et al.}~\cite{rajaraman2018} reported a drop from 98.6 to 95.9\,\% when moving from cell-level to patient-level evaluation with features from pre-trained networks. Our end-to-end fine-tuned ensemble loses only about 0.5\,pp of accuracy (1.7\,pp of MCC) in cross-validation. Two plausible reasons, which our experiments do not separate, are that the decisive cue (stained parasite chromatin) looks alike across patients, and that the paper's heavy colour, contrast and blur augmentation already prevents the network from relying on a patient's staining.
+
+\textbf{One hold-out set is not enough.} The 40-patient hold-out set is about 1\,pp easier than an average fold of unseen patients. That is larger than the leakage effect and larger than the paper's own margins over competing methods, so sub-1-pp differences between published methods cannot be resolved on a single random hold-out set. Reporting cross-validation over patients together with patient-level confidence intervals, as we do, is the minimum needed.
+
+\textbf{Why does YUV normalisation not help?} Umer \emph{et al.}~\cite{umer2020} reported 99.96\,\% with their full preprocessing against 49.61\,\% without it. That comparison is against a model that did not train, not against a strong baseline. With a pre-trained network and an augmentation pipeline that already randomises brightness and contrast (including CLAHE), explicit equalisation adds nothing. By stretching each cell's narrow luma range to the full scale (Fig.~\ref{fig:yuv}), it also amplifies texture and noise, consistent with the slightly lower specificity we observe.
+
+\section{Limitations}
+The task remains single-cell classification: three quarters of the uninfected cells come from infected patients' smears, and a patient-level diagnosis would need slide-level aggregation. All data come from one hospital, so a patient split removes patient leakage but not site or staining-protocol effects. Without an external test set, H2 is tested on unseen patients of the same laboratory, not on another laboratory's stain. Labels come from a single expert, and about 5\,\% of cells were questioned by Fuhad \emph{et al.}~\cite{fuhad2020}; we keep the original labels, as the paper did. Each comparison rests on one hold-out draw and one training run per fold and arm. A1--A3 ran on RTX~4090 and L40S GPUs (A0 on RTX~4090 only); within a fold, A1, A2 and A3 shared one GPU, so the paired comparisons use identical hardware.
+
+\section{Conclusion}
+Rebuilt from its authors' code, the EfficientNet-B0 ensemble of Marques \emph{et al.} reproduces within 1\,pp. Its accuracy largely survives patients it has never seen (98.45\,\% on 40 held-out patients), with a small but measurable leakage effect in cross-validation. YUV histogram-equalisation stain normalisation, reported as highly effective in the literature, does not improve this strong augmented baseline. Future work should evaluate per patient, test on an external laboratory's smears, use cleaned labels, and distil the ensemble into a single model light enough for point-of-care use. Code, results, the analysis plan and all trained models are public in our repository.
+
+
+\begin{thebibliography}{99}
+\bibitem{liang2016} Z.~Liang \emph{et al.}, ``CNN-based image analysis for malaria diagnosis,'' in \emph{Proc. IEEE Int. Conf. Bioinformatics and Biomedicine (BIBM)}, 2016.
+\bibitem{rajaraman2018} S.~Rajaraman \emph{et al.}, ``Pre-trained convolutional neural networks as feature extractors toward improved malaria parasite detection in thin blood smear images,'' \emph{PeerJ}, vol.~6, p.~e4568, 2018.
+\bibitem{rajaraman2019} S.~Rajaraman, S.~Jaeger, and S.~K. Antani, ``Performance evaluation of deep neural ensembles toward malaria parasite detection in thin-blood smear images,'' \emph{PeerJ}, vol.~7, p.~e6977, 2019.
+\bibitem{umer2020} M.~Umer, S.~Sadiq, M.~Ahmad, S.~Ullah, G.~S. Choi, and A.~Mehmood, ``A novel stacked CNN for malarial parasite detection in thin blood smear images,'' \emph{IEEE Access}, vol.~8, 2020, doi: 10.1109/ACCESS.2020.2994810.
+\bibitem{fuhad2020} K.~M.~F. Fuhad \emph{et al.}, ``Deep learning based automatic malaria parasite detection from blood smear and its smartphone based application,'' \emph{Diagnostics}, vol.~10, no.~5, p.~329, 2020.
+\bibitem{zhao2020} O.~S. Zhao \emph{et al.}, ``Convolutional neural networks to automate the screening of malaria in low-resource countries,'' \emph{PeerJ}, vol.~8, p.~e9674, 2020.
+\bibitem{masud2020} M.~Masud \emph{et al.}, ``Leveraging deep learning techniques for malaria parasite detection using mobile application,'' \emph{Wireless Commun. Mobile Comput.}, vol.~2020, p.~8895429, 2020.
+\bibitem{marques2022} G.~Marques, A.~Ferreras, and I.~de~la Torre-D\'iez, ``An ensemble-based approach for automated medical diagnosis of malaria using EfficientNet,'' \emph{Multimedia Tools Appl.}, vol.~81, pp.~28061--28078, 2022, doi: 10.1007/s11042-022-12624-6.
+\bibitem{madhu2023} G.~Madhu \emph{et al.}, ``Intelligent diagnostic model for malaria parasite detection and classification using imperative inception-based capsule neural networks,'' \emph{Sci. Rep.}, vol.~13, Art. no.~13377, 2023.
+\bibitem{hemachandran2023} K.~Hemachandran \emph{et al.}, ``Performance analysis of deep learning algorithms in diagnosis of malaria disease,'' \emph{Diagnostics}, vol.~13, no.~3, p.~534, 2023.
+\bibitem{mujahid2024} M.~Mujahid \emph{et al.}, ``Efficient deep learning-based approach for malaria detection using red blood cell smears,'' \emph{Sci. Rep.}, vol.~14, Art. no.~13249, 2024.
+\bibitem{tan2019} M.~Tan and Q.~V. Le, ``EfficientNet: Rethinking model scaling for convolutional neural networks,'' in \emph{Proc. ICML}, 2019, pp.~6105--6114.
+\bibitem{xie2020} Q.~Xie, M.-T. Luong, E.~Hovy, and Q.~V. Le, ``Self-training with noisy student improves ImageNet classification,'' in \emph{Proc. CVPR}, 2020, pp.~10687--10698.
+\bibitem{nadeau2003} C.~Nadeau and Y.~Bengio, ``Inference for the generalization error,'' \emph{Mach. Learn.}, vol.~52, no.~3, pp.~239--281, 2003.
+\bibitem{holm1979} S.~Holm, ``A simple sequentially rejective multiple test procedure,'' \emph{Scand. J. Statist.}, vol.~6, no.~2, pp.~65--70, 1979.
+\end{thebibliography}
+
+\end{document}
