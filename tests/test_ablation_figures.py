@@ -35,6 +35,7 @@ def test_contrast_forest_saves_a_png(analysed, tmp_path):
 
 def test_per_patient_needs_the_same_hold_out_set(analysed, tmp_path):
     assert is_png(figs.per_patient(analysed["found"], "A1", "A2", path=str(tmp_path / "pp.png")))
+    assert is_png(figs.per_patient(analysed["found"], "A1", "A2", path=str(tmp_path / "pp_top.png"), top=5))
     with pytest.raises(ValueError):
         figs.per_patient(analysed["found"], "A0", "A1")
 

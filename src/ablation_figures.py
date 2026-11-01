@@ -149,8 +149,10 @@ def contrast_forest(contrasts, metrics=("mcc", "recall", "specificity", "auc"), 
 
 
 # ----------------------------------------------------------------------------- per patient
-def per_patient(found, a="A1", b="A2", protocol="clean", path=None):
-    """Hold-out accuracy per patient for two experiments on the same patients (a dumbbell per patient)."""
+def per_patient(found, a="A1", b="A2", protocol="clean", path=None, top=None):
+    """Hold-out accuracy per patient for two experiments on the same patients (a dumbbell per patient).
+
+    top=N keeps only the N patients `a` gets most wrong (legible on a slide)."""
     import matplotlib.pyplot as plt
     style()
     ea, eb = found[a], found[b]
@@ -160,8 +162,10 @@ def per_patient(found, a="A1", b="A2", protocol="clean", path=None):
     # worst patient for `a` at the top (matplotlib's y grows upwards, so sort best-first)
     pts = sorted(set(g), key=lambda p: (-np.mean((y[g == p] == 0) == (ea[f"ens_{protocol}"][g == p] >= 0.5)),
                                         -int(p[1:])))
+    if top:
+        pts = pts[-top:]  # the worst for `a` are at the end (drawn at the top)
     acc = lambda e, p: 100 * np.mean((y[g == p] == 0) == (e[f"ens_{protocol}"][g == p] >= 0.5))
-    fig, ax = plt.subplots(figsize=(9, 0.26 * len(pts) + 1.6))
+    fig, ax = plt.subplots(figsize=(9, 0.26 * len(pts) + 1.6) if not top else (10, 0.42 * len(pts) + 1.4))
     ax.grid(axis="y", visible=False)
     ax.grid(axis="x", visible=True)
     for i, p in enumerate(pts):
@@ -172,7 +176,7 @@ def per_patient(found, a="A1", b="A2", protocol="clean", path=None):
             ax.scatter([v], [i], marker=marker, s=34, facecolor=color if exp == b else "white", edgecolor=color,
                        linewidth=1.5, zorder=3)
     labels = [f"{p} · {int((g == p).sum())} cells, {100 * np.mean(y[g == p] == 0):.0f} % parasitized" for p in pts]
-    ax.set_yticks(range(len(pts)), labels, fontsize=8)
+    ax.set_yticks(range(len(pts)), labels, fontsize=8 if not top else 11)
     ax.set_xlabel(f"ensemble accuracy on the patient's cells (%) · {protocol} evaluation")
     ax.set_ylim(-0.8, len(pts) - 0.2)
     from matplotlib.lines import Line2D
@@ -180,7 +184,8 @@ def per_patient(found, a="A1", b="A2", protocol="clean", path=None):
                               markersize=7, markerfacecolor=SPLIT_COLOR["patient"] if e == b else "white",
                               markeredgecolor=SPLIT_COLOR["patient"], label=f"{e} · {PREP_NAME[mx.EXPERIMENTS[e]['preprocess']]}")
                        for e in (a, b)], loc="lower left", bbox_to_anchor=(0, 1.0), ncol=2, fontsize=9)
-    ax.set_title(f"Each held-out patient: {a} vs {b} (worst for {a} at the top)", pad=28)
+    ax.set_title(f"The {top} held-out patients {a} gets most wrong: {a} vs {b}" if top else
+                 f"Each held-out patient: {a} vs {b} (worst for {a} at the top)", pad=28)
     return _save(fig, path) if path else fig
 
 

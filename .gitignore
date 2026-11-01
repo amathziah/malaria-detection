@@ -33,3 +33,8 @@ access_token
 
 # Personal task sheets (never commit)
 MY_TASKS.md
+
+# Deck builder
+slides/src/node_modules/
+slides/src/assets/
+slides/src/package*.json

@@ -62,7 +62,7 @@ Same layout as `A0_10fold_paper/`, with the experiment ID as prefix (`A1_summary
 | `ablation_per_patient.csv` | Ensemble errors per hold-out patient |
 | `ablation_fold_mcc.png`, `ablation_fold_accuracy.png` | Every fold of every experiment; grey lines join paired folds |
 | `ablation_contrasts.png`, `ablation_contrasts_folds.png` | The three contrasts with 95 % CIs (ensemble and fold level) |
-| `ablation_per_patient.png` | Each held-out patient, A1 vs A2 |
+| `ablation_per_patient.png`, `ablation_per_patient_top12.png` | Each held-out patient, A1 vs A2 (all 40; the 12 hardest, for slides) |
 | `paper_protocol/` | The same analysis on augmented evaluation (the paper's protocol) |
 
 `python src/ablation_stats.py` rebuilds everything in `ablation/` from the fold predictions (about 2 minutes).
