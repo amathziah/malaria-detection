@@ -117,3 +117,102 @@ def test_collect_copies_each_finished_experiment_into_its_folder(tmp_path, monke
     assert not any("A2_yuv_slide" in d for _, d in copied)
     assert os.path.exists(tmp_path / "models" / "A1_slide_split" / "fold_2_best.h5")
     assert not os.path.exists(tmp_path / "results" / "A1_slide_split" / "folds" / "fold_2" / "fold_2_best.h5")
+
+
+# --------------------------------------------------------------------------- run: parallel driver
+class FakeCloud:
+    """Stands in for the RunPod API + SSH: scripted stages per pod, records what the driver did."""
+
+    def __init__(self, stages_per_pod, boots=None):
+        self.stages = list(stages_per_pod)   # one list of stage strings per created pod, in creation order
+        self.boots = list(boots or [])       # per created pod: False = never reachable
+        self.created, self.started, self.terminated, self.collected = [], [], [], []
+
+    def install(self, monkeypatch, tmp_path):
+        rp.configure("A1,A2,A3")
+        monkeypatch.setitem(rp.PROFILE, "state", str(tmp_path / "pods.json"))
+        monkeypatch.setattr(rp, "POLL_SECONDS", 0)
+        monkeypatch.setattr(rp, "create_pod", self.create_pod)
+        monkeypatch.setattr(rp, "wait_ready", self.wait_ready)
+        monkeypatch.setattr(rp, "setup", lambda pod: None)
+        monkeypatch.setattr(rp, "start", lambda pod, only=None: self.started.append((pod["id"], only)))
+        monkeypatch.setattr(rp, "stage", lambda pod: pod["_stages"].pop(0) if len(pod["_stages"]) > 1 else pod["_stages"][0])
+        monkeypatch.setattr(rp, "collect", lambda pod: self.collected.append(pod["id"]) or ["A1", "A2", "A3"])
+        monkeypatch.setattr(rp, "terminate", lambda pod: self.terminated.append(pod["id"]) or pod.update(ended=1.0))
+
+    def create_pod(self, fold):
+        n = len(self.created)
+        self.created.append(fold)
+        return {"id": f"pod{n}", "name": f"malaria-ablation-fold{fold}", "costPerHr": 0.5}
+
+    def wait_ready(self, pod, timeout=900):
+        n = int(pod["id"][3:])
+        if self.boots and not self.boots[n]:
+            raise TimeoutError("no ssh")
+        pod.update(ip="1.2.3.4", port=22, gpu="RTX 4090", vcpu=16, ram=62, _stages=list(self.stages[n]))
+        return pod
+
+
+def run_opts(**kw):
+    from types import SimpleNamespace
+    return SimpleNamespace(**{"retries": 2, "boot_timeout": 1, "setup_timeout": 5, "train_timeout": 5, "rerun": True,
+                              **kw})
+
+
+def test_drive_fold_replaces_a_pod_that_never_boots(monkeypatch, tmp_path):
+    import threading
+    cloud = FakeCloud(stages_per_pod=[[], ["ready", "train-A1-fold-3", "done-fold-3"]], boots=[False, True])
+    cloud.install(monkeypatch, tmp_path)
+    state = {"pods": {}}
+    result = rp.drive_fold(3, state, threading.Lock(), run_opts(), threading.Event())
+    assert result == "done-fold-3"
+    assert cloud.terminated == ["pod0", "pod1"]          # the stuck pod, then the finished one
+    assert [p["id"] for p in state["replaced"]] == ["pod0"]
+    assert state["pods"]["3"]["collected"] is True
+    assert cloud.started == [("pod1", None)]
+
+
+def test_drive_fold_reruns_a_failed_experiment_once(monkeypatch, tmp_path):
+    import threading
+    cloud = FakeCloud(stages_per_pod=[["ready", "train-A1-fold-1", "partial-fold-1-failed-A2", "train-A2-fold-1",
+                                       "done-fold-1"]])
+    cloud.install(monkeypatch, tmp_path)
+    state = {"pods": {}}
+    result = rp.drive_fold(1, state, threading.Lock(), run_opts(), threading.Event())
+    assert result == "done-fold-1"
+    assert cloud.started == [("pod0", None), ("pod0", "A2")]
+    assert cloud.collected == ["pod0", "pod0"]           # what finished first, then everything
+    assert cloud.terminated == ["pod0"]
+
+
+def test_drive_fold_leaves_a_failed_training_pod_for_inspection(monkeypatch, tmp_path):
+    import threading
+    cloud = FakeCloud(stages_per_pod=[["ready", "failed-fold-2"]])
+    cloud.install(monkeypatch, tmp_path)
+    result = rp.drive_fold(2, {"pods": {}}, threading.Lock(), run_opts(), threading.Event())
+    assert result == "failed-fold-2"
+    assert cloud.terminated == [] and cloud.collected == []
+
+
+def test_run_refuses_to_start_when_the_balance_is_too_low(monkeypatch, tmp_path):
+    rp.configure("A1,A2,A3")
+    monkeypatch.setitem(rp.PROFILE, "state", str(tmp_path / "pods.json"))
+    monkeypatch.setattr(rp, "balance", lambda: {"clientBalance": 1.0})
+    monkeypatch.setattr(rp, "create_pod", lambda fold: pytest.fail("no pod may be created"))
+    with pytest.raises(SystemExit, match="balance"):
+        rp.cmd_run(run_opts(folds="0-9", max_spend=None, force=False))
+
+
+def test_community_requests_drop_the_data_centre_list(monkeypatch):
+    rp.configure("A1,A2,A3")
+    monkeypatch.setattr(rp, "HARDWARE", dict(cloud="COMMUNITY", gpu_types=["NVIDIA GeForce RTX 5090"],
+                                             data_centers=[], min_vcpu=16))
+    monkeypatch.setattr(rp, "SSH_KEY", __file__)  # any readable file stands in for the public key
+    monkeypatch.setattr(rp.os.path, "exists", lambda p: True)
+    import builtins
+    real_open = builtins.open
+    monkeypatch.setattr(builtins, "open", lambda p, *a, **k: real_open(__file__, *a, **k) if p.endswith(".pub") else real_open(p, *a, **k))
+    body = rp.pod_request(4)
+    assert body["cloudType"] == "COMMUNITY" and "dataCenterIds" not in body
+    assert body["gpuTypeIds"] == ["NVIDIA GeForce RTX 5090"] and body["minVCPUPerGPU"] == 16
+    assert body["supportPublicIp"] is True and body["name"] == "malaria-ablation-fold4"

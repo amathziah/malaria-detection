@@ -30,9 +30,11 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SSH_KEY = os.path.expanduser("~/.ssh/id_ed25519")
@@ -260,14 +262,23 @@ def scp(pod, src, dst, upload):
 
 
 # ----------------------------------------------------------------------------- pod lifecycle
-def create_pod(fold):
-    body = {"name": pod_name(fold), "imageName": IMAGE, "gpuTypeIds": GPU_TYPES,
-            "gpuTypePriority": "custom", "gpuCount": 1, "cloudType": "SECURE",
-            "dataCenterIds": DATA_CENTERS, "dataCenterPriority": "custom",
-            "minVCPUPerGPU": MIN_VCPU, "minRAMPerGPU": MIN_RAM_GB, "containerDiskInGb": 60, "volumeInGb": 0,
-            "ports": ["22/tcp"], "supportPublicIp": True,
+HARDWARE = dict(cloud="SECURE", gpu_types=GPU_TYPES, data_centers=DATA_CENTERS, min_vcpu=MIN_VCPU)
+
+
+def pod_request(fold):
+    """The REST body for one pod (HARDWARE holds the cloud, GPU types, data centres and vCPU floor)."""
+    body = {"name": pod_name(fold), "imageName": IMAGE, "gpuTypeIds": HARDWARE["gpu_types"],
+            "gpuTypePriority": "custom", "gpuCount": 1, "cloudType": HARDWARE["cloud"],
+            "minVCPUPerGPU": HARDWARE["min_vcpu"], "minRAMPerGPU": MIN_RAM_GB, "containerDiskInGb": 60,
+            "volumeInGb": 0, "ports": ["22/tcp"], "supportPublicIp": True,
             "env": {"PUBLIC_KEY": open(SSH_KEY + ".pub").read().strip()}}
-    return rest("POST", "/pods", body)
+    if HARDWARE["data_centers"]:
+        body.update(dataCenterIds=HARDWARE["data_centers"], dataCenterPriority="custom")
+    return body
+
+
+def create_pod(fold):
+    return rest("POST", "/pods", pod_request(fold))
 
 
 def wait_ready(pod, timeout=900):
@@ -354,6 +365,11 @@ def collect(pod, root=REPO):
     os.makedirs(runpod_dir, exist_ok=True)
     for log in ["setup.log", "train.log"]:
         scp(pod, f"/workspace/{log}", os.path.join(runpod_dir, f"fold_{k}_{log}"), upload=False)
+    if PROFILE["experiments"] != ["A0"]:  # executed notebooks of every experiment, failed ones included (tracebacks)
+        try:
+            scp(pod, "/workspace/out/executed", os.path.join(runpod_dir, f"fold_{k}_executed"), upload=False)
+        except Exception:
+            pass
     return done
 
 
@@ -525,9 +541,153 @@ def cmd_down(args):
     save_state(state)
 
 
+# ----------------------------------------------------------------------------- run: everything, in parallel
+POLL_SECONDS = 15     # between stage checks of one pod
+STATUS_SECONDS = 60   # between status lines
+
+
+def _log(msg):
+    print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
+
+
+def _wait_stage(pod, wanted, timeout, stop):
+    """Poll the pod's stage until it starts with one of `wanted` (or 'failed'); 'timeout'/'stopped' otherwise."""
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        if stop.is_set():
+            return "stopped"
+        try:
+            pod["stage"] = stage(pod)
+        except Exception as e:  # a dropped SSH connection is not a failed pod
+            pod["stage"] = f"unreachable ({str(e)[:40]})"
+        if pod["stage"].startswith(tuple(wanted) + ("failed",)):
+            return pod["stage"]
+        time.sleep(POLL_SECONDS)
+    return "timeout"
+
+
+def _collect_with_retries(pod, tries=3):
+    for i in range(tries):
+        try:
+            return collect(pod)
+        except Exception as e:
+            _log(f"fold {pod['fold']}: collect failed ({str(e)[:80]}), retry {i + 1}/{tries}")
+            time.sleep(10 * (i + 1))
+    raise RuntimeError("could not copy the results home")
+
+
+def drive_fold(k, state, lock, opts, stop):
+    """Fold k from pod creation to collected results. A pod that doesn't boot or set up in time is replaced;
+    an experiment that fails is re-run once on the same pod. Returns the final stage."""
+    def save():
+        with lock:
+            save_state(state)
+
+    for attempt in range(1 + opts.retries):
+        if stop.is_set():
+            return "stopped"
+        try:
+            info = create_pod(k)
+        except Exception as e:  # e.g. no stock right now
+            _log(f"fold {k}: could not create a pod ({str(e)[:120]}); retrying in 30 s")
+            time.sleep(30 if POLL_SECONDS else 0)
+            continue
+        pod = {"fold": k, "id": info["id"], "name": info.get("name"), "created": time.time(),
+               "costPerHr": float(info.get("costPerHr") or 0), "attempt": attempt + 1}
+        with lock:
+            if str(k) in state["pods"]:
+                state.setdefault("replaced", []).append(state["pods"].pop(str(k)))
+            state["pods"][str(k)] = pod
+        save()
+        _log(f"fold {k}: pod {pod['id']} created (${pod['costPerHr']}/h, attempt {attempt + 1})")
+        try:
+            wait_ready(pod, timeout=opts.boot_timeout)
+            save()
+            setup(pod)
+            pod["setup"] = True
+            save()
+            _log(f"fold {k}: {pod.get('gpu')} · {pod.get('vcpu')} vCPU · {pod.get('ram')} GB · setting up")
+            st = _wait_stage(pod, ("ready",), opts.setup_timeout, stop)
+            if st != "ready":
+                raise RuntimeError(f"setup ended in stage {st}")
+            start(pod)
+            save()
+            _log(f"fold {k}: training started")
+        except Exception as e:
+            _log(f"fold {k}: {str(e)[:120]}; terminating and replacing this pod")
+            terminate(pod)
+            save()
+            continue
+
+        st = _wait_stage(pod, ("done", "partial"), opts.train_timeout, stop)
+        if st.startswith("partial") and opts.rerun:
+            failed = st.split("-failed-")[-1]
+            _log(f"fold {k}: {failed} failed; collecting the rest and re-running {failed} once")
+            _collect_with_retries(pod)
+            start(pod, only=failed)
+            st = _wait_stage(pod, ("done", "partial"), opts.train_timeout, stop)
+        if st.startswith(("done", "partial")):
+            try:
+                done = _collect_with_retries(pod)
+            except RuntimeError:
+                _log(f"fold {k}: results could not be copied; pod left running for inspection")
+                return "collect-failed"
+            pod["collected"] = True
+            terminate(pod)
+            save()
+            _log(f"fold {k}: {st}; collected {done}; pod terminated")
+            return st
+        _log(f"fold {k}: training ended in {st}; pod left running for inspection (see /workspace/*.log)")
+        save()
+        return st
+    _log(f"fold {k}: gave up after {1 + opts.retries} pods")
+    return "gave-up"
+
+
+def cmd_run(args):
+    """Create one pod per fold and drive them all in parallel until the results are home."""
+    state = load_state()
+    folds = parse_folds(args.folds)
+    have, estimate = balance()["clientBalance"], len(folds) * PRICE_ESTIMATE * PROFILE["hours"]
+    cap = args.max_spend if args.max_spend is not None else PROFILE["max_spend"]
+    _log(f"{PROFILE['experiments']} · folds {folds} · {HARDWARE['cloud']} {HARDWARE['gpu_types']} · "
+         f">= {HARDWARE['min_vcpu']} vCPU · balance ${have:.2f}, estimate ${estimate:.2f}, cap ${cap:.2f}")
+    if have < estimate + 1 and not args.force:
+        raise SystemExit("balance too low for this run (add credit, or pass --force)")
+    stop, lock = threading.Event(), threading.Lock()
+    with ThreadPoolExecutor(max_workers=len(folds)) as ex:
+        futures = {k: ex.submit(drive_fold, k, state, lock, args, stop) for k in folds}
+        while not all(f.done() for f in futures.values()):
+            time.sleep(STATUS_SECONDS)
+            with lock:
+                cost = spent(state)
+                live = {k: p for k, p in state["pods"].items() if not p.get("ended")}
+            if cost > cap and not stop.is_set():
+                _log(f"spend cap ${cap:.2f} reached (${cost:.2f}): stopping and terminating every pod")
+                stop.set()
+                for pod in live.values():
+                    terminate(pod)
+                with lock:
+                    save_state(state)
+            _log(f"spent ≈ ${cost:.2f} · " + " · ".join(
+                f"{k}:{'✓' if futures[k].done() else (live.get(str(k)) or {}).get('stage', 'starting')[:22]}"
+                for k in folds))
+    results = {k: f.result() for k, f in futures.items()}
+    with lock:
+        left = [p for p in state["pods"].values() if not p.get("ended")]
+    _log(f"finished · spent ≈ ${spent(state):.2f} · " + ", ".join(f"fold {k}: {r}" for k, r in results.items()))
+    if left:
+        _log("still running (inspect, then `down`): " + ", ".join(f"fold {p['fold']} ({p['id']})" for p in left))
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--experiments", default="A0", help="A0 (default) or a list of A1,A2,A3")
+    ap.add_argument("--cloud", choices=["SECURE", "COMMUNITY"], default="SECURE")
+    ap.add_argument("--gpus", help="GPU type ids in order of preference, comma-separated (default: 4090, L40S, 6000 Ada)")
+    ap.add_argument("--min-vcpu", type=int, default=MIN_VCPU, help="vCPUs per GPU (augmentation runs on the CPU)")
+    ap.add_argument("--any-datacenter", action="store_true", help="don't restrict the data centres")
     sub = ap.add_subparsers(dest="cmd", required=True)
     up = sub.add_parser("up")
     up.add_argument("--folds", default="0-9")
@@ -545,12 +705,25 @@ def main():
     w = sub.add_parser("watch")
     w.add_argument("--every", type=int, default=60)
     w.add_argument("--max-spend", type=float, default=None, help="default: $6 for A0, $12 for the ablation")
+    rn = sub.add_parser("run", help="create the pods and drive them all to collected results, in parallel")
+    rn.add_argument("--folds", default="0-9")
+    rn.add_argument("--retries", type=int, default=2, help="replacement pods per fold if one fails to boot/set up")
+    rn.add_argument("--boot-timeout", type=int, default=600, help="seconds to wait for SSH before replacing a pod")
+    rn.add_argument("--setup-timeout", type=int, default=900)
+    rn.add_argument("--train-timeout", type=int, default=3 * 3600)
+    rn.add_argument("--no-rerun", dest="rerun", action="store_false", help="don't re-run a failed experiment")
+    rn.add_argument("--max-spend", type=float, default=None)
+    rn.add_argument("--force", action="store_true")
     dn = sub.add_parser("down")
     dn.add_argument("--folds", help="only these folds (default: all)")
     args = ap.parse_args()
     configure(args.experiments)
+    HARDWARE.update(cloud=args.cloud, min_vcpu=args.min_vcpu,
+                    data_centers=[] if (args.any_datacenter or args.cloud == "COMMUNITY") else DATA_CENTERS)
+    if args.gpus:
+        HARDWARE["gpu_types"] = [g.strip() for g in args.gpus.split(",") if g.strip()]
     {"up": cmd_up, "setup": cmd_setup, "start": cmd_start, "go": cmd_go, "status": cmd_status, "collect": cmd_collect,
-     "watch": cmd_watch, "down": cmd_down}[args.cmd](args)
+     "watch": cmd_watch, "down": cmd_down, "run": cmd_run}[args.cmd](args)
 
 
 if __name__ == "__main__":
