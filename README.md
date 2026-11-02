@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.11-3776AB)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15%20(Keras%202)-FF6F00)
-![Tests](https://img.shields.io/badge/tests-126%20passing-2EA44F)
+![Tests](https://img.shields.io/badge/tests-129%20passing-2EA44F)
 ![Reproduction](https://img.shields.io/badge/reproduction-within%201%20pp%20of%20the%20paper-137C8E)
 
 Deep-learning classification of single red-blood-cell images as **parasitized** or **uninfected**, built on the
@@ -17,7 +17,7 @@ help on them (H2)?
 - YUV normalisation (luma histogram equalisation) does not help: its effect lies within ±1 pp of MCC.
 - Combined per patient, the cell calls identify 26 of 28 infected and all 12 healthy unseen patients (exploratory, on curated crops).
 
-Full write-up: [IEEE-format paper](docs/ieee/) · [report](docs/report.md).
+Full write-up: [IEEE-format paper (PDF)](docs/ieee/main.pdf) · [report](docs/report.md) · [final deck (PDF)](slides/Malaria_Phase3_Final.pdf) · [team handover](docs/TEAM_HANDOVER.md).
 
 <p align="center">
   <img src="results/A0_10fold_paper/A0_10fold_roc_vs_paper.png" width="100%" alt="ROC curves of the 10 fold models and the ensemble; paper vs. our reproduction">
@@ -93,7 +93,7 @@ Clean evaluation, %, MCC × 100; ensemble values with 95 % patient-bootstrap int
 
 **Phase 3b (exploratory, [results](results/phase3b/phase3b_summary.md)):**
 - *Patient level:* a rule chosen on the 160 CV patients (at least 3 cells with P ≥ 0.80) calls 26 of 28 infected (92.9 %, exact 95 % CI 76.5–99.1) and 12 of 12 healthy held-out patients correctly. The two misses are the only patients with just 3 parasitized crops. NIH curated the crops, so this is not diagnostic accuracy on a smear.
-- *Errors:* they cluster by patient (p < 0.001), and false alarms concentrate in infected patients' smears (1.57 % vs 0.12 % of uninfected cells), consistent with parasites missed in the labels or with ambiguous cells (we can't tell which without an expert). Removing the 8 candidate label errors changes no verdict. A [blinded gallery](results/phase3b/phase3b_error_gallery.png) is ready for the team's triage.
+- *Errors:* they cluster by patient (p < 0.001), and false alarms concentrate in infected patients' smears (1.57 % vs 0.12 % of uninfected cells), consistent with parasites missed in the labels or with ambiguous cells (we can't tell which without an expert). Removing the 8 candidate label errors changes no verdict. A [blinded gallery](results/phase3b/phase3b_error_gallery.png) ([full-size pages](results/phase3b/phase3b_triage_pages.pdf)) is ready for the team's triage ([how](docs/TEAM_HANDOVER.md#6-team-task-blind-triage-of-our-errors)).
 
 <p align="center">
   <img src="results/ablation/ablation_fold_mcc.png" width="80%" alt="Fold MCC of A0-A3: patient-split folds are lower and more spread out; YUV changes little">
@@ -140,13 +140,14 @@ malaria-detection/
 │   ├── ablation_stats.py             H1/H2 tests: patient bootstrap, corrected t-test, Holm
 │   ├── ablation_figures.py           the ablation figures (notebook, report, slides)
 │   ├── phase3b_analysis.py           Phase 3b: equivalence, same-cell leakage, patient level, error audit
+│   ├── triage_kit.py                 full-size, numbers-only pages of the error gallery for the blind triage
 │   ├── runpod_10fold.py              one RunPod GPU per fold, driven in parallel; collects the results
 │   ├── runpod_requirements.txt       pinned training environment
 │   ├── phase2_baseline_marques2022.py first reproduction as a plain script
 │   ├── check_results.py              one experiment vs. the paper
 │   ├── compare_experiments.py        A0–A3 side by side (H1/H2)
 │   └── fill_slide_table.py           writes A0 numbers into the archived deck
-├── tests/                           126 tests: fidelity to the paper, splits/YUV, statistics, Phase 3b, figures, launcher
+├── tests/                           129 tests: fidelity to the paper, splits/YUV, statistics, Phase 3b, triage kit, figures, launcher
 ├── results/
 │   ├── A0_10fold_paper/              10-fold reproduction: tables, figures, per-fold outputs, pod logs
 │   ├── A0_baseline/                  first reproduction (3 folds)
@@ -156,11 +157,13 @@ malaria-detection/
 │   └── ablation_runpod/              pod bookkeeping and logs of the A1–A3 run
 ├── docs/
 │   ├── PROJECT_GUIDE.md / .pdf       visual walkthrough of the whole project (+ figures/)
-│   ├── ieee/                         the IEEE-format paper (LaTeX source, tables generated from results/)
+│   ├── ieee/                         the IEEE-format paper: main.pdf (LaTeX source, tables generated from results/)
 │   ├── phase3_analysis_plan.md       hypotheses, tests and decision rules, fixed before the A1–A3 runs
 │   ├── phase3b_addendum.md           the Phase 3b analyses and one correction, fixed before running them
+│   ├── TEAM_HANDOVER.md              for the team: findings, numbers to know, likely questions, the blind triage
 │   └── report.md                     project report
-├── slides/                           Phase 3 final deck; Phase 2 long and short decks (+ archive/)
+├── reports/                          literature review behind Phase 3b (its sources: research_notes/)
+├── slides/                           Phase 3 final deck (pptx + PDF); Phase 2 long and short decks (+ archive/)
 ├── kaggle_run/                       Kaggle kernel configuration used for A0
 └── requirements.txt                  dependencies of the helper scripts
 ```
@@ -220,6 +223,7 @@ python src/make_ablation_splits.py                           # rebuild + check t
 python src/runpod_10fold.py --experiments A1,A2,A3 run --folds 0-9   # one pod per fold trains A1, A2, A3 in turn
 python src/ablation_stats.py                                 # the hypothesis tests (results/ablation/)
 python src/phase3b_analysis.py                               # Phase 3b exploratory analyses (results/phase3b/)
+python src/triage_kit.py                                     # full-size pages of the triage gallery
 ```
 
 Then run `notebooks/Phase3_Ablation_A1_A3.ipynb` with `FOLDS_TO_TRAIN = []` for every table and figure.
@@ -240,13 +244,15 @@ python -m pytest tests/ -q        # in the pinned environment; ~15 s on a laptop
   dataset, the model and its 4.2 M parameters, the training recipe, the code function by function, how we evaluate
   (folds, ensemble, precision, recall, F1/F2, ROC-AUC, MCC, pp, what a good value is), the results and the hypotheses,
   with a glossary and a one-page presentation cheat sheet.
-- **[IEEE-format paper](docs/ieee/)**: the whole project as a conference paper (LaTeX source; tables generated from
-  `results/` by `docs/ieee/make_tables.py`).
+- **[IEEE-format paper](docs/ieee/main.pdf)**: the whole project as a conference paper, 8 pages ([LaTeX source](docs/ieee/);
+  tables generated from `results/` by `docs/ieee/make_tables.py`).
 - [Project report](docs/report.md): method, results, deviations from the paper, findings.
 - [Phase 3 analysis plan](docs/phase3_analysis_plan.md): what we tested and how we would decide, fixed before the runs.
 - [Phase 3b addendum](docs/phase3b_addendum.md): one correction and four exploratory analyses, fixed before running them.
+- [Literature review](reports/Strengthening%20malaria%20ablation%20results.md): the evidence behind the Phase 3b analyses.
+- [Team handover](docs/TEAM_HANDOVER.md): the findings, the numbers to know, likely questions, and the blind-triage task.
 - [Results guide](results/README.md): every output file explained.
-- [Slides](slides/): the Phase 3 final deck, plus the Phase 2 31-slide deck and 13-slide short version, all with speaker notes.
+- [Slides](slides/): the Phase 3 final deck ([PDF](slides/Malaria_Phase3_Final.pdf)), plus the Phase 2 31-slide deck and 13-slide short version, all with speaker notes.
 
 ## Team
 
