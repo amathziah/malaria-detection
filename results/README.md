@@ -82,10 +82,12 @@ Same layout as `A0_10fold_paper/`, with the experiment ID as prefix (`A1_summary
 | `phase3b_candidates_holdout.csv`, `phase3b_candidates_oof.csv` | Candidate label errors by confident learning (candidates, not confirmed errors) |
 | `phase3b_reliability.png` | Calibration of the A1 hold-out ensemble |
 | `phase3b_error_gallery.png` | 172 numbered cells: the 86 A1 hold-out errors mixed with 86 correct cells, for blind triage |
-| `phase3b_error_gallery_triage_sheet.csv` | Sheet to fill in during the triage |
+| `phase3b_triage_pages.pdf` | The same 172 cells at full size, 24 per A4 page, numbers only (`src/triage_kit.py`): the team triages from these |
+| `phase3b_error_gallery_triage_sheet.csv` | Sheet to fill in during the triage ([how](../docs/TEAM_HANDOVER.md#6-team-task-blind-triage-of-our-errors)) |
 | `phase3b_error_gallery_KEY.csv` | Labels and model calls of the gallery cells: **open only after the triage** |
 
-`python src/phase3b_analysis.py` rebuilds everything in `phase3b/` (about 5 minutes; the gallery needs the NIH images in `outputs/data`).
+`python src/phase3b_analysis.py` rebuilds everything in `phase3b/` (about 5 minutes; the gallery needs the NIH images in `outputs/data`),
+and `python src/triage_kit.py` then writes the full-size triage pages.
 
 Metrics are in %, including MCC (×100). The slides show MCC as a coefficient (0.95).
 Trained models are kept out of git. The 10 fold models of `A0_10fold_paper` (17 MB each) are attached to the
