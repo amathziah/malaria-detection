@@ -24,16 +24,19 @@ Ensemble ROC-AUC & 99.76 & 99.73 & 99.68 & $-$0.03 \\
 \centering
 \caption{Ablation results, clean evaluation (\%). Fold columns: mean $\pm$ SD over the ten CV test parts. Ensemble columns: the ten-model ensemble on each hold-out set, with 95\,\% patient-bootstrap intervals. MCC $\times$100.}
 \label{tab:ablation}
-\begin{tabular}{@{}lllrlllll@{}}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllrllllll@{}}
 \toprule
-ID & Split & Prep. & Hold-out cells / patients & Fold MCC & Fold accuracy & Ens. accuracy & Ens. MCC & Ens. recall \\
+ID & Split & Prep. & Hold-out cells / patients & Fold MCC & Fold accuracy & Ens. accuracy & Ens. MCC & Ens. recall & Ens. ROC-AUC \\
 \midrule
-A0 & image & none & 5{,}512 / 200 & 95.57 $\pm$ 0.60 & 97.78 $\pm$ 0.30 & 97.64 [97.02, 98.17] & 95.29 [94.03, 96.32] & 97.18 [96.03, 98.06] \\
-A1 & patient & none & 5{,}550 / 40 & 93.92 $\pm$ 1.51 & 97.24 $\pm$ 0.66 & 98.45 [97.94, 98.91] & 96.90 [95.70, 97.79] & 98.05 [96.79, 98.85] \\
-A2 & patient & YUV & 5{,}550 / 40 & 93.32 $\pm$ 1.66 & 96.96 $\pm$ 0.75 & 98.32 [97.71, 98.86] & 96.65 [95.23, 97.68] & 98.22 [97.02, 99.02] \\
-A3 & image & YUV & 5{,}512 / 200 & 95.20 $\pm$ 0.37 & 97.60 $\pm$ 0.19 & 97.64 [97.02, 98.17] & 95.29 [94.04, 96.32] & 97.14 [95.94, 98.05] \\
+A0 & image & none & 5{,}512 / 200 & 95.57 $\pm$ 0.60 & 97.78 $\pm$ 0.30 & 97.64 [97.02, 98.17] & 95.29 [94.03, 96.32] & 97.18 [96.03, 98.06] & 99.68 [99.52, 99.80] \\
+A1 & patient & none & 5{,}550 / 40 & 93.92 $\pm$ 1.51 & 97.24 $\pm$ 0.66 & 98.45 [97.94, 98.91] & 96.90 [95.70, 97.79] & 98.05 [96.79, 98.85] & 99.80 [99.61, 99.92] \\
+A2 & patient & YUV & 5{,}550 / 40 & 93.32 $\pm$ 1.66 & 96.96 $\pm$ 0.75 & 98.32 [97.71, 98.86] & 96.65 [95.23, 97.68] & 98.22 [97.02, 99.02] & 99.76 [99.55, 99.91] \\
+A3 & image & YUV & 5{,}512 / 200 & 95.20 $\pm$ 0.37 & 97.60 $\pm$ 0.19 & 97.64 [97.02, 98.17] & 95.29 [94.04, 96.32] & 97.14 [95.94, 98.05] & 99.66 [99.48, 99.79] \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table*}
 
 \begin{table*}[t]

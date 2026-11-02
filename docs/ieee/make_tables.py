@@ -54,8 +54,9 @@ def num(n):
 def experiments_table(abl):
     lines = [r"\begin{table*}[t]", r"\centering",
              r"\caption{Ablation results, clean evaluation (\%). Fold columns: mean $\pm$ SD over the ten CV test parts. Ensemble columns: the ten-model ensemble on each hold-out set, with 95\,\% patient-bootstrap intervals. MCC $\times$100.}",
-             r"\label{tab:ablation}", r"\begin{tabular}{@{}lllrlllll@{}}", r"\toprule",
-             r"ID & Split & Prep. & Hold-out cells / patients & Fold MCC & Fold accuracy & Ens. accuracy & Ens. MCC & Ens. recall \\",
+             r"\label{tab:ablation}", r"\footnotesize", r"\setlength{\tabcolsep}{3.5pt}",
+             r"\resizebox{\textwidth}{!}{%", r"\begin{tabular}{@{}lllrllllll@{}}", r"\toprule",
+             r"ID & Split & Prep. & Hold-out cells / patients & Fold MCC & Fold accuracy & Ens. accuracy & Ens. MCC & Ens. recall & Ens. ROC-AUC \\",
              r"\midrule"]
     for r in abl["experiments"]:
         ci = lambda m: f"{pct(r['ens_' + m])} [{pct(r['ens_' + m + '_lo'])}, {pct(r['ens_' + m + '_hi'])}]"
@@ -63,8 +64,8 @@ def experiments_table(abl):
         lines.append(f"{r['experiment']} & {r['split']} & {prep} & {num(r['holdout_cells'])} / {r['holdout_patients']} & "
                      f"{pct(r['fold_mcc_mean'])} $\\pm$ {pct(r['fold_mcc_sd'])} & "
                      f"{pct(r['fold_accuracy_mean'])} $\\pm$ {pct(r['fold_accuracy_sd'])} & "
-                     f"{ci('accuracy')} & {ci('mcc')} & {ci('recall')} \\\\")
-    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table*}"]
+                     f"{ci('accuracy')} & {ci('mcc')} & {ci('recall')} & {ci('auc')} \\\\")
+    lines += [r"\bottomrule", r"\end{tabular}}", r"\end{table*}"]
     return "\n".join(lines)
 
 

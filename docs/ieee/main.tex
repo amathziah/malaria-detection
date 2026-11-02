@@ -26,7 +26,7 @@ Code, results and trained models: \url{https://github.com/amathziah/malaria-dete
 \begin{abstract}
 Deep-learning studies on the NIH malaria cell images report 96--99.9\,\% accuracy, mostly with random image-level splits that place cells of the same patient in both the training and the test set. We reproduce the EfficientNet-B0 ten-fold ensemble of Marques \emph{et al.}\ (2022) from the authors' executed code, then test with a pre-registered ablation whether its accuracy survives patients the model has never seen (H1) and whether YUV histogram-equalisation stain normalisation helps on them (H2).
 The code-exact reproduction lands within 1 percentage point (pp) of the paper on every metric (ensemble 97.62 vs.\ 98.29\,\%; mean fold 97.55 vs.\ 97.56\,\%). It also shows that the paper's text swaps precision and recall and that its evaluation images were augmented.
-On 40 held-out patients the ensemble reaches 98.45\,\% accuracy (95\,\% patient-bootstrap CI 97.94--98.91\,\%), so H1 is not supported by its pre-registered test. Scored on identical cells, models that had seen other cells of the same patient gain only 0.85\,pp of Matthews correlation (MCC; 95\,\% CI 0.05--2.02) across 160 patients, and nothing on the 40 held-out patients: patient leakage is real but small.
+On 40 held-out patients the ensemble reaches 98.45\,\% accuracy (95\,\% patient-bootstrap CI 97.94--98.91\,\%), 98.05\,\% recall and 99.80\,\% ROC-AUC, so H1 is not supported by its pre-registered test. Scored on identical cells, models that had seen other cells of the same patient gain only 0.85\,pp of Matthews correlation (MCC; 95\,\% CI 0.05--2.02) across 160 patients, and nothing on the 40 held-out patients: patient leakage is real but small.
 YUV normalisation does not help on unseen patients: its effect lies within $\pm$1\,pp of MCC (90\,\% CI $-0.73$ to $+0.16$). In an exploratory patient-level analysis, a rule chosen on the 160 cross-validation patients identifies 26 of 28 infected and all 12 healthy held-out patients.
 Each of the 40 models trains in about 11 minutes on an RTX~4090 cloud GPU.
 \end{abstract}
@@ -46,7 +46,7 @@ This work addresses both questions for a strong, openly documented baseline: the
 \item Three corrections to the paper's reporting: its text swaps the ensemble's precision and recall, its evaluation images were randomly augmented, and one table reports $(\text{precision}+\text{recall})/2$ as accuracy.
 \item A pre-registered ablation that changes one variable at a time: a patient-level split (hypothesis H1: random splits inflate the scores) and YUV histogram-equalisation stain normalisation~\cite{umer2020} (hypothesis H2: it helps on unseen patients), with a control that applies the normalisation under the original split.
 \item A patient-level statistical analysis---cluster bootstrap over patients, corrected resampled $t$-tests~\cite{nadeau2003} and Holm correction~\cite{holm1979}---with the hypotheses, decision rules and primary metric committed to the repository before any of the new models was trained.
-\item Exploratory analyses fixed in a dated addendum before they were run: equivalence bounds, leakage measured on identical cells, a patient-level diagnosis rule chosen without the test patients, and an error audit.
+\item Exploratory analyses fixed in a dated addendum before they were run: equivalence bounds, leakage measured on identical cells, a patient-level diagnosis rule chosen without the test patients, and a failure analysis of the errors.
 \end{enumerate}
 
 \section{Related Work}
@@ -105,7 +105,7 @@ All decisions below were committed to the repository before the A1--A3 models we
 \item \emph{Equivalence.} Two one-sided tests~\cite{lakens2017} check equivalence within $\pm$1\,pp of MCC for the YUV contrasts, and we report each contrast's minimum detectable effect at 80\,\% power.
 \item \emph{Leakage on identical cells.} A0's and A1's ensembles are scored on the \num{1095} A0 hold-out cells that belong to A1's 40 held-out patients. The two cross-validations' out-of-fold predictions are compared on the \num{17591} cells both contain. Each A0 model had seen other cells of the patient; no A1 model had.
 \item \emph{Patient-level diagnosis.} A rule calls a patient positive if at least $\tau$ cells reach $P(\text{parasitized})\ge t$. It is chosen on the 160 cross-validation patients (highest Youden $J$ with at least 95\,\% specificity) and applied once to the 40 held-out patients.
-\item \emph{Error audit.} We test whether errors cluster by patient and flag candidate label errors by confident learning~\cite{northcutt2021}.
+\item \emph{Failure analysis.} We test whether errors cluster by patient, compare false-alarm rates in infected and healthy patients' smears, and flag candidate label errors by confident learning~\cite{northcutt2021}.
 \end{itemize}
 
 \begin{figure*}[t]
@@ -172,7 +172,7 @@ The rule chosen on the 160 cross-validation patients' out-of-fold predictions ca
 
 The two missed patients, C53 and C73, are the only held-out patients with just three parasitized crops. When each infected patient keeps only one or two parasitized crops, sensitivity falls to 3.6 and 12.3\,\%. NIH kept about 68 uninfected crops per patient but curated the parasitized ones, so these numbers describe aggregation on curated crops, not diagnostic accuracy on a smear.
 
-\subsection{Error audit (exploratory)}
+\subsection{Failure analysis (exploratory)}
 \begin{itemize}
 \item \emph{Errors cluster by patient} (permutation test $p<0.001$): half of A1's 86 hold-out errors come from 7 of the 40 patients, and 14 patients have none.
 \item \emph{False alarms concentrate in infected patients' smears.} The model flags 1.57\,\% of their uninfected-labelled cells, against 0.12\,\% in healthy patients (difference 1.45\,pp, 95\,\% CI 0.82--2.14); out of fold the rates are 2.35 and 0.85\,\%. This fits parasites missed in the labels, or genuinely ambiguous cells next to parasites; without an expert we cannot tell which.
@@ -196,7 +196,7 @@ The patient-level analysis is exploratory. NIH kept about 68 uninfected crops pe
 Rebuilt from its authors' code, the EfficientNet-B0 ensemble of Marques \emph{et al.} reproduces within 1\,pp. Its accuracy largely survives patients it has never seen (98.45\,\% on 40 held-out patients). Measured on identical cells, patient leakage is real but small, under about 2\,pp of MCC. YUV histogram-equalisation stain normalisation, reported as highly effective in the literature, does not improve this strong augmented baseline: its effect on unseen patients lies within $\pm$1\,pp of MCC. Combining cell calls per patient, a rule chosen without the test patients identifies 26 of 28 infected and all 12 healthy held-out patients, though only on curated crops. Future work should:
 \begin{itemize}
 \item test on an external laboratory's smears;
-\item re-read the remaining errors against an independent relabelling of the dataset;
+\item triage the remaining errors blind and compare them with an independent relabelling of the dataset;
 \item evaluate patient-level rules on whole smears;
 \item distil the ensemble into a single model light enough for point-of-care use.
 \end{itemize} Code, results, the analysis plan and all trained models are public in our repository.
