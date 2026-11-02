@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.11-3776AB)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15%20(Keras%202)-FF6F00)
-![Tests](https://img.shields.io/badge/tests-96%20passing-2EA44F)
+![Tests](https://img.shields.io/badge/tests-126%20passing-2EA44F)
 ![Reproduction](https://img.shields.io/badge/reproduction-within%201%20pp%20of%20the%20paper-137C8E)
 
 Deep-learning classification of single red-blood-cell images as **parasitized** or **uninfected**, built on the
@@ -13,8 +13,9 @@ hypotheses: does its ~98 % accuracy survive patients the model has never seen (H
 help on them (H2)?
 
 **Answer:**
-- The accuracy largely survives: the ensemble scores **98.45 %** on 40 unseen patients, and cross-validation shows only a small leakage effect.
-- YUV normalisation does not help.
+- The accuracy largely survives: the ensemble scores **98.45 %** on 40 unseen patients. Measured on identical cells, patient leakage is real but small: 0.85 pp of MCC (95 % CI 0.05–2.02).
+- YUV normalisation (luma histogram equalisation) does not help: its effect lies within ±1 pp of MCC.
+- Combined per patient, the cell calls identify 26 of 28 infected and all 12 healthy unseen patients (exploratory, on curated crops).
 
 Full write-up: [IEEE-format paper](docs/ieee/) · [report](docs/report.md).
 
@@ -38,8 +39,12 @@ Full write-up: [IEEE-format paper](docs/ieee/) · [report](docs/report.md).
   [release page](https://github.com/amathziah/malaria-detection/releases/tag/v1.0-a0-10fold); nothing has to be retrained.
 - **Phase 3: the paper's ~98 % survives unseen patients.**
   - On 40 held-out patients the ensemble reaches **98.45 %** (95 % CI 97.94–98.91).
-  - Cross-validation over the other 160 patients shows a small leakage effect: fold MCC −1.65 pp and 2.5× the fold spread.
-  - YUV stain normalisation does not help (H2 rejected).
+  - Patient leakage is real but small: on identical cells, models that had seen the patient gain 0.85 pp of MCC
+    (95 % CI 0.05–2.02) across 160 patients, and nothing on the 40 held-out patients.
+  - YUV normalisation does not help (H2 rejected): its effect lies within ±1 pp of MCC.
+- **Phase 3b, exploratory, on the saved predictions** ([addendum](docs/phase3b_addendum.md), fixed before running;
+  [results](results/phase3b/phase3b_summary.md)): equivalence bounds, leakage on identical cells, a patient-level rule
+  (26/28 infected and 12/12 healthy held-out patients) and an error audit.
 - **Pre-registered, patient-level statistics.** The hypotheses, primary metric, tests and decision rules were committed
   ([plan](docs/phase3_analysis_plan.md)) before any of the 30 new models was trained. Every interval resamples whole
   patients, and the patient key is checked against NIH's own patient mapping.
@@ -80,10 +85,15 @@ Clean evaluation, %, MCC × 100; ensemble values with 95 % patient-bootstrap int
 
 - **H1 (leakage): not supported** by the pre-registered test.
   - On unseen patients the ensemble is not worse (MCC +1.62 pp, 95 % CI +0.01 to +3.12, Holm p = 0.15).
-  - Cross-validation over 160 patients does show the predicted effect, at a small size: fold MCC −1.65 pp (Holm p = 0.023), 2.5× the spread.
-  - The 40-patient hold-out draw happens to be about 1 pp easier than the average fold.
-- **H2 (YUV on unseen patients): rejected.** Fold MCC −0.60 pp, smaller than the 1.51 pp fold SD; ensemble MCC −0.26 pp (95 % CI −0.85 to +0.23).
-- **Control:** YUV under the paper's split changes nothing (ensemble MCC +0.00 pp).
+  - Cross-validation over 160 patients points the predicted way, at a small size: fold MCC −1.65 pp (95 % CI −3.28 to −0.02, Holm p = 0.14), 2.5× the spread. (Our plan's uncorrected Welch test gave Holm p = 0.023; it treated the folds as independent.)
+  - The 40-patient hold-out draw happens to be about 1 pp easier than the average fold, and comparing different hold-out sets could only detect about 2.2 pp of MCC.
+  - On identical cells (Phase 3b): −0.85 pp MCC (95 % CI −2.02 to −0.05) across 17,591 cells of 160 patients (single models), and 0.00 (−0.90 to +0.98) on 1,095 cells of the 40 held-out patients (ensembles). Leakage is real but small.
+- **H2 (YUV on unseen patients): rejected.** Fold MCC −0.60 pp, smaller than the 1.51 pp fold SD; ensemble MCC −0.26 pp (95 % CI −0.85 to +0.23). Equivalence test (Phase 3b): the ensemble effect lies within ±1 pp (90 % CI −0.73 to +0.16). The step equalises brightness only, not stain colour.
+- **Control:** YUV under the paper's split shows no detectable change (ensemble MCC +0.00 pp, 95 % CI −0.52 to +0.53; equivalent within ±1 pp).
+
+**Phase 3b (exploratory, [results](results/phase3b/phase3b_summary.md)):**
+- *Patient level:* a rule chosen on the 160 CV patients (at least 3 cells with P ≥ 0.80) calls 26 of 28 infected (92.9 %, exact 95 % CI 76.5–99.1) and 12 of 12 healthy held-out patients correctly. The two misses are the only patients with just 3 parasitized crops. NIH curated the crops, so this is not diagnostic accuracy on a smear.
+- *Errors:* they cluster by patient (p < 0.001), and false alarms concentrate in infected patients' smears (1.57 % vs 0.12 % of uninfected cells), consistent with parasites missed in the labels or with ambiguous cells (we can't tell which without an expert). Removing the 8 candidate label errors changes no verdict. A [blinded gallery](results/phase3b/phase3b_error_gallery.png) is ready for the team's triage.
 
 <p align="center">
   <img src="results/ablation/ablation_fold_mcc.png" width="80%" alt="Fold MCC of A0-A3: patient-split folds are lower and more spread out; YUV changes little">
@@ -129,23 +139,26 @@ malaria-detection/
 │   ├── make_ablation_splits.py       builds and checks the patient split (NIH patient mapping)
 │   ├── ablation_stats.py             H1/H2 tests: patient bootstrap, corrected t-test, Holm
 │   ├── ablation_figures.py           the ablation figures (notebook, report, slides)
+│   ├── phase3b_analysis.py           Phase 3b: equivalence, same-cell leakage, patient level, error audit
 │   ├── runpod_10fold.py              one RunPod GPU per fold, driven in parallel; collects the results
 │   ├── runpod_requirements.txt       pinned training environment
 │   ├── phase2_baseline_marques2022.py first reproduction as a plain script
 │   ├── check_results.py              one experiment vs. the paper
 │   ├── compare_experiments.py        A0–A3 side by side (H1/H2)
 │   └── fill_slide_table.py           writes A0 numbers into the archived deck
-├── tests/                           96 tests: fidelity to the paper, splits/YUV, statistics, figures, launcher
+├── tests/                           126 tests: fidelity to the paper, splits/YUV, statistics, Phase 3b, figures, launcher
 ├── results/
 │   ├── A0_10fold_paper/              10-fold reproduction: tables, figures, per-fold outputs, pod logs
 │   ├── A0_baseline/                  first reproduction (3 folds)
 │   ├── A1_slide_split/ A2_yuv_slide/ A3_yuv_image/   hypothesis experiments: splits, folds, tables, figures
 │   ├── ablation/                     hypothesis tests over A0–A3 (+ paper_protocol/)
+│   ├── phase3b/                      exploratory analyses on the saved predictions, error gallery
 │   └── ablation_runpod/              pod bookkeeping and logs of the A1–A3 run
 ├── docs/
 │   ├── PROJECT_GUIDE.md / .pdf       visual walkthrough of the whole project (+ figures/)
 │   ├── ieee/                         the IEEE-format paper (LaTeX source, tables generated from results/)
 │   ├── phase3_analysis_plan.md       hypotheses, tests and decision rules, fixed before the A1–A3 runs
+│   ├── phase3b_addendum.md           the Phase 3b analyses and one correction, fixed before running them
 │   └── report.md                     project report
 ├── slides/                           Phase 3 final deck; Phase 2 long and short decks (+ archive/)
 ├── kaggle_run/                       Kaggle kernel configuration used for A0
@@ -206,6 +219,7 @@ Keras 2 release, `efficientnet` 1.1.1, `albumentations` 0.5.2 + `imgaug` 0.4.0, 
 python src/make_ablation_splits.py                           # rebuild + check the patient split (already committed)
 python src/runpod_10fold.py --experiments A1,A2,A3 run --folds 0-9   # one pod per fold trains A1, A2, A3 in turn
 python src/ablation_stats.py                                 # the hypothesis tests (results/ablation/)
+python src/phase3b_analysis.py                               # Phase 3b exploratory analyses (results/phase3b/)
 ```
 
 Then run `notebooks/Phase3_Ablation_A1_A3.ipynb` with `FOLDS_TO_TRAIN = []` for every table and figure.
@@ -230,6 +244,7 @@ python -m pytest tests/ -q        # in the pinned environment; ~15 s on a laptop
   `results/` by `docs/ieee/make_tables.py`).
 - [Project report](docs/report.md): method, results, deviations from the paper, findings.
 - [Phase 3 analysis plan](docs/phase3_analysis_plan.md): what we tested and how we would decide, fixed before the runs.
+- [Phase 3b addendum](docs/phase3b_addendum.md): one correction and four exploratory analyses, fixed before running them.
 - [Results guide](results/README.md): every output file explained.
 - [Slides](slides/): the Phase 3 final deck, plus the Phase 2 31-slide deck and 13-slide short version, all with speaker notes.
 

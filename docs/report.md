@@ -132,21 +132,26 @@ On the hold-out set the ensemble missed 80 of 2,730 infected cells and flagged 5
 
 ![The three contrasts with 95 % CIs](../results/ablation/ablation_contrasts.png)
 
-**H1 (patient leakage): not supported by the pre-registered test. There is a small leakage effect.**
+**H1 (patient leakage): not supported by the pre-registered test. Leakage is real but small.**
 - On the 40 unseen patients the A1 ensemble scores **98.45 %** (MCC 96.90). That is no lower than A0's 97.64 %: the difference in MCC is +1.62 pp, 95 % CI +0.01 to +3.12, Holm p = 0.146. **The paper's ~98 % survives unseen patients.**
-- Cross-validation over the other 160 patients is a broader test than one hold-out draw, and it shows what H1 predicted, at a small size:
-  - mean fold MCC 93.92 vs 95.57 (−1.65 pp; Welch p = 0.0075, Holm 0.023);
+- Cross-validation over the other 160 patients is a broader test than one hold-out draw, and it points the way H1 predicted, at a small size:
+  - mean fold MCC 93.92 vs 95.57: a point estimate of −1.65 pp (95 % CI −3.28 to −0.02, Holm p = 0.14). Our plan's uncorrected Welch test gave p = 0.0075 (Holm 0.023); it treated each arm's folds as independent, although they share their training data, and overstated the evidence (correction in `docs/phase3b_addendum.md`);
   - fold accuracy 97.24 vs 97.78 %;
   - 2.5× the fold-to-fold spread (MCC SD 1.51 vs 0.60).
-- The same A1 models score 98.22 % on the 40 held-out patients but 97.24 % in cross-validation, so this hold-out draw is about 1 pp easier than an average group of unseen patients. That difference is larger than the leakage effect itself.
+- The same A1 models score 98.22 % on the 40 held-out patients but 97.24 % in cross-validation, so this hold-out draw is about 1 pp easier than an average group of unseen patients. Comparing two different hold-out sets could also only detect about 2.2 pp of MCC.
+- **On identical cells (Phase 3b)** both problems disappear:
+  - Across the 17,591 cross-validation cells both arms share, A1's out-of-fold models score 0.85 pp lower in MCC than A0's (95 % CI 0.05–2.02; accuracy −0.43 pp).
+  - On the 1,095 A0 hold-out cells of A1's 40 held-out patients, the two ensembles have identical confusion matrices (difference 0.00 pp, 95 % CI −0.90 to +0.98).
+  - Patient leakage is therefore real, but small.
 - With unseen-patient validation the best epoch also comes earlier (median 17 vs 28.5).
 
 **H2 (YUV stain normalisation): rejected.**
 - On the same unseen patients, A2 vs A1 changes mean fold MCC by −0.60 pp. That is below A1's fold SD of 1.51 pp, so the pre-registered rule rejects H2; the corrected t-test gives p = 0.13.
-- The ensemble MCC changes by −0.26 pp (95 % CI −0.85 to +0.23).
+- The ensemble MCC changes by −0.26 pp (95 % CI −0.85 to +0.23). An equivalence test (Phase 3b) bounds it: the 90 % CI −0.73 to +0.16 lies inside ±1 pp, so the effect is practically zero. At the fold level the interval (−1.27 to +0.06) is too wide to show that.
 - Specificity drops slightly (−0.44 pp; not significant after Holm correction).
+- The step equalises brightness (luma) only, not stain colour, and the training pipeline already randomises brightness and contrast.
 
-**Control (A3 vs A0).** YUV under the paper's split leaves the ensemble unchanged (MCC +0.00 pp, 95 % CI −0.52 to +0.53).
+**Control (A3 vs A0).** YUV under the paper's split shows no detectable change (MCC +0.00 pp, 95 % CI −0.52 to +0.53; equivalent within ±1 pp).
 
 All three verdicts are the same under the paper's augmented protocol (`results/ablation/paper_protocol/`).
 
@@ -156,21 +161,36 @@ All three verdicts are the same under the paper's augmented protocol (`results/a
 
 ![Each held-out patient, A1 vs A2](../results/ablation/ablation_per_patient.png)
 
+**Phase 3b: exploratory analyses on the saved predictions** (`results/phase3b/`; fixed in `docs/phase3b_addendum.md` before running):
+- *Patient-level diagnosis.* The rule is chosen on the 160 CV patients: a patient is positive if at least 3 cells have P(parasitized) ≥ 0.80.
+  - On the 40 held-out patients it identifies 26 of 28 infected (92.9 %, exact 95 % CI 76.5–99.1) and all 12 healthy patients (100 %, 73.5–100).
+  - The two missed patients (C53, C73) are the only ones with just 3 parasitized crops. With only 1–2 parasitized crops per patient, sensitivity falls to 3.6–12.3 %.
+  - NIH curated the crops (about 68 uninfected per patient), so this is aggregation on curated crops, not diagnostic accuracy on a smear.
+- *Errors cluster by patient* (permutation test p < 0.001).
+  - False alarms concentrate in infected patients' smears: 1.57 % of their uninfected-labelled cells against 0.12 % in healthy patients (out of fold: 2.35 vs 0.85 %).
+  - This fits parasites missed in the labels or genuinely ambiguous cells; we cannot tell which without an expert.
+- *Candidate label errors.* Confident learning flags 8 hold-out cells; removing them changes no verdict.
+- *Blind triage.* A gallery of all 86 errors mixed with 86 correct cells (`phase3b_error_gallery.png`) is ready for the team's triage.
+- *Clustering inflates uncertainty.* Patient clustering inflates the variance of hold-out accuracy 2.3-fold, so the paired comparisons can detect about 0.8 pp of MCC and the unpaired H1 comparison about 2.2 pp.
+
+![Patient leakage, measured four ways](../results/phase3b/phase3b_leakage.png)
+
 **Limitations.**
-- The task is single-cell classification, not patient diagnosis: 75 % of uninfected cells come from infected patients.
+- The task is single-cell classification. The patient-level analysis is exploratory, on curated crops with 12 healthy held-out patients.
 - All data comes from one hospital, with no external test set.
-- Labels come from one expert.
+- Labels come from one expert. Fuhad et al. set aside 1,397 cells (5.1 %) as mislabelled or suspicious, but their list is no longer online.
 - There is one 40-patient hold-out draw and one training run per fold and arm.
 - A1–A3 ran on 7 RTX 4090s and 3 L40S, whereas A0 ran on RTX 4090s only. Within a fold, A1, A2 and A3 shared one GPU.
 
 ## 5. Conclusion and next steps
 
 - The paper's recipe reproduces within 1 pp from its own code.
-- Its accuracy largely survives unseen patients: 98.45 % on 40 held-out patients, with a small leakage effect of about 0.5 pp accuracy and 1.7 pp MCC in cross-validation.
-- YUV histogram equalisation, a preprocessing step reported as very effective in the literature, does not help a strong augmented baseline.
+- Its accuracy largely survives unseen patients: 98.45 % on 40 held-out patients. Leakage is real but small: about half a point of accuracy (0.43 pp on identical cells, 0.54 pp in cross-validation).
+- YUV histogram equalisation, a preprocessing step reported as very effective in the literature, does not help a strong augmented baseline: its effect on unseen patients lies within ±1 pp of MCC.
+- Combined per patient, the cell calls identify 26 of 28 infected and all 12 healthy held-out patients (exploratory, curated crops).
 
 Next steps:
-- Report results per patient.
-- Test on an external dataset from another laboratory.
-- Re-score on the cleaned labels of Fuhad et al.
+- Test on an external dataset from another laboratory (MP-IDB *P. falciparum* is the closest public match), ideally with a stain-colour augmentation arm.
+- Triage the blinded error gallery, and re-read the errors against Michael Delves's independent relabelling of the dataset (IEEE DataPort).
+- Evaluate patient-level rules on whole smears rather than curated crops.
 - Distil the ensemble into one light model for point-of-care use.

@@ -81,3 +81,28 @@ A3 & 0.159 & 97.14 $\to$ 98.75 & 94.14 & 0.052 \\
 \end{tabular}
 \end{table}
 
+\begin{table}[t]
+\centering
+\caption{Exploratory analyses fixed in a dated addendum before they were run (MCC differences in pp; clean evaluation).}
+\label{tab:phase3b}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+Analysis & Estimate & Interval \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Leakage on identical cells, A1 $-$ A0 (95\,\% CI)}} \\
+ensembles: 1{,}095 cells, 40 pts & +0.00 & [$-$0.90, +0.98] \\
+out-of-fold: 17{,}591 cells, 160 pts & $-$0.85 & [$-$2.02, $-$0.05] \\
+\multicolumn{3}{@{}l}{\emph{YUV effect within $\pm$1\,pp? (90\,\% CI)}} \\
+H2 A2 $-$ A1, ensemble & $-$0.26 & [$-$0.73, +0.16] yes \\
+H2 A2 $-$ A1, folds & $-$0.60 & [$-$1.27, +0.06] no \\
+control A3 $-$ A0, ensemble & +0.00 & [$-$0.44, +0.44] yes \\
+control A3 $-$ A0, folds & $-$0.37 & [$-$0.77, +0.03] yes \\
+\multicolumn{3}{@{}l}{\emph{Patient level, 40 held-out patients (exact 95\,\% CI)}} \\
+sensitivity & 26/28 & 92.9\,\% [76.5, 99.1] \\
+specificity & 12/12 & 100.0\,\% [73.5, 100.0] \\
+\bottomrule
+\end{tabular}
+\end{table}
+

@@ -10,10 +10,13 @@ One folder per experiment. Every number in the slides and report comes from thes
 | `A2_yuv_slide/` | H2: patient split + YUV histogram-equalisation stain normalisation | done: 10 folds |
 | `A3_yuv_image/` | Control: the paper's image split + YUV | done: 10 folds |
 | `ablation/` | Hypothesis tests over A0–A3 (`src/ablation_stats.py`) and their figures | done |
+| `phase3b/` | Exploratory analyses on the saved predictions (`src/phase3b_analysis.py`): equivalence, same-cell leakage, patient level, error audit | done |
 | `ablation_runpod/` | RunPod bookkeeping and logs of the A1–A3 run (pods, timings, setup/training logs) | done |
 
 The analysis plan for A1–A3 (hypotheses, primary metric, tests, decision rules) is in
-[`docs/phase3_analysis_plan.md`](../docs/phase3_analysis_plan.md); it was committed before the runs.
+[`docs/phase3_analysis_plan.md`](../docs/phase3_analysis_plan.md); it was committed before the runs. The Phase 3b
+analyses, and one correction to the plan's unpaired fold test, are fixed in
+[`docs/phase3b_addendum.md`](../docs/phase3b_addendum.md), committed before they were run.
 
 ## Files in `A0_10fold_paper/`
 
@@ -66,6 +69,23 @@ Same layout as `A0_10fold_paper/`, with the experiment ID as prefix (`A1_summary
 | `paper_protocol/` | The same analysis on augmented evaluation (the paper's protocol) |
 
 `python src/ablation_stats.py` rebuilds everything in `ablation/` from the fold predictions (about 2 minutes).
+
+## Files in `phase3b/`
+
+| File | What it is |
+|---|---|
+| `phase3b_summary.md` / `.json` | The report: E1 equivalence and detectable effects, E2 same-cell leakage, E3 patient level, E4 error audit |
+| `phase3b_equivalence.csv`, `phase3b_equivalence.png` | Two one-sided tests at ±1 pp MCC and minimum detectable effects |
+| `phase3b_leakage.png` | A1 − A0 measured four ways: different cells, CV folds, and identical cells (ensembles, out-of-fold models) |
+| `phase3b_patient_rules_cv.csv` | Every patient-level rule on the 160 CV patients (the rule is chosen here) |
+| `phase3b_patient_level_holdout.csv`, `phase3b_patient_level.png` | The chosen rule on the 40 held-out patients |
+| `phase3b_candidates_holdout.csv`, `phase3b_candidates_oof.csv` | Candidate label errors by confident learning (candidates, not confirmed errors) |
+| `phase3b_reliability.png` | Calibration of the A1 hold-out ensemble |
+| `phase3b_error_gallery.png` | 172 numbered cells: the 86 A1 hold-out errors mixed with 86 correct cells, for blind triage |
+| `phase3b_error_gallery_triage_sheet.csv` | Sheet to fill in during the triage |
+| `phase3b_error_gallery_KEY.csv` | Labels and model calls of the gallery cells: **open only after the triage** |
+
+`python src/phase3b_analysis.py` rebuilds everything in `phase3b/` (about 5 minutes; the gallery needs the NIH images in `outputs/data`).
 
 Metrics are in %, including MCC (×100). The slides show MCC as a coefficient (0.95).
 Trained models are kept out of git. The 10 fold models of `A0_10fold_paper` (17 MB each) are attached to the
