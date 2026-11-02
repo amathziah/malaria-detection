@@ -10,9 +10,34 @@ module.exports = async function (L, EXP, CON) {
   const sig = (e) => e.p_holm < 0.05;
   const abl = (f) => R("results/ablation", f);
 
+  // ================================================================ every metric, all four experiments (rule 2 of the brief)
+  let s;
+  const ids = ["A0", "A1", "A2", "A3"];
+  if (ids.every((e) => EXP[e])) {
+    s = addSlide("CONTENT", "Phase 3: results", "RESULTS AT A GLANCE", "Every metric, all four experiments");
+    const row = (label, f) => [label, ...ids.map((e) => f(EXP[e]))];
+    const tbl = [["", "A0 · image split", "A1 · patient split", "A2 · patient + YUV", "A3 · image + YUV"],
+      row("Hold-out set", (r) => `${r.holdout_cells.toLocaleString("en-US")} cells, ${r.holdout_patients} patients`),
+      row("Ensemble accuracy", (r) => `${pct(r.ens_accuracy)} %`),
+      row("Recall (sensitivity)", (r) => `${pct(r.ens_recall)} %`),
+      row("Specificity", (r) => `${pct(r.ens_specificity)} %`),
+      row("MCC × 100", (r) => pct(r.ens_mcc)),
+      row("ROC-AUC", (r) => `${pct(r.ens_auc)} %`),
+      row("Missed / false alarms", (r) => `${r.missed} / ${r.flagged}`),
+      row("Fold MCC, mean ± SD", (r) => `${pct(r.fold_mcc_mean)} ± ${pct(r.fold_mcc_sd)}`)];
+    s.addTable(tbl.map((r, i) => r.map((c, j) => ({ text: c, options: {
+      bold: i === 0 || j === 0 || i === 3 || i === 6, color: i === 0 ? HEX.white : (i === 3 || i === 6) && j > 0 ? HEX.teal : HEX.ink,
+      fill: { color: i === 0 ? HEX.navy : i % 2 ? HEX.white : HEX.light }, fontSize: 15, align: j === 0 ? "left" : "center" } }))),
+    { x: M, y: 1.55, w: W - 2 * M, colW: [2.93, 2.3, 2.3, 2.3, 2.3], rowH: 0.5, border: { type: "solid", pt: 0.5, color: HEX.line }, valign: "middle", margin: 0.08 });
+    T(s, "Ten-model ensembles, clean evaluation, each on its own hold-out set: A1 and A2 share the 40 unseen patients; A0 and A3 share the paper's split, whose test cells come from all 200 patients. " +
+      "95 % patient-bootstrap intervals are in the paper (Table III). Under the paper's augmented protocol A0 scores 97.62 % (slide 10).",
+      { x: M, y: 6.1, w: W - 2 * M, h: 0.75, fontSize: 12, color: HEX.muted, italic: true, valign: "top" });
+    s.addNotes(`Before the hypothesis tests, here is every number in one place, because the brief asks for recall and AUC, not just accuracy. Each column is a ten-model ensemble on its own hold-out set: A1 and A2 share the 40 unseen patients, while A0 and A3 share the paper's split. Recall stays between ${pct(Math.min(...ids.map((e) => EXP[e].ens_recall)))} and ${pct(Math.max(...ids.map((e) => EXP[e].ens_recall)))} per cent and ROC-AUC between ${pct(Math.min(...ids.map((e) => EXP[e].ens_auc)))} and ${pct(Math.max(...ids.map((e) => EXP[e].ens_auc)))} per cent in every experiment. The last row is the cross-validation: the patient-split folds score lower and vary more. The next slides test these differences properly.`);
+  }
+
   // ================================================================ H1
   const h1 = CON["A1 vs A0"];
-  let s = addSlide("CONTENT", "Phase 3: results", "H1 · LEAKAGE",
+  s = addSlide("CONTENT", "Phase 3: results", "H1 · LEAKAGE",
     h1 ? (sig(h1.ensemble.mcc) && h1.ensemble.mcc.est < 0
       ? `Unseen patients cost ${fmt(Math.abs(100 * h1.ensemble.mcc.est), 1)} pp of MCC: H1 holds`
       : "Unseen patients cost little: H1 is not supported") : "H1 · results pending");
@@ -65,9 +90,38 @@ module.exports = async function (L, EXP, CON) {
   }
   s.addNotes(h2 ? "Each panel shows a difference in percentage points with its 95 per cent interval; a filled dot means it survives the Holm correction. H2 is the middle row: the same 40 unseen patients, with and without the YUV step. The control row applies the same step under the paper's split." : "");
 
-  // ================================================================ per patient
+  // ================================================================ predictions vs outcomes (rule 1 of the brief)
+  if (h1 && h2 && P3B) {
+    s = addSlide("CONTENT", "Phase 3: results", "PREDICTIONS VS OUTCOMES", "Both predictions were wrong, and we can say why");
+    const spread = EXP.A1.fold_mcc_sd / EXP.A0.fold_mcc_sd;
+    const leak = Math.abs(100 * P3B.E2.oof.mcc.est);
+    const cards = [
+      ["H1 · PATIENT LEAKAGE", HEX.teal, [
+        ["Predicted", "a clear drop on unseen patients, and a wider fold-to-fold spread."],
+        ["Observed", `the spread widened ${fmt(spread, 1)}× as predicted, but the drop is small: ${fmt(leak)} pp of MCC on identical cells, and none on the 40-patient hold-out set.`],
+        ["Likely why", "the decisive cue, purple-stained parasite chromatin, looks alike in every patient, and the paper's heavy colour, contrast and blur augmentation already hides each patient's stain."]]],
+      ["H2 · YUV STAIN NORMALISATION", HEX.giemsa, [
+        ["Predicted", "higher recall and MCC on unseen patients."],
+        ["Observed", `MCC ${pp(h2.ensemble.mcc.est)}, within ±1 pp of zero; recall ${pp(h2.ensemble.recall.est)} and specificity ${pp(h2.ensemble.specificity.est)}, neither significant after correction.`],
+        ["Likely why", "the step equalises brightness only, not stain colour; the augmentation already varies brightness and contrast; and Umer et al.'s large gain was measured against a model that had not trained."]]]];
+    cards.forEach(([head, col, rowsC], i) => {
+      const x = M + i * 6.2;
+      card(s, x, 1.55, 5.9, 4.3, HEX.light, `predict_${i}`);
+      T(s, head, { x: x + 0.3, y: 1.72, w: 5.3, h: 0.32, fontSize: 13, bold: true, color: col, charSpacing: 2 });
+      T(s, rowsC.flatMap(([k, v], j) => [{ text: k + "  ", options: { bold: true, color: col } },
+        { text: v, options: { breakLine: j < rowsC.length - 1 } }]),
+      { x: x + 0.3, y: 2.2, w: 5.3, h: 3.55, fontSize: 16, color: HEX.ink, valign: "top", paraSpaceAfter: 14 });
+    });
+    card(s, M, 6.0, W - 2 * M, 0.82, HEX.navy, "learned");
+    T(s, [{ text: "What we learned:  ", options: { bold: true, color: "7FD3E0" } },
+      { text: "measure a gain against a strong baseline, and measure leakage on identical cells. Next test: colour augmentation on another lab's smears [16].", options: { color: HEX.white } }],
+    { x: M + 0.3, y: 6.05, w: W - 2 * M - 0.6, h: 0.72, fontSize: 14, valign: "middle" });
+    s.addNotes(`The brief says being wrong is fine if the reasoning is good, so here is ours. For H1 we got the direction right: the folds of unseen patients vary ${fmt(spread, 1)} times more. But the size was wrong: on identical cells, leakage costs under one point of MCC. The likely reason is that the decisive cue, the purple-stained parasite, looks the same in every patient, and the paper's augmentation already randomises colour and contrast, so the model can't lean on a patient's stain. For H2, the YUV step changes only brightness, not stain colour; the augmentation already covers brightness; and Umer's large gain was measured against a model that had failed to train. Our experiments don't separate these reasons, so we present them as the most likely explanations. The next experiment follows from them: colour augmentation, tested on another laboratory's smears.`);
+  }
+
+  // ================================================================ per patient (failure analysis)
   const csvPath = abl("ablation_per_patient.csv");
-  s = addSlide("CONTENT", "Phase 3: results", "WHERE THE ERRORS ARE", "Errors cluster in a few patients");
+  s = addSlide("CONTENT", "Phase 3: results", "FAILURE ANALYSIS", "Errors cluster in a few patients");
   if (fs.existsSync(csvPath) && EXP.A1) {
     const rows = fs.readFileSync(csvPath, "utf8").trim().split("\n");
     const head = rows.shift().split(",");
@@ -91,8 +145,8 @@ module.exports = async function (L, EXP, CON) {
   }
   s.addNotes("Looking per patient shows where the misses come from: half of the errors on the 40 unseen patients come from seven of them, and fourteen patients have none; a permutation test confirms the clustering. False alarms also concentrate on infected patients' smears, which fits some parasites missed in the labels, or genuinely ambiguous cells next to parasites. Without an expert we cannot tell which, so we prepared a blinded gallery of all 86 errors for our own triage. A single accuracy number hides all of this.");
 
-  // ================================================================ clinical angle
-  s = addSlide("CONTENT", "Phase 3: results", "THE CLINICAL ANGLE", "Recall first: a missed infection costs more than a false alarm");
+  // ================================================================ screening view (no clinical claim)
+  s = addSlide("CONTENT", "Phase 3: results", "SCREENING VIEW · NO CLINICAL CLAIM", "Recall first: a missed infection costs more than a false alarm");
   const rowsT = [["Experiment", "Threshold (chosen on CV folds)", "Hold-out recall at 0.5 → at threshold", "Specificity at threshold", "ECE"]];
   ["A0", "A1", "A2", "A3"].filter((e) => EXP[e]).forEach((e) => {
     const r = EXP[e];
@@ -111,7 +165,7 @@ module.exports = async function (L, EXP, CON) {
     T(s, why2[i][1], { x: x + 0.9, y: 5.0, w: 5.0, h: 0.4, fontSize: 17, bold: true, fontFace: "Cambria" });
     T(s, why2[i][2], { x: x + 0.9, y: 5.42, w: 5.0, h: 1.1, fontSize: 14, color: HEX.muted, valign: "top" });
   }
-  s.addNotes("For screening, missing an infected cell is worse than a false alarm. Choosing the threshold on the cross-validation folds, never on the test set, raises recall on the held-out cells at a modest cost in specificity. Calibration is also reported: the paper's label smoothing makes the probabilities under-confident.");
+  s.addNotes("This is a screening-oriented view of the same predictions, not a clinical claim. For screening, missing an infected cell is worse than a false alarm. Choosing the threshold on the cross-validation folds, never on the test set, raises recall on the held-out cells at a modest cost in specificity. Calibration is also reported: the paper's label smoothing makes the probabilities under-confident.");
 
   // ================================================================ from cells to patients (Phase 3b)
   if (P3B) {
@@ -183,8 +237,9 @@ module.exports = async function (L, EXP, CON) {
     "[11] M. Mujahid et al., “Efficient deep learning-based approach for malaria detection using red blood cell smears,” Sci. Rep. 14, 2024.",
     "[12] C. Nadeau, Y. Bengio, “Inference for the generalization error,” Machine Learning 52, 2003 · [13] S. Holm, “A simple sequentially rejective multiple test procedure,” Scand. J. Statist. 6, 1979.",
     "[14] D. Lakens, “Equivalence tests: A practical primer for t tests, correlations, and meta-analyses,” Soc. Psychol. Personal. Sci. 8(4), 2017 · [15] C. G. Northcutt, L. Jiang, I. L. Chuang, “Confident learning: Estimating uncertainty in dataset labels,” JAIR 70, 2021.",
+    "[16] D. Tellez et al., “Quantifying the effects of data augmentation and stain color normalization in convolutional neural networks for computational pathology,” Med. Image Anal. 58, 2019.",
   ];
   T(s, refs.map((r, i) => ({ text: r, options: { breakLine: i < refs.length - 1 } })),
     { x: M, y: 1.55, w: W - 2 * M, h: 5.2, fontSize: 12, color: HEX.ink, valign: "top", paraSpaceAfter: 5 });
-  s.addNotes("The eleven studies from Phase 1, the base paper, and the statistical methods we rely on.");
+  s.addNotes("The eleven studies from Phase 1, the base paper, the statistical methods we rely on, and the stain-augmentation study behind our next experiment.");
 };

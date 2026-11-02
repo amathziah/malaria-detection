@@ -134,7 +134,30 @@ async function main() {
   }
   s.addNotes("Phase 1 reviewed eleven studies. Accuracies cluster between 96.5 and 99.9 per cent, but protocols differ, and most split images at random. We picked Marques et al. as our base paper because their executed notebook is public, so the recipe can be rebuilt exactly.");
 
-  // ================================================================ 7 · what the code revealed
+  // ================================================================ 7 · reproducibility checklist (step 2 of the brief)
+  s = addSlide("CONTENT", "Problem and data", "PHASE 1 · REPRODUCIBILITY CHECKLIST", "Strong on code and data, weak on the split and evaluation");
+  const STATUS = { Yes: HEX.teal, Partly: HEX.orange, No: HEX.giemsa };
+  const checklist = [["Checklist item", "Paper", "What Marques et al. give", "What we did"],
+    ["Data public", "Yes", "NIH Malaria cell images, 27,558 crops", "Downloaded automatically; patient IDs checked against NIH's mapping"],
+    ["Code public", "Yes", "The authors' executed notebook (supplementary file)", "Rebuilt from the code, not from the text"],
+    ["Model size", "Yes", "Table 2: 4,223,934 parameters", "Matched exactly; an automated test checks it"],
+    ["Hardware and time", "Yes", "GTX 1050, 4 h 46 min per fold", "RTX 4090, about 11 min per fold"],
+    ["Hyperparameters", "Partly", "The text differs from the code in 8 places", "We follow the code (next slide)"],
+    ["Library versions", "Partly", "Only in the notebook (TensorFlow 2.3)", "TensorFlow 2.15, the last Keras 2; same efficientnet 1.1.1"],
+    ["Metrics", "Partly", "Precision and recall swapped in the text", "Recomputed from the printed reports"],
+    ["Data split", "No", "Random 80/20 and 10 folds, unseeded", "Sorted and seeded; a fingerprint is stored with every fold"],
+    ["Evaluation protocol", "No", "Not stated; the code scored augmented images", "We report clean and augmented evaluation"],
+    ["Patient-level test", "No", "Random image split only", "Became our hypothesis H1"],
+    ["Trained models", "No", "Not released", "All 40 of our models are public on GitHub"]];
+  s.addTable(checklist.map((r, i) => r.map((c, j) => ({ text: c, options: {
+    bold: i === 0 || j <= 1, color: i === 0 ? HEX.white : j === 1 ? STATUS[c] : j === 3 ? HEX.teal : HEX.ink,
+    fill: { color: i === 0 ? HEX.navy : i % 2 ? HEX.white : HEX.light }, fontSize: 12, align: j === 1 ? "center" : "left" } }))),
+  { x: M, y: 1.5, w: W - 2 * M, colW: [2.3, 1.0, 4.1, 4.733], rowH: 0.405, border: { type: "solid", pt: 0.5, color: HEX.line }, fontFace: "Calibri", valign: "middle", margin: 0.07 });
+  T(s, "Every gap we could close, we closed: a seeded split, both evaluation protocols, and all trained models public.",
+    { x: M, y: 6.45, w: W - 2 * M, h: 0.4, fontSize: 13, color: HEX.muted, italic: true });
+  s.addNotes("Step two of the brief is the reproducibility checklist. Marques et al. score well on the essentials: the data and the executed code are public, and the model size and training time are stated, so we could check our rebuild against them. The gaps are in the reporting: the text and the code disagree in eight places, the split was unseeded, the evaluation protocol isn't stated (the code scored augmented images), precision and recall are swapped, and there is no test on unseen patients, which became our first hypothesis. We closed every gap we could.");
+
+  // ================================================================ 8 · what the code revealed
   pres.addSection({ title: "Phase 2: reproduction" });
   s = addSlide("CONTENT", "Phase 2: reproduction", "PHASE 2 · BASE PAPER", "The authors' code differs from their paper's text");
   const diff = [["Setting", "Paper's text / our first guess", "Authors' code (what we follow)"],
@@ -195,7 +218,7 @@ async function main() {
   s = addSlide("CONTENT", "Phase 2: reproduction", "ENGINEERING", "Ten GPUs in parallel: 11 min per fold, not 4 h 46 min");
   stat(s, M, 1.7, 3.6, "≈ 25×", "faster per fold, same computation", HEX.teal);
   stat(s, M, 3.4, 3.6, "≈ 11 min", "per fold on an RTX 4090 (paper: 4 h 46 min on a GTX 1050)", HEX.ink);
-  stat(s, M, 5.1, 3.6, "10", "RunPod GPUs at once, one fold each; trained models published as a GitHub release", HEX.ink);
+  stat(s, M, 5.1, 3.6, "10", "RunPod GPUs at once, one fold each; all 40 trained models are public on GitHub", HEX.ink);
   const speed = [[fa.FaDatabase, "Decode once", "27,558 images resized once into a shared uint8 cache"],
     [fa.FaCogs, "Parallel, seeded augmentation", "worker processes, each batch seeded by (fold, epoch, batch)"],
     [fa.FaMemory, "Bytes to the GPU", "uint8 batches, scaled by 1/255 inside the model"],
