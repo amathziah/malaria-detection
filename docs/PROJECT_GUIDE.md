@@ -55,7 +55,7 @@
 
 ![Distribution of image sizes](figures/dataset_sizes.png)
 
-**File names carry the slide ID.** For example `C100P61ThinF_IMG_20150918_144104_cell_162.png`: `C100` is the slide/patient, then the photo, then the cell number. Parasitized cells come from 150 slides; uninfected cells come from all 200 (infected patients also have many healthy cells). **150 slides contribute cells to both classes.** This matters: if we split images at random, cells from the same slide (same patient, same stain batch, same microscope light) land in both training and testing — see hypothesis H1 in section 7.
+**File names carry the patient ID.** For example `C100P61ThinF_IMG_20150918_144104_cell_162.png`: `C100` is the patient (one smear), then the photo, then the cell number; we checked this key against NIH's own patient-to-cell mapping (200 patients). Parasitized cells come from 150 patients; uninfected cells come from all 200 (infected patients also have many healthy cells). **150 patients contribute cells to both classes.** This matters: if we split images at random, cells from the same patient (same stain batch, same microscope light) land in both training and testing — see hypothesis H1 in section 7.
 
 ### Is it clean? Is it "proper"?
 
@@ -68,7 +68,7 @@
 | Label noise | Fuhad et al. (*Diagnostics* 2020, one of our Phase 1 papers) had an expert re-check the images and set aside **1,397 of 27,558 (5.1 %)** as mislabelled or suspicious, 647 of them "parasitized". We do **not** relabel anything, so our numbers stay comparable with the paper; some of our "errors" are probably label errors. |
 | Hidden bias | The random image split lets cells from one patient appear in train and test. That is not a data error, but it can inflate accuracy — it is what our hypothesis H1 measures. |
 
-**Verdict:** a clean, balanced, expert-labelled benchmark, with two caveats we state openly: about 5 % label noise, and slide-level leakage under a random split.
+**Verdict:** a clean, balanced, expert-labelled benchmark, with two caveats we state openly: about 5 % label noise, and patient-level leakage under a random split.
 
 ### How we split it (exactly like the paper's code)
 
@@ -87,7 +87,7 @@
 >
 > 💡 **What does stratified mean?** Each slice keeps the same parasitized/uninfected ratio as the whole set.
 >
-> 💡 **What is data leakage?** When information about the test set sneaks into training, making the test look easier than real life. Here: cells from the same slide in both training and testing.
+> 💡 **What is data leakage?** When information about the test set sneaks into training, making the test look easier than real life. Here: cells from the same patient in both training and testing.
 
 ---
 
@@ -732,12 +732,12 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 | ID | Split | Preprocessing | Question it answers |
 |---|---|---|---|
 | A0 | Random image split (paper) | None | Baseline — **done** |
-| A1 | Slide-grouped split (no slide in both train and test) | None | **H1:** how big is the leakage gap (A0 − A1)? |
-| A2 | Slide-grouped split | YUV + histogram equalisation | **H2:** does stain normalisation help on unseen slides (A2 − A1)? |
-| A3 | Random image split | YUV + histogram equalisation | Control: is H2's gain specific to new slides (A3 − A0 ≈ 0)? |
+| A1 | Patient split (no patient in both train and test) | None | **H1:** how big is the leakage gap (A0 − A1)? |
+| A2 | Patient split | YUV + histogram equalisation | **H2:** does stain normalisation help on unseen patients (A2 − A1)? |
+| A3 | Random image split | YUV + histogram equalisation | Control: is H2's gain specific to new patients (A3 − A0 ≈ 0)? |
 
-- **H1 — validation.** Cells from one slide share stain, lighting and the patient's cell shape; a random split lets the model recognise the slide rather than the parasite. *We expect* accuracy and MCC to fall below A0 and the fold-to-fold spread to widen.
-- **H2 — preprocessing.** Converting to YUV and equalising the brightness channel removes slide-specific colour cues, so the network must rely on parasite shape. *We expect* higher recall and MCC than A1 on unseen slides, and little change on the random split (A3 ≈ A0).
+- **H1 — validation.** Cells from one patient share stain, lighting and the patient's blood; a random split lets the model recognise the patient rather than the parasite. *We expect* accuracy and MCC to fall below A0 and the fold-to-fold spread to widen.
+- **H2 — preprocessing.** Converting to YUV and equalising the brightness channel removes slide-specific brightness cues, so the network must rely on the parasite. *We expect* higher recall and MCC than A1 on unseen patients, and little change on the random split (A3 ≈ A0).
 
 **Success criteria (decided in advance):**
 
@@ -793,7 +793,7 @@ These analyses were fixed in a dated addendum ([`phase3b_addendum.md`](phase3b_a
 
 | Number | Meaning | Number | Meaning |
 |---|---|---|---|
-| **27,558** | cell images (13,779 per class), 200 slides, 0 duplicates | **97.62 %** | 10-model ensemble accuracy on 5,512 hold-out cells (paper 98.29 %) |
+| **27,558** | cell images (13,779 per class), 200 patients, 0 duplicates | **97.62 %** | 10-model ensemble accuracy on 5,512 hold-out cells (paper 98.29 %) |
 | **4,223,934** | parameters (4,181,918 trainable) — exactly the paper's Table 2 | **99.73 %** | ensemble ROC-AUC (paper 99.76 %) |
 | **10 × 33 × 1,240** | folds × epochs × steps of 16 images | **97.07 %** | ensemble recall (paper 97.74 % — its text wrongly says 98.82 %) |
 | **97.55 %** | mean fold accuracy (paper 97.56 %) | **80 / 51** | infected cells missed / healthy cells flagged, out of 5,512 |
@@ -816,8 +816,8 @@ These analyses were fixed in a dated addendum ([`phase3b_addendum.md`](phase3b_a
 | Why 10 folds and an ensemble? | Every image is tested once, we get a mean and a spread, and averaging 10 models cancels some of their individual mistakes (+0.25 pp here). |
 | Why is your ensemble 0.67 pp below the paper? | The paper's random split had no seed and can't be recreated; newer TensorFlow and different GPUs. Single models match to 0.01 pp, and every metric is within our 1 pp criterion. |
 | Did you do feature engineering? | No hand-crafted features; the CNN learns them. Only resizing, ÷255 and the paper's random augmentation. YUV stain normalisation is hypothesis H2. |
-| Is the dataset clean? | Balanced 50/50, no duplicates, expert labels; we drop two Thumbs.db files. Caveats: Fuhad et al. (2020) set aside 5.1 % of images as mislabelled or suspicious, and random splits allow slide leakage (H1). |
-| Is there data leakage? | Possibly, at slide level: 150 slides have cells in both classes and a random split mixes them. That is exactly what A1 tests. |
+| Is the dataset clean? | Balanced 50/50, no duplicates, expert labels; we drop two Thumbs.db files. Caveats: Fuhad et al. (2020) set aside 5.1 % of images as mislabelled or suspicious, and random splits allow patient leakage (H1). |
+| Is there data leakage? | Yes, but it is small. A random split puts cells of the same patient on both sides. Measured on identical cells, models that had seen other cells of the patient score 0.85 pp of MCC higher (95 % CI 0.05–2.02; section 7.6). |
 | What is label smoothing? | Training targets of 0.95/0.05 instead of 1/0, so the model doesn't become over-confident. It is in the paper's code. |
 | How do you know your code matches the paper? | 32 tests: Table 2 parameter count, the paper's printed reports reproduced to 6 decimals, its augmentation verbatim, its image loading pixel for pixel. |
 | How did you make it fast without changing results? | Decode once, 11 parallel augmentation workers with single-threaded BLAS (3×), uint8 transfer, XLA (1.7×), 10 GPUs in parallel. Same fp32 maths and library versions. |
