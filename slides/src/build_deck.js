@@ -138,8 +138,9 @@ function stat(s, x, y, w, big, label, color, dark = false, size = 48) {
 // ------------------------------------------------------------------ data
 const A0 = readJSON(R("results/A0_10fold_paper/A0_10fold_summary.json"));
 const ABL = readJSON(R("results/ablation/ablation_summary.json"));
+const P3B = readJSON(R("results/phase3b/phase3b_summary.json"));  // src/phase3b_analysis.py
 const fmt = (x, d = 2) => (x == null || Number.isNaN(x) ? "–" : Number(x).toFixed(d));
 const pct = (x, d = 2) => fmt(100 * x, d);
 
-module.exports = { pres, C, HEX, THEME, W, H, M, R, ASSETS, A0, ABL, T, card, iconBubble, cellImg, img, imgFit, stat,
+module.exports = { pres, C, HEX, THEME, W, H, M, R, ASSETS, A0, ABL, P3B, T, card, iconBubble, cellImg, img, imgFit, stat,
   addSlide, icon, fmt, pct, fa, applyTheme, OUT };

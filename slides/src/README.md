@@ -10,7 +10,7 @@ NODE_PATH=$PWD/node_modules node build.js ../.. ../Malaria_Phase3_Final.pptx
 
 - `build_deck.js`: theme, layouts and helpers.
 - `build.js`: the slides up to the hypotheses.
-- `results_slides.js`: the result, limitation, conclusion and reference slides, read from `results/ablation/`.
+- `results_slides.js`: the result, limitation, conclusion and reference slides, read from `results/ablation/` and `results/phase3b/`.
 
 `build.js` also applies the deck's theme colours with the `apply_theme.js` helper from the PowerPoint skill used to build it.
 Without that helper, remove the `applyTheme` lines and the deck keeps Office's default theme colours.

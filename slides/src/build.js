@@ -1,6 +1,6 @@
 // node build.js <repo> <out.pptx>
 const L = require("./build_deck.js");
-const { pres, HEX, W, M, R, A0, ABL, T, card, iconBubble, cellImg, imgFit, stat, addSlide, fmt, pct, fa } = L;
+const { pres, HEX, W, M, R, A0, ABL, P3B, T, card, iconBubble, cellImg, imgFit, stat, addSlide, fmt, pct, fa } = L;
 
 const EXP = ABL ? Object.fromEntries(ABL.experiments.map((e) => [e.experiment, e])) : {};
 const CON = ABL ? Object.fromEntries(ABL.contrasts.map((c) => [c.contrast, c])) : {};
@@ -37,7 +37,9 @@ async function main() {
   const h1c = CON["A1 vs A0"], h2c = CON["A2 vs A1"];
   T(s, h1c && h2c ? [
     { text: "Yes, largely: ", options: { bold: true, color: HEX.white } },
-    { text: `the ensemble scores ${pct(EXP.A1.ens_accuracy)} % on 40 held-out patients. Cross-validation over the other 160 patients shows a small leakage effect (MCC ${(100 * h1c.fold.mcc.diff).toFixed(2).replace("-", "−")} pp). YUV stain normalisation does not help. By their pre-registered tests, both hypotheses are rejected.`, options: { color: "C9D3DF" } }]
+    { text: `the ensemble scores ${pct(EXP.A1.ens_accuracy)} % on 40 held-out patients. ` +
+      (P3B ? `Measured on identical cells, patient leakage is real but small (${Math.abs(100 * P3B.E2.oof.mcc.est).toFixed(2)} pp of MCC). ` : "") +
+      `YUV stain normalisation does not help${P3B ? ": its effect stays within ±1 pp" : ""}. H1 is not supported; H2 is rejected.`, options: { color: "C9D3DF" } }]
     : "Results of the A1–A3 runs are added here once the analysis is in.",
     { x: M, y: 4.55, w: W - 2 * M, h: 1.6, fontSize: 18, valign: "top" });
   s.addNotes("Three numbers carry the talk. First, the paper's recipe, rebuilt from its own code, lands within one percentage point of the paper. Second, what happens to the same recipe when the test patients are new. Third, whether the stain normalisation we proposed helps on those new patients.");
@@ -299,7 +301,7 @@ async function main() {
   const st = [[fa.FaUserFriends, "Patient bootstrap", "Every interval resamples whole patients (10,000 times), because a patient's cells are not independent."],
     [fa.FaExchangeAlt, "Paired where possible", "A2 vs A1 and A3 vs A0 compare the same cells: corrected resampled t-test over folds (Nadeau & Bengio) and a paired bootstrap of the ensemble."],
     [fa.FaFilter, "Holm correction", "Three contrasts, so p-values are corrected for testing three times."],
-    [fa.FaLock, "Fixed in advance", "Primary metric MCC, clean evaluation, decision rules: committed to GitHub before the runs."]];
+    [fa.FaLock, "Fixed in advance", "Primary metric MCC, clean evaluation, decision rules: committed to GitHub before the runs. Later analyses: a dated addendum, before running them."]];
   for (let i = 0; i < st.length; i++) {
     const col = i % 2, row = Math.floor(i / 2), x = M + col * 6.2, y = 1.7 + row * 2.45;
     card(s, x, y, 5.9, 2.15, HEX.light, `stat_${i}`);
