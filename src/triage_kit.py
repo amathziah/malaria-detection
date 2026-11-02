@@ -3,7 +3,7 @@
 
 phase3b_error_gallery.png shrinks every cell to 72 px, too small to judge a faint ring. These pages show the same
 numbered cells at full resolution, 24 per A4 page. They carry numbers only: the labels and model calls stay in the
-key file, which is opened after the triage (docs/TEAM_HANDOVER.md).
+key file, which is opened after the triage (docs/blind_triage_protocol.md).
 
 Usage:
     python src/triage_kit.py      # writes results/phase3b/phase3b_triage_pages.pdf
