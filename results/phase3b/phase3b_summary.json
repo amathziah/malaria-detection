@@ -1,0 +1,1460 @@
+{
+ "n_boot": 10000,
+ "n_perm": 10000,
+ "n_draws": 1000,
+ "seed": 0,
+ "protocol": "clean",
+ "E1": {
+  "margin": 0.01,
+  "rows": [
+   {
+    "contrast": "A2 vs A1",
+    "level": "ensemble",
+    "metric": "mcc",
+    "est": -0.0025588648241611223,
+    "se": 0.0027306250713820717,
+    "mde": 0.007650078836192681,
+    "lo90": -0.007336741030629512,
+    "hi90": 0.0015562626891589305,
+    "equivalent": true,
+    "p_tost": 0.0081,
+    "smallest_margin": 0.007336741030629512
+   },
+   {
+    "contrast": "A2 vs A1",
+    "level": "fold",
+    "metric": "mcc",
+    "est": -0.006045174220927896,
+    "se": 0.00364848743727039,
+    "mde": 0.011476539873490533,
+    "lo90": -0.01273326372681256,
+    "hi90": 0.0006429152849567682,
+    "equivalent": false,
+    "p_tost": 0.1532819316278622,
+    "smallest_margin": 0.01273326372681256
+   },
+   {
+    "contrast": "A2 vs A1",
+    "level": "ensemble",
+    "metric": "accuracy",
+    "est": -0.0012612612612613594,
+    "se": 0.001336135257870089,
+    "mde": 0.0037432967878484004,
+    "lo90": -0.0035861815490391357,
+    "hi90": 0.0007761188362896462,
+    "equivalent": true,
+    "p_tost": 0.0001,
+    "smallest_margin": 0.0035861815490391357
+   },
+   {
+    "contrast": "A2 vs A1",
+    "level": "fold",
+    "metric": "accuracy",
+    "est": -0.00282803565492058,
+    "se": 0.0017334952350585057,
+    "mde": 0.005452815043962119,
+    "lo90": -0.006005728188999778,
+    "hi90": 0.00034965687915861727,
+    "equivalent": true,
+    "p_tost": 0.0012659270127684714,
+    "smallest_margin": 0.006005728188999778
+   },
+   {
+    "contrast": "A3 vs A0",
+    "level": "ensemble",
+    "metric": "mcc",
+    "est": 5.952697546218744e-06,
+    "se": 0.0026995886212835547,
+    "mde": 0.007563127576373975,
+    "lo90": -0.004422365978191045,
+    "hi90": 0.004446355365339169,
+    "equivalent": true,
+    "p_tost": 0.0002,
+    "smallest_margin": 0.004446355365339169
+   },
+   {
+    "contrast": "A3 vs A0",
+    "level": "fold",
+    "metric": "mcc",
+    "est": -0.003722919781026057,
+    "se": 0.0021878888350342846,
+    "mde": 0.006882137840885994,
+    "lo90": -0.007733567099735896,
+    "hi90": 0.0002877275376837818,
+    "equivalent": true,
+    "p_tost": 0.00925323288481152,
+    "smallest_margin": 0.007733567099735896
+   },
+   {
+    "contrast": "A3 vs A0",
+    "level": "ensemble",
+    "metric": "accuracy",
+    "est": 0.0,
+    "se": 0.0013424723007045474,
+    "mde": 0.003761050553379968,
+    "lo90": -0.0022070995034025875,
+    "hi90": 0.002210643269051136,
+    "equivalent": true,
+    "p_tost": 0.0001,
+    "smallest_margin": 0.002210643269051136
+   },
+   {
+    "contrast": "A3 vs A0",
+    "level": "fold",
+    "metric": "accuracy",
+    "est": -0.0018599660069714475,
+    "se": 0.0010871622557414404,
+    "mde": 0.003419735216713558,
+    "lo90": -0.003852857197863979,
+    "hi90": 0.00013292518392108398,
+    "equivalent": true,
+    "p_tost": 1.8709296933745895e-05,
+    "smallest_margin": 0.003852857197863979
+   },
+   {
+    "contrast": "A1 vs A0",
+    "level": "ensemble (different cells)",
+    "metric": "mcc",
+    "est": 0.016184424978692546,
+    "se": 0.00790563525947547,
+    "mde": 0.022148310882739157
+   },
+   {
+    "contrast": "A1 vs A0",
+    "level": "fold (corrected, unpaired)",
+    "metric": "mcc",
+    "est": -0.016499305876233605,
+    "se": 0.007448994263504927,
+    "mde": 0.022763625033083334
+   },
+   {
+    "contrast": "A1 vs A0",
+    "level": "ensemble (different cells)",
+    "metric": "accuracy",
+    "est": 0.00808941016488196,
+    "se": 0.003839394615152931,
+    "mde": 0.01075639120031498
+   },
+   {
+    "contrast": "A1 vs A0",
+    "level": "fold (corrected, unpaired)",
+    "metric": "accuracy",
+    "est": -0.005419240367427247,
+    "se": 0.0033502004266971392,
+    "mde": 0.010183124277724383
+   }
+  ],
+  "design_effect": {
+   "mcc": {
+    "var_patient": 2.8589778854186976e-05,
+    "var_cell": 1.1056683126496204e-05,
+    "deff": 2.585746423868702
+   },
+   "accuracy": {
+    "var_patient": 6.266513604375747e-06,
+    "var_cell": 2.7763782059563737e-06,
+    "deff": 2.2570821190469377
+   }
+  }
+ },
+ "E2": {
+  "holdout": {
+   "n_cells": 1095,
+   "n_patients": 40,
+   "mcc": {
+    "est": 0.0,
+    "lo": -0.008999463181439299,
+    "hi": 0.009818569873580466,
+    "p": 1.0,
+    "se": 0.004724640583534407,
+    "mde": 0.013236483219726624,
+    "lo90": -0.007568490459586791,
+    "hi90": 0.007939102156626075,
+    "equivalent": true,
+    "p_tost": 0.0234,
+    "smallest_margin": 0.007939102156626075
+   },
+   "accuracy": {
+    "est": 0.0,
+    "lo": -0.0043591979075849885,
+    "hi": 0.004673006478235348,
+    "p": 1.0,
+    "se": 0.0022799676560785243,
+    "mde": 0.006387523683045266,
+    "lo90": -0.0036866699291764173,
+    "hi90": 0.0038535645472060954,
+    "equivalent": true,
+    "p_tost": 0.0001,
+    "smallest_margin": 0.0038535645472060954
+   },
+   "recall": {
+    "est": 0.0,
+    "lo": -0.005110732538330498,
+    "hi": 0.00692041522491349,
+    "p": 1.0,
+    "se": 0.0030310793535715903,
+    "mde": 0.008491827111893578,
+    "lo90": -0.004237737953866732,
+    "hi90": 0.005454669477861871,
+    "equivalent": true,
+    "p_tost": 0.0062,
+    "smallest_margin": 0.005454669477861871
+   },
+   "specificity": {
+    "est": 0.0,
+    "lo": -0.0070796460176991705,
+    "hi": 0.007067137809187329,
+    "p": 1.0,
+    "se": 0.00350426527462052,
+    "mde": 0.00981749779372343,
+    "lo90": -0.005444646098003658,
+    "hi90": 0.005415162454873612,
+    "equivalent": true,
+    "p_tost": 0.0036,
+    "smallest_margin": 0.005444646098003658
+   },
+   "reading": "equivalent within \u00b11 pp"
+  },
+  "oof": {
+   "n_cells": 17591,
+   "n_patients": 160,
+   "mcc": {
+    "est": -0.008451288971305981,
+    "lo": -0.02023725882648283,
+    "hi": -0.0005089270626591155,
+    "p": 0.0304,
+    "se": 0.005160489768747895,
+    "mde": 0.014457551854347312,
+    "lo90": -0.018012017065025733,
+    "hi90": -0.001281856964700812,
+    "equivalent": false,
+    "p_tost": 0.3406,
+    "smallest_margin": 0.018012017065025733
+   },
+   "accuracy": {
+    "est": -0.004263543857654484,
+    "lo": -0.010224647733249903,
+    "hi": -0.00026405613844400423,
+    "p": 0.0316,
+    "se": 0.002612529243490699,
+    "mde": 0.007319223310451399,
+    "lo90": -0.009092559786351317,
+    "hi90": -0.0006355010581741492,
+    "equivalent": true,
+    "p_tost": 0.0285,
+    "smallest_margin": 0.009092559786351317
+   },
+   "recall": {
+    "est": -0.007535106747345588,
+    "lo": -0.01941987111406244,
+    "hi": -0.00012078941086897683,
+    "p": 0.0454,
+    "se": 0.005172371641536234,
+    "mde": 0.014490839933514623,
+    "lo90": -0.017098761710696124,
+    "hi90": -0.0006644621873720859,
+    "equivalent": false,
+    "p_tost": 0.2758,
+    "smallest_margin": 0.017098761710696124
+   },
+   "specificity": {
+    "est": -0.0010190217391303769,
+    "lo": -0.003489065735485697,
+    "hi": 0.0014559586726028912,
+    "p": 0.4448,
+    "se": 0.0012523384708320654,
+    "mde": 0.0035085329479573133,
+    "lo90": -0.0030546960461811713,
+    "hi90": 0.001028119061924054,
+    "equivalent": true,
+    "p_tost": 0.0001,
+    "smallest_margin": 0.0030546960461811713
+   },
+   "reading": "leakage detected"
+  }
+ },
+ "E3": {
+  "ts": [
+   0.18947389721870422,
+   0.5,
+   0.8,
+   0.95,
+   0.99
+  ],
+  "taus": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   8,
+   10,
+   12,
+   15
+  ],
+  "min_spec": 0.95,
+  "selected": {
+   "t": 0.8,
+   "tau": 3,
+   "sens": 0.9672131147540983,
+   "spec": 1.0,
+   "j": 0.9672131147540983,
+   "meets_min_spec": true,
+   "n_infected": 122,
+   "n_healthy": 38
+  },
+  "cv_grid": [
+   {
+    "t": 0.18947389721870422,
+    "tau": 1,
+    "sens": 0.9918032786885246,
+    "spec": 0.3157894736842105,
+    "j": 0.3075927523727351,
+    "tp": 121,
+    "tn": 12,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.18947389721870422,
+    "tau": 2,
+    "sens": 0.9918032786885246,
+    "spec": 0.5526315789473685,
+    "j": 0.544434857635893,
+    "tp": 121,
+    "tn": 21,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.18947389721870422,
+    "tau": 3,
+    "sens": 0.9918032786885246,
+    "spec": 0.7105263157894737,
+    "j": 0.7023295944779981,
+    "tp": 121,
+    "tn": 27,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.18947389721870422,
+    "tau": 4,
+    "sens": 0.9754098360655737,
+    "spec": 0.8157894736842105,
+    "j": 0.7911993097497843,
+    "tp": 119,
+    "tn": 31,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.18947389721870422,
+    "tau": 5,
+    "sens": 0.9590163934426229,
+    "spec": 0.868421052631579,
+    "j": 0.8274374460742018,
+    "tp": 117,
+    "tn": 33,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.18947389721870422,
+    "tau": 6,
+    "sens": 0.9426229508196722,
+    "spec": 0.9473684210526315,
+    "j": 0.8899913718723038,
+    "tp": 115,
+    "tn": 36,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.18947389721870422,
+    "tau": 8,
+    "sens": 0.9098360655737705,
+    "spec": 0.9736842105263158,
+    "j": 0.8835202761000862,
+    "tp": 111,
+    "tn": 37,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.18947389721870422,
+    "tau": 10,
+    "sens": 0.8934426229508197,
+    "spec": 1.0,
+    "j": 0.8934426229508197,
+    "tp": 109,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.18947389721870422,
+    "tau": 12,
+    "sens": 0.860655737704918,
+    "spec": 1.0,
+    "j": 0.860655737704918,
+    "tp": 105,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.18947389721870422,
+    "tau": 15,
+    "sens": 0.819672131147541,
+    "spec": 1.0,
+    "j": 0.819672131147541,
+    "tp": 100,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.5,
+    "tau": 1,
+    "sens": 0.9918032786885246,
+    "spec": 0.6052631578947368,
+    "j": 0.5970664365832614,
+    "tp": 121,
+    "tn": 23,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.5,
+    "tau": 2,
+    "sens": 0.9918032786885246,
+    "spec": 0.8947368421052632,
+    "j": 0.8865401207937877,
+    "tp": 121,
+    "tn": 34,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.5,
+    "tau": 3,
+    "sens": 0.9918032786885246,
+    "spec": 0.9473684210526315,
+    "j": 0.9391716997411561,
+    "tp": 121,
+    "tn": 36,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.5,
+    "tau": 4,
+    "sens": 0.9672131147540983,
+    "spec": 0.9736842105263158,
+    "j": 0.9408973252804143,
+    "tp": 118,
+    "tn": 37,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.5,
+    "tau": 5,
+    "sens": 0.9344262295081968,
+    "spec": 1.0,
+    "j": 0.9344262295081966,
+    "tp": 114,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.5,
+    "tau": 6,
+    "sens": 0.9344262295081968,
+    "spec": 1.0,
+    "j": 0.9344262295081966,
+    "tp": 114,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.5,
+    "tau": 8,
+    "sens": 0.8852459016393442,
+    "spec": 1.0,
+    "j": 0.8852459016393444,
+    "tp": 108,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.5,
+    "tau": 10,
+    "sens": 0.8524590163934426,
+    "spec": 1.0,
+    "j": 0.8524590163934427,
+    "tp": 104,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.5,
+    "tau": 12,
+    "sens": 0.8114754098360656,
+    "spec": 1.0,
+    "j": 0.8114754098360657,
+    "tp": 99,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.5,
+    "tau": 15,
+    "sens": 0.6967213114754098,
+    "spec": 1.0,
+    "j": 0.6967213114754098,
+    "tp": 85,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.8,
+    "tau": 1,
+    "sens": 0.9918032786885246,
+    "spec": 0.8157894736842105,
+    "j": 0.8075927523727351,
+    "tp": 121,
+    "tn": 31,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.8,
+    "tau": 2,
+    "sens": 0.9836065573770492,
+    "spec": 0.9473684210526315,
+    "j": 0.9309749784296808,
+    "tp": 120,
+    "tn": 36,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.8,
+    "tau": 3,
+    "sens": 0.9672131147540983,
+    "spec": 1.0,
+    "j": 0.9672131147540983,
+    "tp": 118,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.8,
+    "tau": 4,
+    "sens": 0.9344262295081968,
+    "spec": 1.0,
+    "j": 0.9344262295081966,
+    "tp": 114,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.8,
+    "tau": 5,
+    "sens": 0.9344262295081968,
+    "spec": 1.0,
+    "j": 0.9344262295081966,
+    "tp": 114,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.8,
+    "tau": 6,
+    "sens": 0.9180327868852459,
+    "spec": 1.0,
+    "j": 0.918032786885246,
+    "tp": 112,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.8,
+    "tau": 8,
+    "sens": 0.8360655737704918,
+    "spec": 1.0,
+    "j": 0.8360655737704918,
+    "tp": 102,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.8,
+    "tau": 10,
+    "sens": 0.7868852459016393,
+    "spec": 1.0,
+    "j": 0.7868852459016393,
+    "tp": 96,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.8,
+    "tau": 12,
+    "sens": 0.7459016393442623,
+    "spec": 1.0,
+    "j": 0.7459016393442623,
+    "tp": 91,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.8,
+    "tau": 15,
+    "sens": 0.6639344262295082,
+    "spec": 1.0,
+    "j": 0.6639344262295082,
+    "tp": 81,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.95,
+    "tau": 1,
+    "sens": 0.5901639344262295,
+    "spec": 1.0,
+    "j": 0.5901639344262295,
+    "tp": 72,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.95,
+    "tau": 2,
+    "sens": 0.45901639344262296,
+    "spec": 1.0,
+    "j": 0.459016393442623,
+    "tp": 56,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.95,
+    "tau": 3,
+    "sens": 0.36885245901639346,
+    "spec": 1.0,
+    "j": 0.3688524590163935,
+    "tp": 45,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.95,
+    "tau": 4,
+    "sens": 0.3114754098360656,
+    "spec": 1.0,
+    "j": 0.3114754098360657,
+    "tp": 38,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.95,
+    "tau": 5,
+    "sens": 0.27049180327868855,
+    "spec": 1.0,
+    "j": 0.2704918032786885,
+    "tp": 33,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.95,
+    "tau": 6,
+    "sens": 0.23770491803278687,
+    "spec": 1.0,
+    "j": 0.23770491803278682,
+    "tp": 29,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.95,
+    "tau": 8,
+    "sens": 0.20491803278688525,
+    "spec": 1.0,
+    "j": 0.20491803278688536,
+    "tp": 25,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.95,
+    "tau": 10,
+    "sens": 0.13934426229508196,
+    "spec": 1.0,
+    "j": 0.139344262295082,
+    "tp": 17,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.95,
+    "tau": 12,
+    "sens": 0.13114754098360656,
+    "spec": 1.0,
+    "j": 0.13114754098360648,
+    "tp": 16,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.95,
+    "tau": 15,
+    "sens": 0.09836065573770492,
+    "spec": 1.0,
+    "j": 0.09836065573770503,
+    "tp": 12,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.99,
+    "tau": 1,
+    "sens": 0.0,
+    "spec": 1.0,
+    "j": 0.0,
+    "tp": 0,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.99,
+    "tau": 2,
+    "sens": 0.0,
+    "spec": 1.0,
+    "j": 0.0,
+    "tp": 0,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.99,
+    "tau": 3,
+    "sens": 0.0,
+    "spec": 1.0,
+    "j": 0.0,
+    "tp": 0,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.99,
+    "tau": 4,
+    "sens": 0.0,
+    "spec": 1.0,
+    "j": 0.0,
+    "tp": 0,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.99,
+    "tau": 5,
+    "sens": 0.0,
+    "spec": 1.0,
+    "j": 0.0,
+    "tp": 0,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.99,
+    "tau": 6,
+    "sens": 0.0,
+    "spec": 1.0,
+    "j": 0.0,
+    "tp": 0,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.99,
+    "tau": 8,
+    "sens": 0.0,
+    "spec": 1.0,
+    "j": 0.0,
+    "tp": 0,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.99,
+    "tau": 10,
+    "sens": 0.0,
+    "spec": 1.0,
+    "j": 0.0,
+    "tp": 0,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.99,
+    "tau": 12,
+    "sens": 0.0,
+    "spec": 1.0,
+    "j": 0.0,
+    "tp": 0,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   },
+   {
+    "t": 0.99,
+    "tau": 15,
+    "sens": 0.0,
+    "spec": 1.0,
+    "j": 0.0,
+    "tp": 0,
+    "tn": 38,
+    "n_infected": 122,
+    "n_healthy": 38
+   }
+  ],
+  "nested": {
+   "sens": 0.9672131147540983,
+   "spec": 0.9736842105263158,
+   "j": 0.9408973252804143,
+   "tp": 118,
+   "tn": 37,
+   "n_infected": 122,
+   "n_healthy": 38,
+   "rules": [
+    {
+     "fold": 0,
+     "t": 0.8,
+     "tau": 3
+    },
+    {
+     "fold": 1,
+     "t": 0.8,
+     "tau": 3
+    },
+    {
+     "fold": 2,
+     "t": 0.8,
+     "tau": 3
+    },
+    {
+     "fold": 3,
+     "t": 0.8,
+     "tau": 3
+    },
+    {
+     "fold": 4,
+     "t": 0.8,
+     "tau": 3
+    },
+    {
+     "fold": 5,
+     "t": 0.8,
+     "tau": 3
+    },
+    {
+     "fold": 6,
+     "t": 0.5,
+     "tau": 3
+    },
+    {
+     "fold": 7,
+     "t": 0.8,
+     "tau": 3
+    },
+    {
+     "fold": 8,
+     "t": 0.8,
+     "tau": 3
+    },
+    {
+     "fold": 9,
+     "t": 0.8,
+     "tau": 3
+    }
+   ]
+  },
+  "holdout": {
+   "sens": 0.9285714285714286,
+   "spec": 1.0,
+   "j": 0.9285714285714286,
+   "tp": 26,
+   "tn": 12,
+   "n_infected": 28,
+   "n_healthy": 12,
+   "sens_ci": [
+    0.7649652268254092,
+    0.9912295032964729
+   ],
+   "spec_ci": [
+    0.7353515306029488,
+    1.0
+   ],
+   "misclassified": [
+    "C53",
+    "C73"
+   ]
+  },
+  "holdout_per_model": [
+   {
+    "fold": 0,
+    "sens": 0.9285714285714286,
+    "spec": 1.0
+   },
+   {
+    "fold": 1,
+    "sens": 0.9642857142857143,
+    "spec": 1.0
+   },
+   {
+    "fold": 2,
+    "sens": 0.9642857142857143,
+    "spec": 1.0
+   },
+   {
+    "fold": 3,
+    "sens": 0.9642857142857143,
+    "spec": 1.0
+   },
+   {
+    "fold": 4,
+    "sens": 0.9285714285714286,
+    "spec": 1.0
+   },
+   {
+    "fold": 5,
+    "sens": 0.9285714285714286,
+    "spec": 1.0
+   },
+   {
+    "fold": 6,
+    "sens": 0.9642857142857143,
+    "spec": 1.0
+   },
+   {
+    "fold": 7,
+    "sens": 0.9285714285714286,
+    "spec": 1.0
+   },
+   {
+    "fold": 8,
+    "sens": 0.9285714285714286,
+    "spec": 1.0
+   },
+   {
+    "fold": 9,
+    "sens": 0.9285714285714286,
+    "spec": 1.0
+   }
+  ],
+  "holdout_patients": [
+   {
+    "patient": "C129",
+    "infected": true,
+    "cells": 386,
+    "parasitized": 314,
+    "cells_at_or_above_t": 312,
+    "call": true
+   },
+   {
+    "patient": "C130",
+    "infected": true,
+    "cells": 185,
+    "parasitized": 116,
+    "cells_at_or_above_t": 115,
+    "call": true
+   },
+   {
+    "patient": "C138",
+    "infected": true,
+    "cells": 74,
+    "parasitized": 6,
+    "cells_at_or_above_t": 8,
+    "call": true
+   },
+   {
+    "patient": "C146",
+    "infected": true,
+    "cells": 111,
+    "parasitized": 41,
+    "cells_at_or_above_t": 39,
+    "call": true
+   },
+   {
+    "patient": "C147",
+    "infected": true,
+    "cells": 79,
+    "parasitized": 11,
+    "cells_at_or_above_t": 8,
+    "call": true
+   },
+   {
+    "patient": "C149",
+    "infected": true,
+    "cells": 121,
+    "parasitized": 54,
+    "cells_at_or_above_t": 53,
+    "call": true
+   },
+   {
+    "patient": "C153",
+    "infected": true,
+    "cells": 72,
+    "parasitized": 7,
+    "cells_at_or_above_t": 6,
+    "call": true
+   },
+   {
+    "patient": "C158",
+    "infected": true,
+    "cells": 117,
+    "parasitized": 49,
+    "cells_at_or_above_t": 47,
+    "call": true
+   },
+   {
+    "patient": "C172",
+    "infected": true,
+    "cells": 140,
+    "parasitized": 73,
+    "cells_at_or_above_t": 73,
+    "call": true
+   },
+   {
+    "patient": "C180",
+    "infected": true,
+    "cells": 547,
+    "parasitized": 479,
+    "cells_at_or_above_t": 460,
+    "call": true
+   },
+   {
+    "patient": "C181",
+    "infected": true,
+    "cells": 245,
+    "parasitized": 176,
+    "cells_at_or_above_t": 168,
+    "call": true
+   },
+   {
+    "patient": "C184",
+    "infected": true,
+    "cells": 568,
+    "parasitized": 501,
+    "cells_at_or_above_t": 498,
+    "call": true
+   },
+   {
+    "patient": "C187",
+    "infected": true,
+    "cells": 91,
+    "parasitized": 21,
+    "cells_at_or_above_t": 17,
+    "call": true
+   },
+   {
+    "patient": "C188",
+    "infected": true,
+    "cells": 128,
+    "parasitized": 59,
+    "cells_at_or_above_t": 53,
+    "call": true
+   },
+   {
+    "patient": "C2",
+    "infected": false,
+    "cells": 69,
+    "parasitized": 0,
+    "cells_at_or_above_t": 0,
+    "call": false
+   },
+   {
+    "patient": "C201",
+    "infected": false,
+    "cells": 68,
+    "parasitized": 0,
+    "cells_at_or_above_t": 0,
+    "call": false
+   },
+   {
+    "patient": "C203",
+    "infected": false,
+    "cells": 69,
+    "parasitized": 0,
+    "cells_at_or_above_t": 0,
+    "call": false
+   },
+   {
+    "patient": "C211",
+    "infected": false,
+    "cells": 69,
+    "parasitized": 0,
+    "cells_at_or_above_t": 0,
+    "call": false
+   },
+   {
+    "patient": "C226",
+    "infected": false,
+    "cells": 68,
+    "parasitized": 0,
+    "cells_at_or_above_t": 0,
+    "call": false
+   },
+   {
+    "patient": "C230",
+    "infected": false,
+    "cells": 68,
+    "parasitized": 0,
+    "cells_at_or_above_t": 0,
+    "call": false
+   },
+   {
+    "patient": "C231",
+    "infected": false,
+    "cells": 70,
+    "parasitized": 0,
+    "cells_at_or_above_t": 0,
+    "call": false
+   },
+   {
+    "patient": "C233",
+    "infected": false,
+    "cells": 68,
+    "parasitized": 0,
+    "cells_at_or_above_t": 0,
+    "call": false
+   },
+   {
+    "patient": "C235",
+    "infected": false,
+    "cells": 68,
+    "parasitized": 0,
+    "cells_at_or_above_t": 0,
+    "call": false
+   },
+   {
+    "patient": "C236",
+    "infected": false,
+    "cells": 68,
+    "parasitized": 0,
+    "cells_at_or_above_t": 0,
+    "call": false
+   },
+   {
+    "patient": "C241",
+    "infected": false,
+    "cells": 68,
+    "parasitized": 0,
+    "cells_at_or_above_t": 0,
+    "call": false
+   },
+   {
+    "patient": "C3",
+    "infected": false,
+    "cells": 69,
+    "parasitized": 0,
+    "cells_at_or_above_t": 1,
+    "call": false
+   },
+   {
+    "patient": "C42",
+    "infected": true,
+    "cells": 76,
+    "parasitized": 6,
+    "cells_at_or_above_t": 3,
+    "call": true
+   },
+   {
+    "patient": "C53",
+    "infected": true,
+    "cells": 71,
+    "parasitized": 3,
+    "cells_at_or_above_t": 1,
+    "call": false
+   },
+   {
+    "patient": "C66",
+    "infected": true,
+    "cells": 155,
+    "parasitized": 89,
+    "cells_at_or_above_t": 87,
+    "call": true
+   },
+   {
+    "patient": "C67",
+    "infected": true,
+    "cells": 130,
+    "parasitized": 63,
+    "cells_at_or_above_t": 61,
+    "call": true
+   },
+   {
+    "patient": "C73",
+    "infected": true,
+    "cells": 73,
+    "parasitized": 3,
+    "cells_at_or_above_t": 2,
+    "call": false
+   },
+   {
+    "patient": "C79",
+    "infected": true,
+    "cells": 76,
+    "parasitized": 7,
+    "cells_at_or_above_t": 7,
+    "call": true
+   },
+   {
+    "patient": "C84",
+    "infected": true,
+    "cells": 331,
+    "parasitized": 262,
+    "cells_at_or_above_t": 253,
+    "call": true
+   },
+   {
+    "patient": "C86",
+    "infected": true,
+    "cells": 72,
+    "parasitized": 4,
+    "cells_at_or_above_t": 4,
+    "call": true
+   },
+   {
+    "patient": "C89",
+    "infected": true,
+    "cells": 137,
+    "parasitized": 67,
+    "cells_at_or_above_t": 66,
+    "call": true
+   },
+   {
+    "patient": "C92",
+    "infected": true,
+    "cells": 93,
+    "parasitized": 26,
+    "cells_at_or_above_t": 17,
+    "call": true
+   },
+   {
+    "patient": "C93",
+    "infected": true,
+    "cells": 153,
+    "parasitized": 85,
+    "cells_at_or_above_t": 81,
+    "call": true
+   },
+   {
+    "patient": "C94",
+    "infected": true,
+    "cells": 79,
+    "parasitized": 9,
+    "cells_at_or_above_t": 8,
+    "call": true
+   },
+   {
+    "patient": "C97",
+    "infected": true,
+    "cells": 310,
+    "parasitized": 245,
+    "cells_at_or_above_t": 237,
+    "call": true
+   },
+   {
+    "patient": "C98",
+    "infected": true,
+    "cells": 108,
+    "parasitized": 39,
+    "cells_at_or_above_t": 36,
+    "call": true
+   }
+  ],
+  "dilution": {
+   "1": 0.03571428571428571,
+   "2": 0.12310714285714286,
+   "3": 0.7490357142857142,
+   "5": 0.9000714285714285
+  },
+  "disclosure": "NIH kept about 68 uninfected crops per patient but curated the parasitized cells, so per-patient parasite counts are not natural parasitaemia; only 12 held-out patients are healthy; there are no parasite densities. This is exploratory aggregation on curated crops, not a diagnostic accuracy study."
+ },
+ "E4": {
+  "false_alarms": {
+   "holdout": {
+    "infected": {
+     "flagged": 30,
+     "cells": 1913,
+     "patients": 28,
+     "rate": 0.015682174594877155,
+     "lo": 0.00992154156014761,
+     "hi": 0.022384174908901613
+    },
+    "healthy": {
+     "flagged": 1,
+     "cells": 822,
+     "patients": 12,
+     "rate": 0.0012165450121654502,
+     "lo": 0.0,
+     "hi": 0.0036540803897685747
+    },
+    "difference": {
+     "est": 0.014465629582711704,
+     "lo": 0.008207538757468057,
+     "hi": 0.021386112273205478
+    }
+   },
+   "oof": {
+    "infected": {
+     "flagged": 199,
+     "cells": 8451,
+     "patients": 122,
+     "rate": 0.023547509170512366,
+     "lo": 0.019347990941054275,
+     "hi": 0.028000490304133614
+    },
+    "healthy": {
+     "flagged": 22,
+     "cells": 2593,
+     "patients": 38,
+     "rate": 0.008484381025838797,
+     "lo": 0.004626015571728444,
+     "hi": 0.013107170393215111
+    },
+    "difference": {
+     "est": 0.015063128144673569,
+     "lo": 0.008922928878780757,
+     "hi": 0.021102610592111513
+    }
+   }
+  },
+  "clustering": {
+   "holdout": {
+    "stat": 111.23376813485446,
+    "p": 9.999000099990002e-05,
+    "n_errors": 86,
+    "n_patients": 40
+   },
+   "oof": {
+    "stat": 578.6927638115155,
+    "p": 9.999000099990002e-05,
+    "n_errors": 619,
+    "n_patients": 160
+   }
+  },
+  "candidates": {
+   "holdout": {
+    "n_cells": 5550,
+    "n_errors": 86,
+    "n_candidates": 8,
+    "labelled_parasitized": 7,
+    "labelled_uninfected": 1,
+    "candidates_that_are_errors": 8,
+    "thresholds": {
+     "parasitized": 0.9166489515478722,
+     "uninfected": 0.911228000391581
+    }
+   },
+   "oof": {
+    "n_cells": 22008,
+    "n_errors": 619,
+    "n_candidates": 134,
+    "labelled_parasitized": 101,
+    "labelled_uninfected": 33,
+    "candidates_that_are_errors": 134,
+    "thresholds": {
+     "parasitized": 0.8963597766764188,
+     "uninfected": 0.9093949901650443
+    }
+   }
+  },
+  "robustness": [
+   {
+    "contrast": "A2 vs A1",
+    "cells": "all cells",
+    "n_cells": 5550,
+    "n_flagged": 15,
+    "est": -0.0025588648241611223,
+    "lo": -0.008468122763243408,
+    "hi": 0.0023027655483191063,
+    "p": 0.3186
+   },
+   {
+    "contrast": "A2 vs A1",
+    "cells": "without flagged cells",
+    "n_cells": 5535,
+    "n_flagged": 15,
+    "est": -0.0025414988888048384,
+    "lo": -0.008466978271822268,
+    "hi": 0.0023143575833667646,
+    "p": 0.3264
+   },
+   {
+    "contrast": "A3 vs A0",
+    "cells": "all cells",
+    "n_cells": 5512,
+    "n_flagged": 22,
+    "est": 5.952697546218744e-06,
+    "lo": -0.0052254464688743976,
+    "hi": 0.005322940750527855,
+    "p": 1.0
+   },
+   {
+    "contrast": "A3 vs A0",
+    "cells": "without flagged cells",
+    "n_cells": 5490,
+    "n_flagged": 22,
+    "est": 0.00037177710552660503,
+    "lo": -0.004815506904171055,
+    "hi": 0.005677749563853146,
+    "p": 0.8882
+   }
+  ],
+  "ece": 0.0649609895518368,
+  "gallery": {
+   "tiles": 172,
+   "errors": 86
+  }
+ }
+}
