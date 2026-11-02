@@ -13,29 +13,31 @@ Primary protocol: **paper** evaluation. Intervals: 95 % patient-cluster bootstra
 
 ## Contrasts (difference = new − reference, in pp)
 
-Fold level: Nadeau–Bengio corrected resampled t-test when the folds are paired; Welch t-test (descriptive) when they are not. Ensemble level: patient bootstrap. Holm correction over the three contrasts, per metric.
+Fold level: Nadeau–Bengio corrected resampled t-test when the folds are paired; when they are not (A1 vs A0), a Welch-type t-test whose per-arm variance carries the same Nadeau–Bengio correction, because each arm's folds share their training data. Ensemble level: patient bootstrap. Holm correction over the three contrasts, per metric.
 
 ### A1 vs A0: H1: patient-level split vs the paper's image split (leakage)
 
 | Metric | Fold Δ | Fold p | Fold p (Holm) | Ensemble Δ [95 % CI] | Ensemble p | Ensemble p (Holm) |
 |---|---|---|---|---|---|---|
-| mcc | -1.44 | 0.0572 | 0.172 | +1.54 [-0.12, +3.04] | 0.0682 | 0.205 |
-| accuracy | -0.43 | 0.187 | 0.373 | +0.77 [+0.01, +1.53] | 0.0476 | 0.143 |
-| recall | -0.93 | 0.0991 | 0.255 | +0.98 [-0.55, +2.35] | 0.198 | 0.594 |
-| specificity | -0.34 | 0.348 | 1 | +0.59 [-0.21, +1.36] | 0.142 | 0.425 |
-| balanced_accuracy | -0.63 | 0.0787 | 0.236 | +0.78 [-0.08, +1.55] | 0.0752 | 0.226 |
-| f2 | -0.93 | 0.0774 | 0.202 | +0.92 [-0.47, +2.07] | 0.172 | 0.517 |
-| auc | -0.24 | 0.0544 | 0.0957 | +0.08 [-0.12, +0.26] | 0.416 | 0.518 |
+| mcc | -1.44 | 0.171 | 0.342 | +1.54 [-0.12, +3.04] | 0.0682 | 0.205 |
+| accuracy | -0.43 | 0.353 | 0.706 | +0.77 [+0.01, +1.53] | 0.0476 | 0.143 |
+| recall | -0.93 | 0.241 | 0.482 | +0.98 [-0.55, +2.35] | 0.198 | 0.594 |
+| specificity | -0.34 | 0.513 | 1 | +0.59 [-0.21, +1.36] | 0.142 | 0.425 |
+| balanced_accuracy | -0.63 | 0.209 | 0.417 | +0.78 [-0.08, +1.55] | 0.0752 | 0.226 |
+| f2 | -0.93 | 0.207 | 0.413 | +0.92 [-0.47, +2.07] | 0.172 | 0.517 |
+| auc | -0.24 | 0.166 | 0.166 | +0.08 [-0.12, +0.26] | 0.416 | 0.518 |
+
+First-reported fold p without the correction (plain Welch, folds treated as independent): MCC 0.0572, accuracy 0.187. It overstated the evidence; see docs/phase3b_addendum.md.
 
 ### A2 vs A1: H2: YUV stain normalisation on unseen patients
 
 | Metric | Fold Δ | Fold p | Fold p (Holm) | Ensemble Δ [95 % CI] | Ensemble p | Ensemble p (Holm) |
 |---|---|---|---|---|---|---|
-| mcc | -0.82 | 0.0881 | 0.176 | -0.18 [-0.90, +0.42] | 0.618 | 1 |
+| mcc | -0.82 | 0.0881 | 0.264 | -0.18 [-0.90, +0.42] | 0.618 | 1 |
 | accuracy | -0.38 | 0.0852 | 0.256 | -0.09 [-0.44, +0.20] | 0.665 | 1 |
 | recall | -0.43 | 0.085 | 0.255 | +0.11 [-0.19, +0.42] | 0.517 | 1 |
 | specificity | -0.25 | 0.425 | 1 | -0.29 [-1.02, +0.22] | 0.427 | 0.854 |
-| balanced_accuracy | -0.34 | 0.134 | 0.268 | -0.09 [-0.45, +0.21] | 0.632 | 1 |
+| balanced_accuracy | -0.34 | 0.134 | 0.401 | -0.09 [-0.45, +0.21] | 0.632 | 1 |
 | f2 | -0.44 | 0.0673 | 0.202 | +0.03 [-0.24, +0.29] | 0.781 | 1 |
 | auc | -0.14 | 0.0478 | 0.0957 | -0.04 [-0.11, +0.03] | 0.259 | 0.518 |
 
@@ -44,7 +46,7 @@ Fold level: Nadeau–Bengio corrected resampled t-test when the folds are paired
 | Metric | Fold Δ | Fold p | Fold p (Holm) | Ensemble Δ [95 % CI] | Ensemble p | Ensemble p (Holm) |
 |---|---|---|---|---|---|---|
 | mcc | -0.11 | 0.68 | 0.68 | +0.07 [-0.44, +0.59] | 0.79 | 1 |
-| accuracy | -0.05 | 0.681 | 0.681 | +0.04 [-0.22, +0.29] | 0.84 | 1 |
+| accuracy | -0.05 | 0.681 | 0.706 | +0.04 [-0.22, +0.29] | 0.84 | 1 |
 | recall | +0.02 | 0.947 | 0.947 | +0.04 [-0.34, +0.42] | 0.917 | 1 |
 | specificity | -0.13 | 0.538 | 1 | +0.04 [-0.33, +0.40] | 0.929 | 0.929 |
 | balanced_accuracy | -0.05 | 0.68 | 0.68 | +0.04 [-0.22, +0.30] | 0.785 | 1 |
@@ -53,7 +55,7 @@ Fold level: Nadeau–Bengio corrected resampled t-test when the folds are paired
 
 ## Verdicts
 
-- **H1 (leakage)**: ensemble MCC 95.25 → 96.80 (Δ +1.54 pp, 95 % CI -0.12 to +3.04, Holm p = 0.205); accuracy Δ +0.77 pp. Fold SD of accuracy 0.30 → 0.92 pp. **Not supported** at the 5 % level: the patient-level split does not score clearly lower.
+- **H1 (leakage)**: ensemble MCC 95.25 → 96.80 (Δ +1.54 pp, 95 % CI -0.12 to +3.04, Holm p = 0.205); accuracy Δ +0.77 pp. Fold SD of accuracy 0.30 → 0.92 pp. Cross-validation: fold MCC Δ -1.44 pp (95 % CI -3.60 to +0.73, corrected p = 0.171, Holm p = 0.342). **Not supported** at the 5 % level: the patient-level split does not score clearly lower.
 - **H2 (YUV on unseen patients)**: mean fold MCC gain -0.82 pp vs A1's fold SD 2.04 pp → pre-registered rule: **reject H2**. Ensemble MCC Δ -0.18 pp (95 % CI -0.90 to +0.42, Holm p = 1); recall Δ +0.11 pp; fold t-test p = 0.0881. H2 is not supported.
 - **Control (YUV, shared patients)**: mean fold MCC Δ -0.11 pp (A0 fold SD 0.60 pp); ensemble MCC Δ +0.07 pp (95 % CI -0.44 to +0.59). As expected, YUV changes little when patients are shared.
 

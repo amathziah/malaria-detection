@@ -72,7 +72,7 @@ def contrasts_table(abl):
     names = {"A1 vs A0": "H1: A1 $-$ A0 (unpaired)", "A2 vs A1": "H2: A2 $-$ A1 (paired)", "A3 vs A0": "Control: A3 $-$ A0 (paired)"}
     metrics = [("mcc", "MCC"), ("accuracy", "Accuracy"), ("recall", "Recall"), ("specificity", "Specificity"), ("auc", "ROC-AUC")]
     lines = [r"\begin{table*}[t]", r"\centering",
-             r"\caption{Contrasts (new $-$ reference, percentage points). Fold: mean difference over the ten folds with 95\,\% CI (corrected resampled $t$ when paired, Welch otherwise). Ensemble: hold-out difference with 95\,\% patient-bootstrap CI. $p$-values Holm-corrected over the three contrasts.}",
+             r"\caption{Contrasts (new $-$ reference, percentage points). Fold: mean difference over the ten folds with 95\,\% CI (Nadeau--Bengio corrected $t$; for the unpaired H1 contrast, a Welch-type $t$ with the correction applied to each arm). Ensemble: hold-out difference with 95\,\% patient-bootstrap CI. $p$-values Holm-corrected over the three contrasts.}",
              r"\label{tab:contrasts}", r"\begin{tabular}{@{}llrrrr@{}}", r"\toprule",
              r"Contrast & Metric & Fold $\Delta$ [95\,\% CI] & Fold $p_{\mathrm{Holm}}$ & Ensemble $\Delta$ [95\,\% CI] & Ens. $p_{\mathrm{Holm}}$ \\",
              r"\midrule"]

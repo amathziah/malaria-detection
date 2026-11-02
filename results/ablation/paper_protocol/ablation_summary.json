@@ -215,13 +215,14 @@
      "new_mean": 0.936694462129229,
      "new_sd": 0.02044928093345816,
      "diff": -0.014382359820827584,
-     "t": -2.1342983881700963,
-     "p": 0.05723257113548974,
-     "test": "Welch t-test on fold scores (unpaired, descriptive)",
+     "p_welch": 0.05723257113548974,
+     "t": -1.4689248930623988,
+     "p": 0.17107006413463688,
+     "test": "corrected unpaired t-test on fold scores (Nadeau-Bengio variance per arm)",
      "est": -0.014382359820827584,
-     "lo": -0.02929435468199934,
-     "hi": 0.0005296350403441747,
-     "p_holm": 0.17169771340646922
+     "lo": -0.03604898603630943,
+     "hi": 0.007284266394654265,
+     "p_holm": 0.34214012826927376
     },
     "accuracy": {
      "ref_mean": 0.9755059240877234,
@@ -229,13 +230,14 @@
      "new_mean": 0.9711713715881967,
      "new_sd": 0.009249288056553208,
      "diff": -0.004334552499526745,
-     "t": -1.4089945746586936,
-     "p": 0.1867424939051311,
-     "test": "Welch t-test on fold scores (unpaired, descriptive)",
+     "p_welch": 0.1867424939051311,
+     "t": -0.9697365730948926,
+     "p": 0.35322084471795046,
+     "test": "corrected unpaired t-test on fold scores (Nadeau-Bengio variance per arm)",
      "est": -0.004334552499526745,
-     "lo": -0.011113806232888388,
-     "hi": 0.002444701233834898,
-     "p_holm": 0.3734849878102622
+     "lo": -0.01418457981164149,
+     "hi": 0.005515474812588,
+     "p_holm": 0.7064416894359009
     },
     "recall": {
      "ref_mean": 0.9705853662535249,
@@ -243,13 +245,14 @@
      "new_mean": 0.9612940963075269,
      "new_sd": 0.0154138047699381,
      "diff": -0.009291269945997938,
-     "t": -1.7989156631229928,
-     "p": 0.09905990519320845,
-     "test": "Welch t-test on fold scores (unpaired, descriptive)",
+     "p_welch": 0.09905990519320845,
+     "t": -1.238098671079829,
+     "p": 0.24105305871006663,
+     "test": "corrected unpaired t-test on fold scores (Nadeau-Bengio variance per arm)",
      "est": -0.009291269945997938,
-     "lo": -0.020637171135232814,
-     "hi": 0.0020546312432369405,
-     "p_holm": 0.2551172931737283
+     "lo": -0.02577648218175553,
+     "hi": 0.0071939422897596556,
+     "p_holm": 0.48210611742013326
     },
     "specificity": {
      "ref_mean": 0.9804492513855572,
@@ -257,12 +260,13 @@
      "new_mean": 0.9770612457604269,
      "new_sd": 0.010483774510997882,
      "diff": -0.003388005625130308,
-     "t": -0.9838343776195397,
-     "p": 0.34750485189668257,
-     "test": "Welch t-test on fold scores (unpaired, descriptive)",
+     "p_welch": 0.34750485189668257,
+     "t": -0.6771212572460222,
+     "p": 0.5130911890541396,
+     "test": "corrected unpaired t-test on fold scores (Nadeau-Bengio variance per arm)",
      "est": -0.003388005625130308,
-     "lo": -0.01101997475319966,
-     "hi": 0.004243963502939045,
+     "lo": -0.014476999681622488,
+     "hi": 0.007700988431361872,
      "p_holm": 1.0
     },
     "balanced_accuracy": {
@@ -271,13 +275,14 @@
      "new_mean": 0.9691776710339768,
      "new_sd": 0.009862871116018133,
      "diff": -0.006339637785564123,
-     "t": -1.9441019856583606,
-     "p": 0.07873005947067437,
-     "test": "Welch t-test on fold scores (unpaired, descriptive)",
+     "p_welch": 0.07873005947067437,
+     "t": -1.3380227512770873,
+     "p": 0.20872485693922588,
+     "test": "corrected unpaired t-test on fold scores (Nadeau-Bengio variance per arm)",
      "est": -0.006339637785564123,
-     "lo": -0.01354477935236868,
-     "hi": 0.0008655037812404344,
-     "p_holm": 0.2361901784120231
+     "lo": -0.016808465773432583,
+     "hi": 0.0041291902023043395,
+     "p_holm": 0.41744971387845176
     },
     "f2": {
      "ref_mean": 0.9725178926607574,
@@ -285,13 +290,14 @@
      "new_mean": 0.9631739156636797,
      "new_sd": 0.014471840674284055,
      "diff": -0.009343976997077674,
-     "t": -1.9545734687946437,
-     "p": 0.07743706292143071,
-     "test": "Welch t-test on fold scores (unpaired, descriptive)",
+     "p_welch": 0.07743706292143071,
+     "t": -1.3452297202423582,
+     "p": 0.2065500746379331,
+     "test": "corrected unpaired t-test on fold scores (Nadeau-Bengio variance per arm)",
      "est": -0.009343976997077674,
-     "lo": -0.019911001248554133,
-     "hi": 0.0012230472543987847,
-     "p_holm": 0.201953520983838
+     "lo": -0.02469750727912081,
+     "hi": 0.0060095532849654635,
+     "p_holm": 0.4131001492758662
     },
     "auc": {
      "ref_mean": 0.9960655452078153,
@@ -299,13 +305,14 @@
      "new_mean": 0.9937069048489857,
      "new_sd": 0.003298236265119451,
      "diff": -0.0023586403588296,
-     "t": -2.159474813614001,
-     "p": 0.05437260659217067,
-     "test": "Welch t-test on fold scores (unpaired, descriptive)",
+     "p_welch": 0.05437260659217067,
+     "t": -1.486252497420752,
+     "p": 0.16601003827435185,
+     "test": "corrected unpaired t-test on fold scores (Nadeau-Bengio variance per arm)",
      "est": -0.0023586403588296,
-     "lo": -0.004770206470112955,
-     "hi": 5.2925752453754794e-05,
-     "p_holm": 0.09569901825298309
+     "lo": -0.005862564683746768,
+     "hi": 0.0011452839660875684,
+     "p_holm": 0.16601003827435185
     }
    },
    "ensemble": {
@@ -401,7 +408,7 @@
      "est": -0.008176547579821225,
      "lo": -0.017848689456134485,
      "hi": 0.0014955942964920352,
-     "p_holm": 0.1762556218590212
+     "p_holm": 0.26438343278853177
     },
     "accuracy": {
      "ref_mean": 0.9711713715881967,
@@ -457,7 +464,7 @@
      "est": -0.003389550433465338,
      "lo": -0.008042312835493119,
      "hi": 0.0012632119685624423,
-     "p_holm": 0.26751624625379516
+     "p_holm": 0.4012743693806927
     },
     "f2": {
      "ref_mean": 0.9631739156636797,
@@ -595,7 +602,7 @@
      "est": -0.0005445674942693435,
      "lo": -0.003440917362820994,
      "hi": 0.002351782374282307,
-     "p_holm": 0.6805870929844423
+     "p_holm": 0.7064416894359009
     },
     "recall": {
      "ref_mean": 0.9705853662535249,
@@ -744,7 +751,7 @@
   }
  ],
  "verdicts": [
-  "- **H1 (leakage)**: ensemble MCC 95.25 \u2192 96.80 (\u0394 +1.54 pp, 95 % CI -0.12 to +3.04, Holm p = 0.205); accuracy \u0394 +0.77 pp. Fold SD of accuracy 0.30 \u2192 0.92 pp. **Not supported** at the 5 % level: the patient-level split does not score clearly lower.",
+  "- **H1 (leakage)**: ensemble MCC 95.25 \u2192 96.80 (\u0394 +1.54 pp, 95 % CI -0.12 to +3.04, Holm p = 0.205); accuracy \u0394 +0.77 pp. Fold SD of accuracy 0.30 \u2192 0.92 pp. Cross-validation: fold MCC \u0394 -1.44 pp (95 % CI -3.60 to +0.73, corrected p = 0.171, Holm p = 0.342). **Not supported** at the 5 % level: the patient-level split does not score clearly lower.",
   "- **H2 (YUV on unseen patients)**: mean fold MCC gain -0.82 pp vs A1's fold SD 2.04 pp \u2192 pre-registered rule: **reject H2**. Ensemble MCC \u0394 -0.18 pp (95 % CI -0.90 to +0.42, Holm p = 1); recall \u0394 +0.11 pp; fold t-test p = 0.0881. H2 is not supported.",
   "- **Control (YUV, shared patients)**: mean fold MCC \u0394 -0.11 pp (A0 fold SD 0.60 pp); ensemble MCC \u0394 +0.07 pp (95 % CI -0.44 to +0.59). As expected, YUV changes little when patients are shared."
  ]

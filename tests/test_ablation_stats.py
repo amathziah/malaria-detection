@@ -29,6 +29,44 @@ def test_corrected_t_test_refuses_identical_differences():
         st.corrected_resampled_ttest(np.ones(10), 18_000, 2_000)
 
 
+def test_corrected_unpaired_t_test_reduces_to_welch_without_overlap():
+    # n_test / n_train = 0 means no shared training data: the correction must vanish
+    a, b = np.array([0.91, 0.93, 0.92, 0.95, 0.94]), np.array([0.88, 0.95, 0.90, 0.86, 0.93])
+    r = st.corrected_unpaired_ttest(a, b, ratio_a=0.0, ratio_b=0.0)
+    welch = sps.ttest_ind(b, a, equal_var=False)
+    assert r["t"] == pytest.approx(welch.statistic)
+    assert r["p"] == pytest.approx(welch.pvalue)
+
+
+def test_corrected_unpaired_t_test_inflates_each_arm_by_the_nadeau_bengio_factor():
+    # hand-worked: var(a) = 5/3, var(b) = 20/3, k = 4, n_test/n_train = 1/3 -> factor 1/4 + 1/3 = 7/12
+    # se = sqrt(7/12 * (5/3 + 20/3)) = 2.204793, t = 3.5 / se, Welch-Satterthwaite df = 91875 / 20825
+    r = st.corrected_unpaired_ttest([1, 2, 3, 4], [3, 5, 7, 9], ratio_a=1 / 3, ratio_b=1 / 3)
+    assert r["se"] == pytest.approx(2.204793, abs=1e-6)
+    assert r["t"] == pytest.approx(1.587451, abs=1e-6)
+    assert r["df"] == pytest.approx(4.411765, abs=1e-6)
+    assert r["p"] == pytest.approx(2 * sps.t.sf(1.587451, 4.411765), abs=1e-6)
+
+
+def test_corrected_unpaired_t_test_refuses_zero_variance():
+    with pytest.raises(ValueError):
+        st.corrected_unpaired_ttest(np.ones(10), np.ones(10), 1 / 9, 1 / 9)
+
+
+def test_unpaired_fold_contrast_uses_the_corrected_test(results_root):
+    # Different splits: the fold scores are not paired, but each arm's folds still share ~89 % of their
+    # training data, so a plain Welch t-test is too optimistic (it gave the first-reported p = 0.023)
+    a, b = st.load_experiment(results_root, "A0"), st.load_experiment(results_root, "A1")
+    row = st.compare(a, b, paired=False, n_boot=50)["fold"]["mcc"]
+    welch = sps.ttest_ind(st.fold_values(b, "mcc"), st.fold_values(a, "mcc"), equal_var=False)
+    assert row["p_welch"] == pytest.approx(welch.pvalue)
+    assert row["p"] > row["p_welch"]
+    assert "corrected" in row["test"]
+    # both fake arms use n_test/n_train = 30/270 over k = 10 folds: the interval widens by sqrt(1 + 10/9)
+    welch_half = sps.t.ppf(0.975, welch.df) * abs(row["diff"] / welch.statistic)
+    assert (row["hi"] - row["lo"]) / 2 == pytest.approx(np.sqrt(19 / 9) * welch_half)
+
+
 def test_holm_matches_the_textbook_example():
     np.testing.assert_allclose(st.holm([0.01, 0.04, 0.03]), [0.03, 0.06, 0.06])
     np.testing.assert_allclose(st.holm([0.5, 0.9]), [1.0, 1.0])

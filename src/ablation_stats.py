@@ -14,6 +14,9 @@ Design (fixed before the A1-A3 runs):
         training sets overlap by ~89 %, so a plain paired t-test is too optimistic);
       - 10-model ensemble on the hold-out set: paired patient bootstrap of the difference.
   * Unpaired contrast (different hold-out sets: A1 vs A0): independent patient bootstraps per arm.
+    Its folds are compared with a Welch-type t whose per-arm variance carries the same Nadeau-Bengio
+    correction. Deviation, 2 Nov 2026: the plan's plain Welch test treated each arm's folds as independent
+    and overstated the evidence; its p is still reported as p_welch (docs/phase3b_addendum.md).
   * Holm correction over the three contrasts, separately for each metric and level.
   * The deck's pre-registered rules are reported next to the tests (slide 28 of the long deck):
       H1 is rejected if grouped and random splits score the same;
@@ -111,6 +114,25 @@ def corrected_resampled_ttest(diffs, n_train, n_test):
         raise ValueError("the per-fold differences are all equal: the t statistic is undefined")
     t = d.mean() / np.sqrt((1 / k + n_test / n_train) * var)
     return float(t), float(2 * sps.t.sf(abs(t), df=k - 1))
+
+
+def corrected_unpaired_ttest(a, b, ratio_a, ratio_b):
+    """mean(b) - mean(a) for fold scores of two different k-fold CVs (folds not paired).
+
+    Welch's t, except that each arm's variance of the fold mean is var * (1/k + n_test/n_train) instead of
+    var / k: within one CV the folds share most of their training data, so their scores are correlated
+    (Nadeau & Bengio 2003, applied per arm). ratio = n_test / n_train of that arm; 0 gives plain Welch.
+    Returns t, two-sided p, Welch-Satterthwaite df and the standard error of the difference.
+    """
+    a, b = np.asarray(a, float), np.asarray(b, float)
+    va = (1 / len(a) + ratio_a) * a.var(ddof=1)
+    vb = (1 / len(b) + ratio_b) * b.var(ddof=1)
+    if not va + vb > 0:
+        raise ValueError("both arms have identical fold scores: the t statistic is undefined")
+    se = np.sqrt(va + vb)
+    df = (va + vb) ** 2 / (va ** 2 / (len(a) - 1) + vb ** 2 / (len(b) - 1))
+    t = (b.mean() - a.mean()) / se
+    return dict(t=float(t), p=float(2 * sps.t.sf(abs(t), df=df)), df=float(df), se=float(se))
 
 
 def holm(pvals):
@@ -250,12 +272,15 @@ def compare(a, b, paired, n_boot=10_000, seed=0, protocol=PRIMARY):
                 row["test"] = "corrected resampled t-test (paired folds)"
             except ValueError:
                 row["t"], row["p"], row["test"] = float("nan"), float("nan"), "undefined (identical differences)"
-        else:  # different splits: folds are not paired; Welch's t on the fold scores, descriptive only
-            row["t"], row["p"] = map(float, sps.ttest_ind(vb, va, equal_var=False))
-            row["test"] = "Welch t-test on fold scores (unpaired, descriptive)"
-            se2a, se2b = va.var(ddof=1) / k, vb.var(ddof=1) / k
-            dof = (se2a + se2b) ** 2 / (se2a ** 2 / (k - 1) + se2b ** 2 / (k - 1)) if se2a + se2b else k - 1
-            half = sps.t.ppf(0.975, dof) * np.sqrt(se2a + se2b)
+        else:  # different splits: the folds are not paired, but each arm's folds share their training data
+            row["p_welch"] = float(sps.ttest_ind(vb, va, equal_var=False).pvalue)  # uncorrected, first reported
+            try:
+                r = corrected_unpaired_ttest(va, vb, a["n_test"] / a["n_train"], b["n_test"] / b["n_train"])
+                row.update(t=r["t"], p=r["p"], test="corrected unpaired t-test on fold scores "
+                                                    "(Nadeau-Bengio variance per arm)")
+                half = sps.t.ppf(0.975, r["df"]) * r["se"]
+            except ValueError:
+                row["t"], row["p"], row["test"], half = float("nan"), float("nan"), "undefined (no variance)", 0.0
         row.update(est=row["diff"], lo=float(row["diff"] - half), hi=float(row["diff"] + half))
         out["fold"][m] = row
 
@@ -321,6 +346,9 @@ def _verdicts(contrasts):
                      f"(Δ {100 * e['mcc']['est']:+.2f} pp, 95 % CI {100 * e['mcc']['lo']:+.2f} to {100 * e['mcc']['hi']:+.2f}, "
                      f"Holm p = {e['mcc']['p_holm']:.3g}); accuracy Δ {100 * e['accuracy']['est']:+.2f} pp. "
                      f"Fold SD of accuracy {100 * f['accuracy']['ref_sd']:.2f} → {100 * f['accuracy']['new_sd']:.2f} pp. "
+                     f"Cross-validation: fold MCC Δ {100 * f['mcc']['diff']:+.2f} pp (95 % CI "
+                     f"{100 * f['mcc']['lo']:+.2f} to {100 * f['mcc']['hi']:+.2f}, corrected p = {f['mcc']['p']:.3g}, "
+                     f"Holm p = {f['mcc']['p_holm']:.3g}). "
                      + ("**Supported**: the patient-level split scores lower." if drop else
                         "**Not supported** at the 5 % level: the patient-level split does not score clearly lower."))
     c = by.get("A2 vs A1")
@@ -370,9 +398,10 @@ def render(rows, contrasts, missing, protocol, n_boot):
                   f"{ci('recall')} | {_pct(r['ens_auc'])} | {r['missed']} / {r['flagged']} | {r['ece']:.3f} |")
     if contrasts:
         md += ["", "## Contrasts (difference = new − reference, in pp)", "",
-               "Fold level: Nadeau–Bengio corrected resampled t-test when the folds are paired; Welch t-test "
-               "(descriptive) when they are not. Ensemble level: patient bootstrap. Holm correction over the three "
-               "contrasts, per metric.", ""]
+               "Fold level: Nadeau–Bengio corrected resampled t-test when the folds are paired; when they are not "
+               "(A1 vs A0), a Welch-type t-test whose per-arm variance carries the same Nadeau–Bengio correction, "
+               "because each arm's folds share their training data. Ensemble level: patient bootstrap. Holm "
+               "correction over the three contrasts, per metric.", ""]
         for c in contrasts:
             md += [f"### {c['contrast']}: {c['question']}", "",
                    "| Metric | Fold Δ | Fold p | Fold p (Holm) | Ensemble Δ [95 % CI] | Ensemble p | Ensemble p (Holm) |",
@@ -382,6 +411,10 @@ def render(rows, contrasts, missing, protocol, n_boot):
                 md.append(f"| {m} | {100 * f['diff']:+.2f} | {f['p']:.3g} | {f['p_holm']:.3g} | "
                           f"{100 * e['est']:+.2f} [{100 * e['lo']:+.2f}, {100 * e['hi']:+.2f}] | {e['p']:.3g} | "
                           f"{e['p_holm']:.3g} |")
+            if "p_welch" in c["fold"]["mcc"]:
+                md += ["", f"First-reported fold p without the correction (plain Welch, folds treated as independent): "
+                           f"MCC {c['fold']['mcc']['p_welch']:.3g}, accuracy {c['fold']['accuracy']['p_welch']:.3g}. "
+                           f"It overstated the evidence; see docs/phase3b_addendum.md."]
             md.append("")
         md += ["## Verdicts", ""] + _verdicts(contrasts)
     md += ["", "## Extras on the same predictions", "",

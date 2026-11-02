@@ -38,29 +38,29 @@ A3 & image & YUV & 5{,}512 / 200 & 95.20 $\pm$ 0.37 & 97.60 $\pm$ 0.19 & 97.64 [
 
 \begin{table*}[t]
 \centering
-\caption{Contrasts (new $-$ reference, percentage points). Fold: mean difference over the ten folds with 95\,\% CI (corrected resampled $t$ when paired, Welch otherwise). Ensemble: hold-out difference with 95\,\% patient-bootstrap CI. $p$-values Holm-corrected over the three contrasts.}
+\caption{Contrasts (new $-$ reference, percentage points). Fold: mean difference over the ten folds with 95\,\% CI (Nadeau--Bengio corrected $t$; for the unpaired H1 contrast, a Welch-type $t$ with the correction applied to each arm). Ensemble: hold-out difference with 95\,\% patient-bootstrap CI. $p$-values Holm-corrected over the three contrasts.}
 \label{tab:contrasts}
 \begin{tabular}{@{}llrrrr@{}}
 \toprule
 Contrast & Metric & Fold $\Delta$ [95\,\% CI] & Fold $p_{\mathrm{Holm}}$ & Ensemble $\Delta$ [95\,\% CI] & Ens. $p_{\mathrm{Holm}}$ \\
 \midrule
-H1: A1 $-$ A0 (unpaired) & MCC & $-$1.65 [$-$2.77, $-$0.53] & 0.023 & +1.62 [+0.01, +3.12] & 0.146 \\
- & Accuracy & $-$0.54 [$-$1.04, $-$0.04] & 0.108 & +0.81 [+0.06, +1.57] & 0.102 \\
- & Recall & $-$1.27 [$-$2.26, $-$0.27] & 0.052 & +0.87 [$-$0.67, +2.25] & 0.748 \\
- & Specificity & $-$0.26 [$-$0.84, +0.31] & 0.687 & +0.77 [+0.00, +1.53] & 0.118 \\
- & ROC-AUC & $-$0.23 [$-$0.44, $-$0.01] & 0.120 & +0.12 [$-$0.10, +0.32] & 0.593 \\
+H1: A1 $-$ A0 (unpaired) & MCC & $-$1.65 [$-$3.28, $-$0.02] & 0.142 & +1.62 [+0.01, +3.12] & 0.146 \\
+ & Accuracy & $-$0.54 [$-$1.27, +0.18] & 0.364 & +0.81 [+0.06, +1.57] & 0.102 \\
+ & Recall & $-$1.27 [$-$2.71, +0.18] & 0.240 & +0.87 [$-$0.67, +2.25] & 0.748 \\
+ & Specificity & $-$0.26 [$-$1.10, +0.57] & 0.687 & +0.77 [+0.00, +1.53] & 0.118 \\
+ & ROC-AUC & $-$0.23 [$-$0.54, +0.08] & 0.180 & +0.12 [$-$0.10, +0.32] & 0.593 \\
 \midrule
 H2: A2 $-$ A1 (paired) & MCC & $-$0.60 [$-$1.43, +0.22] & 0.246 & $-$0.26 [$-$0.85, +0.23] & 0.637 \\
- & Accuracy & $-$0.28 [$-$0.67, +0.11] & 0.243 & $-$0.13 [$-$0.41, +0.11] & 0.756 \\
+ & Accuracy & $-$0.28 [$-$0.67, +0.11] & 0.364 & $-$0.13 [$-$0.41, +0.11] & 0.756 \\
  & Recall & $-$0.20 [$-$0.61, +0.21] & 0.609 & +0.18 [$-$0.11, +0.53] & 0.748 \\
  & Specificity & $-$0.33 [$-$0.91, +0.25] & 0.687 & $-$0.44 [$-$0.92, $-$0.04] & 0.118 \\
- & ROC-AUC & $-$0.18 [$-$0.39, +0.02] & 0.120 & $-$0.04 [$-$0.09, +0.02] & 0.593 \\
+ & ROC-AUC & $-$0.18 [$-$0.39, +0.02] & 0.180 & $-$0.04 [$-$0.09, +0.02] & 0.593 \\
 \midrule
 Control: A3 $-$ A0 (paired) & MCC & $-$0.37 [$-$0.87, +0.12] & 0.246 & +0.00 [$-$0.52, +0.53] & 1.000 \\
- & Accuracy & $-$0.19 [$-$0.43, +0.06] & 0.243 & +0.00 [$-$0.26, +0.27] & 1.000 \\
+ & Accuracy & $-$0.19 [$-$0.43, +0.06] & 0.364 & +0.00 [$-$0.26, +0.27] & 1.000 \\
  & Recall & $-$0.10 [$-$0.43, +0.23] & 0.609 & $-$0.04 [$-$0.43, +0.33] & 0.935 \\
  & Specificity & $-$0.27 [$-$0.85, +0.30] & 0.687 & +0.04 [$-$0.36, +0.43] & 0.917 \\
- & ROC-AUC & $-$0.16 [$-$0.33, +0.01] & 0.120 & $-$0.02 [$-$0.11, +0.05] & 0.663 \\
+ & ROC-AUC & $-$0.16 [$-$0.33, +0.01] & 0.180 & $-$0.02 [$-$0.11, +0.05] & 0.663 \\
 \bottomrule
 \end{tabular}
 \end{table*}
