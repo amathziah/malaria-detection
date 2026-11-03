@@ -438,8 +438,18 @@ def _style():
     return figs
 
 
+def _value_column(ax, texts, fontsize, color):
+    """Row i's numbers in a column right of the plot, clear of the grid, the band and the intervals."""
+    import matplotlib.transforms as mtransforms
+    tr = mtransforms.blended_transform_factory(ax.transAxes, ax.transData)
+    for i, text in enumerate(texts):
+        ax.text(1.02, i, text, transform=tr, ha="left", va="center", fontsize=fontsize, color=color)
+
+
 def leakage_figure(abl, e2, path):
-    """A1 - A0 in MCC, four ways: the pre-registered hold-out comparison, the CV folds, and the two same-cell tests."""
+    """A1 - A0 in MCC, four ways: the pre-registered hold-out comparison, the CV folds, and the two same-cell tests.
+
+    Drawn at the size the paper prints it, with the numbers in their own column right of the plot."""
     import matplotlib.pyplot as plt
     figs = _style()
     c = {x["contrast"]: x for x in abl["contrasts"]}["A1 vs A0"]
@@ -450,24 +460,27 @@ def leakage_figure(abl, e2, path):
         if e2[key]["n_cells"]:
             rows.append((label.format(n=e2[key]["n_cells"], p=e2[key]["n_patients"]), e2[key]["mcc"],
                          figs.SPLIT_COLOR["patient"]))
-    fig, ax = plt.subplots(figsize=(8.2, 0.85 * len(rows) + 1.4))
+    fig, ax = plt.subplots(figsize=(5.0, 0.55 * len(rows) + 1.0))
+    ax.tick_params(labelsize=8)
     ax.axvspan(-100 * MARGIN, 100 * MARGIN, color="#e8f3f4", zorder=0, lw=0)
     ax.axvline(0, color=figs.AXIS, lw=1)
+    texts = []
     for i, (label, r, color) in enumerate(rows[::-1]):
         est, lo, hi = 100 * r.get("est", r.get("diff")), 100 * r["lo"], 100 * r["hi"]
-        ax.plot([lo, hi], [i, i], color=color, lw=2.2, solid_capstyle="round")
-        ax.plot(est, i, "o", color=color, ms=8, mec="white", mew=1.5)
-        ax.annotate(f"{figs._pp(est)}  [{figs._pp(lo)}, {figs._pp(hi)}]", (hi, i), xytext=(8, 0),
-                    textcoords="offset points", va="center", fontsize=9, color=figs.SECONDARY)
+        ax.plot([lo, hi], [i, i], color=color, lw=1.8, solid_capstyle="round")
+        ax.plot(est, i, "o", color=color, ms=6, mec="white", mew=1.2)
+        texts.append(f"{figs._pp(est)}  [{figs._pp(lo)}, {figs._pp(hi)}]")
+    _value_column(ax, texts, 8, figs.SECONDARY)
     ax.set_yticks(range(len(rows)))
-    ax.set_yticklabels([r[0] for r in rows[::-1]], fontsize=9)
+    ax.set_yticklabels([r[0] for r in rows[::-1]], fontsize=8)
+    ax.set_ylim(-0.5, len(rows) - 0.5)
     ax.grid(axis="y", visible=False)
     ax.grid(axis="x", visible=True)
-    ax.set_xlabel("A1 − A0, MCC (pp): negative = unseen patients score lower (95 % CI); band = ±1 pp")
-    ax.set_title("Patient leakage, measured four ways")
+    ax.set_xlabel("A1 − A0, MCC (pp): negative = unseen patients score lower (95 % CI); band = ±1 pp", fontsize=8)
+    ax.set_title("Patient leakage, measured four ways", fontsize=10)
     lo_all = min(100 * r[1]["lo"] for r in rows)
     hi_all = max(100 * r[1]["hi"] for r in rows)
-    ax.set_xlim(min(lo_all, -1.5) - 0.5, max(hi_all, 1.5) + 2.6)
+    ax.set_xlim(min(lo_all, -1.5) - 0.4, max(hi_all, 1.5) + 0.4)
     return figs._save(fig, path)
 
 
@@ -477,24 +490,27 @@ def equivalence_figure(e1, path):
     figs = _style()
     rows = [r for r in e1["rows"] if r["metric"] == "mcc" and "lo90" in r]
     names = {"A2 vs A1": "H2 · A2 − A1, unseen patients", "A3 vs A0": "Control · A3 − A0, patients shared"}
-    fig, ax = plt.subplots(figsize=(8.2, 0.7 * len(rows) + 1.4))
+    fig, ax = plt.subplots(figsize=(5.0, 0.5 * len(rows) + 1.0))
+    ax.tick_params(labelsize=8)
     ax.axvspan(-100 * MARGIN, 100 * MARGIN, color="#e8f3f4", zorder=0, lw=0)
     ax.axvline(0, color=figs.AXIS, lw=1)
+    texts = []
     for i, r in enumerate(rows[::-1]):
         color = figs.SPLIT_COLOR["patient" if r["contrast"] == "A2 vs A1" else "image"]
-        ax.plot([100 * r["lo90"], 100 * r["hi90"]], [i, i], color=color, lw=2.2, solid_capstyle="round")
-        ax.plot(100 * r["est"], i, "D", color=color, ms=7, mec="white", mew=1.5)
+        ax.plot([100 * r["lo90"], 100 * r["hi90"]], [i, i], color=color, lw=1.8, solid_capstyle="round")
+        ax.plot(100 * r["est"], i, "D", color=color, ms=5.5, mec="white", mew=1.2)
         verdict = "equivalent" if r["equivalent"] else "not established"
-        ax.annotate(f"{figs._pp(100 * r['est'])}  [{figs._pp(100 * r['lo90'])}, {figs._pp(100 * r['hi90'])}]  {verdict}",
-                    (100 * r["hi90"], i), xytext=(8, 0), textcoords="offset points", va="center", fontsize=9,
-                    color=figs.SECONDARY)
+        texts.append(f"{figs._pp(100 * r['est'])}  [{figs._pp(100 * r['lo90'])}, {figs._pp(100 * r['hi90'])}]  "
+                     f"{verdict}")
+    _value_column(ax, texts, 8, figs.SECONDARY)
     ax.set_yticks(range(len(rows)))
-    ax.set_yticklabels([f"{names[r['contrast']]}\n{r['level']}" for r in rows[::-1]], fontsize=9)
+    ax.set_yticklabels([f"{names[r['contrast']]}\n{r['level']}" for r in rows[::-1]], fontsize=8)
+    ax.set_ylim(-0.5, len(rows) - 0.5)
     ax.grid(axis="y", visible=False)
     ax.grid(axis="x", visible=True)
-    ax.set_xlabel("MCC difference (pp), 90 % CI; shaded = ±1 pp equivalence margin")
-    ax.set_title("How large could the YUV effect be? 90 % intervals vs a ±1 pp margin")
-    ax.set_xlim(-2.2, 3.2)
+    ax.set_xlabel("MCC difference (pp), 90 % CI; shaded = ±1 pp equivalence margin", fontsize=8)
+    ax.set_title("How large could the YUV effect be? 90 % intervals vs a ±1 pp margin", fontsize=10)
+    ax.set_xlim(-2.2, 2.2)
     return figs._save(fig, path)
 
 

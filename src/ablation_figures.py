@@ -40,7 +40,7 @@ def style():
         "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True, "axes.grid.axis": "y",
         "grid.color": GRID, "grid.linewidth": 0.8, "grid.linestyle": "-", "xtick.major.size": 0,
         "ytick.major.size": 0, "legend.frameon": False, "figure.facecolor": "white", "savefig.facecolor": "white",
-        "savefig.dpi": 160, "savefig.bbox": "tight", "axes.axisbelow": True})
+        "savefig.dpi": 300, "savefig.bbox": "tight", "axes.axisbelow": True})
 
 
 def _pp(x):
@@ -75,25 +75,28 @@ STRIP_X = {"A0": 0.0, "A3": 1.0, "A1": 2.6, "A2": 3.6}  # grouped by split; pair
 
 
 def fold_strip(found, metric="mcc", protocol="clean", path=None):
-    """Each fold's test-part score per experiment; grey lines join the same fold across a paired change."""
+    """Each fold's test-part score per experiment; grey lines join the same fold across a paired change.
+
+    Drawn at 7.2 x 3.75 in, so its type stays readable where the paper prints it at 0.85 of the text width."""
     import matplotlib.pyplot as plt
     style()
-    fig, ax = plt.subplots(figsize=(10, 5.2))
+    fig, ax = plt.subplots(figsize=(7.2, 3.75))
+    ax.tick_params(labelsize=9)
     offsets = np.linspace(-0.2, 0.2, 10)
     vals = {exp: 100 * fold_values(found[exp], metric, protocol) for exp in STRIP_X if exp in found}
     for a, b in [("A0", "A3"), ("A1", "A2")]:
         if a in vals and b in vals:
             for k in range(len(vals[a])):
                 ax.plot([STRIP_X[a] + offsets[k], STRIP_X[b] + offsets[k]], [vals[a][k], vals[b][k]],
-                        color=CONTEXT, lw=0.8, zorder=1)
+                        color=CONTEXT, lw=0.7, zorder=1)
     for exp, v in vals.items():
         color, marker = _exp_style(exp)
         x = STRIP_X[exp]
-        ax.scatter(x + offsets[:len(v)], v, s=46, marker=marker, facecolor=color, edgecolor="white", linewidth=1.2,
+        ax.scatter(x + offsets[:len(v)], v, s=30, marker=marker, facecolor=color, edgecolor="white", linewidth=0.9,
                    zorder=3)
-        ax.hlines(v.mean(), x - 0.32, x + 0.32, color=INK, lw=2, zorder=4)
-        ax.annotate(f"{v.mean():.2f} ± {v.std(ddof=1):.2f}", (x, v.max()), xytext=(0, 9), textcoords="offset points",
-                    ha="center", va="bottom", fontsize=10, color=SECONDARY)
+        ax.hlines(v.mean(), x - 0.32, x + 0.32, color=INK, lw=1.6, zorder=4)
+        ax.annotate(f"{v.mean():.2f} ± {v.std(ddof=1):.2f}", (x, v.max()), xytext=(0, 7), textcoords="offset points",
+                    ha="center", va="bottom", fontsize=9, color=SECONDARY)
     ax.set_xticks([STRIP_X[e] for e in vals],
                   [f"{e}\n{PREP_NAME[mx.EXPERIMENTS[e]['preprocess']]}" for e in vals])
     ax.set_xlim(-0.6, 4.2)
@@ -101,49 +104,63 @@ def fold_strip(found, metric="mcc", protocol="clean", path=None):
     ax.set_ylim(lo - 0.12 * (hi - lo + 1e-9), hi + 0.22 * (hi - lo + 1e-9))
     for xs, text in [((0.0, 1.0), "image split (paper): a patient's cells on both sides"),
                      ((2.6, 3.6), "patient split: test patients never seen in training")]:
-        ax.annotate(text, (np.mean(xs), 0), xycoords=("data", "axes fraction"), xytext=(0, -42),
-                    textcoords="offset points", ha="center", va="top", fontsize=10, color=SECONDARY)
+        ax.annotate(text, (np.mean(xs), 0), xycoords=("data", "axes fraction"), xytext=(0, -34),
+                    textcoords="offset points", ha="center", va="top", fontsize=9, color=SECONDARY)
     ax.set_title(f"{METRIC_NAME[metric]} (%) on each fold's test part · {protocol} evaluation · "
-                 "bar = mean, label = mean ± SD", pad=30)
-    ax.legend(handles=_legend_handles(), loc="lower left", bbox_to_anchor=(0, 1.0), ncol=4, fontsize=9,
-              handletextpad=0.3, columnspacing=1.2)
+                 "bar = mean, label = mean ± SD", fontsize=10.5, pad=34)
+    ax.legend(handles=_legend_handles(), loc="lower left", bbox_to_anchor=(0, 1.0), ncol=2, fontsize=8.5,
+              handletextpad=0.3, columnspacing=1.2, borderaxespad=0.2)
     return _save(fig, path) if path else fig
 
 
 # ----------------------------------------------------------------------------- contrasts
-def contrast_forest(contrasts, metrics=("mcc", "recall", "specificity", "auc"), level="ensemble", path=None):
-    """Difference (pp) with its 95 % patient-bootstrap CI, one panel per metric; filled = Holm p < 0.05."""
+def contrast_forest(contrasts, metrics=("mcc", "recall", "specificity", "auc"), level="ensemble", path=None,
+                    ncols=None):
+    """Difference (pp) with its 95 % CI, one panel per metric; filled = Holm p < 0.05.
+
+    By default all panels sit in one row (the deck). ncols=2 gives the 2 x 2 grid the paper prints at the full text
+    width. Each value label sits above its interval on a white ground, so no line runs through it."""
     import matplotlib.pyplot as plt
     style()
     rows = [c for name in CONTRAST_LABEL for c in contrasts if c["contrast"] == name]
-    fig, axes = plt.subplots(1, len(metrics), figsize=(3.6 * len(metrics) + 1.6, 1.0 + 0.95 * len(rows)),
-                             sharey=True)
-    axes = np.atleast_1d(axes)
+    ncols = ncols or len(metrics)
+    nrows = int(np.ceil(len(metrics) / ncols))
+    grid = ncols < len(metrics)
+    size = dict(value=7.5, title=9, label=8, tick=8, sup=9.5) if grid else dict(value=9, title=11, label=10, tick=10,
+                                                                                 sup=12)
+    figsize = (7.2, 0.45 + nrows * (0.55 + 0.42 * len(rows))) if grid else (3.6 * len(metrics) + 1.6,
+                                                                          1.0 + 0.95 * len(rows))
+    fig, axes = plt.subplots(nrows, ncols, figsize=figsize, sharey=True, squeeze=False)
     ys = np.arange(len(rows))[::-1]
-    for ax, m in zip(axes, metrics):
+    for ax, m in zip(axes.ravel(), metrics):
         ax.grid(axis="y", visible=False)
         ax.grid(axis="x", visible=True)
-        ax.axvline(0, color=AXIS, lw=1.2, zorder=1)
+        ax.tick_params(labelsize=size["tick"])
+        ax.axvline(0, color=AXIS, lw=1.0, zorder=1)
         for y, c in zip(ys, rows):
             r = c[level][m]
             est, lo, hi = 100 * r["est"], 100 * r["lo"], 100 * r["hi"]
             sig = r.get("p_holm", r["p"]) < 0.05
-            ax.plot([lo, hi], [y, y], color=SPLIT_COLOR["patient"], lw=2, solid_capstyle="round", zorder=2)
-            ax.scatter([est], [y], s=60, zorder=3, edgecolor=SPLIT_COLOR["patient"], linewidth=2,
+            ax.plot([lo, hi], [y, y], color=SPLIT_COLOR["patient"], lw=1.8, solid_capstyle="round", zorder=2)
+            ax.scatter([est], [y], s=40 if grid else 60, zorder=3, edgecolor=SPLIT_COLOR["patient"], linewidth=1.6,
                        facecolor=SPLIT_COLOR["patient"] if sig else "white")
-            ax.annotate(f"{_pp(est)} [{_pp(lo)}, {_pp(hi)}]", (est, y), xytext=(0, 9), textcoords="offset points",
-                        ha="center", va="bottom", fontsize=9, color=SECONDARY)
+            ax.annotate(f"{_pp(est)} [{_pp(lo)}, {_pp(hi)}]", (est, y), xytext=(0, 6), textcoords="offset points",
+                        ha="center", va="bottom", fontsize=size["value"], color=SECONDARY, zorder=4,
+                        bbox=dict(boxstyle="round,pad=0.12", facecolor="white", edgecolor="none"))
         span = max(abs(100 * c[level][m][k]) for c in rows for k in ("lo", "hi"))
         ax.set_xlim(-1.7 * span - 0.05, 1.7 * span + 0.05)  # room for the centred labels
-        ax.set_title(METRIC_NAME[m], fontsize=11)
-        ax.set_xlabel("difference (pp)")
-        ax.set_ylim(-0.6, len(rows) - 0.3)
-    axes[0].set_yticks(ys, [CONTRAST_LABEL[c["contrast"]] for c in rows])
+        ax.set_title(METRIC_NAME[m], fontsize=size["title"])
+        ax.set_xlabel("difference (pp)", fontsize=size["tick"])
+        ax.set_ylim(-0.6, len(rows) - 0.25)
+    for ax in axes.ravel()[len(metrics):]:
+        ax.set_visible(False)
+    for ax in axes[:, 0]:
+        ax.set_yticks(ys, [CONTRAST_LABEL[c["contrast"]] for c in rows], fontsize=size["label"])
     fig.suptitle("Ensemble on the hold-out set: new − reference, with 95 % patient-bootstrap CI · "
                  "filled marker = Holm-adjusted p < 0.05" if level == "ensemble" else
                  "Mean over the 10 folds: new − reference, with 95 % CI (corrected t when paired) · "
                  "filled marker = Holm-adjusted p < 0.05",
-                 x=0.01, ha="left", fontsize=12, fontweight="bold", color=INK)
+                 x=0.01, ha="left", fontsize=size["sup"], fontweight="bold", color=INK)
     fig.tight_layout()
     return _save(fig, path) if path else fig
 

@@ -99,19 +99,20 @@ def yuv_examples(df, out_path, seed=1234):
                 continue
             row = sub[sub["file"].map(mx.patient_id) == p].sample(1, random_state=seed).iloc[0]
             picks.append((row["file"], label, row["path"]))
-    fig, axes = plt.subplots(2, 8, figsize=(16, 4.6))
+    fig, axes = plt.subplots(2, 8, figsize=(7.2, 2.55))  # the paper's text width, so 8 pt here is 8 pt in print
     for c, (f, label, path) in enumerate(picks):
         axes[0, c].imshow(mx.load_resized(path))
-        axes[0, c].set_title(f"{label}\n{mx.patient_id(f)}", fontsize=9)
+        axes[0, c].set_title(f"{label}\n{mx.patient_id(f)}", fontsize=7.5, linespacing=1.1, loc="center",
+                            fontweight="normal", pad=3)
         axes[1, c].imshow(mx.load_resized(path, preprocess="yuv"))
-    axes[0, 0].set_ylabel("original (A0, A1)")
-    axes[1, 0].set_ylabel("YUV + hist-eq (A2, A3)")
+    axes[0, 0].set_ylabel("original\n(A0, A1)", fontsize=7.5)
+    axes[1, 0].set_ylabel("YUV + hist-eq\n(A2, A3)", fontsize=7.5)
     for a in axes.ravel():
         a.set_xticks([])
         a.set_yticks([])
-    fig.suptitle("H2 input: luma (Y) histogram-equalised at native size, colour (U, V) unchanged", fontsize=12)
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=130)
+    fig.suptitle("H2 input: luma (Y) histogram-equalised at native size, colour (U, V) unchanged", fontsize=8.5)
+    plt.tight_layout(pad=0.3, w_pad=0.25, h_pad=0.25)
+    plt.savefig(out_path, dpi=300)
     print("Saved", os.path.relpath(out_path, REPO))
 
 
