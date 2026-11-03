@@ -1,4 +1,4 @@
-// Phase 3 final deck: "Does 98 % survive unseen patients?"
+// Final deck: "98 % Accuracy Holds on Unseen Patients" (five parts that follow the brief's six steps)
 // node build_deck.js <repo> <out.pptx>
 const fs = require("fs");
 const path = require("path");
@@ -37,7 +37,7 @@ pres.layout = "LAYOUT_WIDE"; // 13.333 x 7.5 in
 pres.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFace };
 pres.author = "J Amathziah, C Murali Madhav, Ravi Yadav, Pugazhendhi J";
 pres.company = "Rishihood University";
-pres.title = "Does 98 % survive unseen patients? Automated malaria cell detection";
+pres.title = "98 % Accuracy Holds on Unseen Patients: automated malaria cell detection";
 const C = pres.SchemeColor;
 const W = 13.333, H = 7.5, M = 0.6;
 
@@ -75,8 +75,8 @@ const contentLayout = (name, dark) => pres.defineSlideMaster({
   title: name,
   background: { color: dark ? HEX.navy : HEX.white },
   objects: [
-    { placeholder: { options: { name: "kicker", type: "body", x: M, y: 0.38, w: 9, h: 0.32, fontSize: 12, bold: true,
-        color: dark ? "7FD3E0" : HEX.teal, charSpacing: 2, margin: 0 }, text: "" } },
+    { placeholder: { options: { name: "kicker", type: "body", x: M, y: 0.38, w: 5.5, h: 0.32, fontSize: 12, bold: true,
+        color: dark ? "7FD3E0" : HEX.teal, charSpacing: 1, margin: 0 }, text: "" } },
     { placeholder: { options: { name: "title", type: "title", x: M, y: 0.68, w: W - 2 * M, h: 0.62, fontSize: 28, bold: true,
         color: dark ? HEX.white : HEX.ink, fontFace: "Cambria", valign: "top", align: "left", margin: 0 }, text: "" } },
     footer(dark),
@@ -130,6 +130,38 @@ function imgFit(s, file, x, y, w, h, align = "center") {
   s.addImage({ path: file, x: ix, y: y + (h - ih) / 2, w: iw, h: ih });
   return { x: ix, y: y + (h - ih) / 2, w: iw, h: ih };
 }
+// ------------------------------------------------------------------ the five parts and the part tracker
+const PARTS = [
+  { section: "Part 1 · The problem", kicker: "PART 1 · THE PROBLEM", label: "1 · The problem", step: "Brief step 1" },
+  { section: "Part 2 · Reproduction", kicker: "PART 2 · REPRODUCTION", label: "2 · Reproduction", step: "Brief steps 2 and 3" },
+  { section: "Part 3 · Our change", kicker: "PART 3 · OUR CHANGE", label: "3 · Our change", step: "Brief step 4" },
+  { section: "Part 4 · Results", kicker: "PART 4 · RESULTS", label: "4 · Results", step: "Brief step 5" },
+  { section: "Part 5 · Failure analysis and conclusion", kicker: "PART 5 · FAILURE ANALYSIS AND CONCLUSION",
+    label: "5 · Failure analysis, conclusion", step: "Brief step 6" },
+];
+// a slim tracker on the kicker line, top right: all five parts named, the current one highlighted
+function tracker(s, part, dark = false) {
+  const x0 = 6.3, x1 = W - M, gap = 0.1;
+  const est = PARTS.map((p) => 0.064 * p.label.length + 0.08);
+  const k = (x1 - x0 - gap * (PARTS.length - 1)) / est.reduce((a, b) => a + b, 0);
+  let x = x0;
+  PARTS.forEach((p, i) => {
+    const w = est[i] * k, on = i + 1 === part;
+    T(s, p.label, { x, y: 0.31, w, h: 0.24, fontSize: 9, bold: on, valign: "bottom", objectName: `tracker_${i + 1}`,
+      color: on ? (dark ? HEX.white : HEX.ink) : (dark ? "8E9AAD" : "8C96A3") });
+    const bar = on ? (dark ? "7FD3E0" : HEX.teal) : (dark ? "34435E" : "DDE1E6");
+    s.addShape(pres.shapes.RECTANGLE, { x, y: on ? 0.585 : 0.595, w, h: on ? 0.06 : 0.04, fill: { color: bar },
+      line: { color: bar, width: 0 }, objectName: `tracker_bar_${i + 1}` });
+    x += w + gap;
+  });
+}
+// a content slide inside part n: section, kicker and tracker all from PARTS
+function partSlide(n, title, dark = false) {
+  const p = PARTS[n - 1];
+  const s = addSlide(dark ? "CONTENT_DARK" : "CONTENT", p.section, p.kicker, title);
+  tracker(s, n, dark);
+  return s;
+}
 function stat(s, x, y, w, big, label, color, dark = false, size = 48) {
   T(s, big, { x, y, w, h: 0.95, fontSize: size, bold: true, color, fontFace: "Cambria" });
   T(s, label, { x, y: y + 0.95, w, h: 0.8, fontSize: 14, color: dark ? "C9D3DF" : HEX.muted, valign: "top" });
@@ -143,4 +175,4 @@ const fmt = (x, d = 2) => (x == null || Number.isNaN(x) ? "n/a" : Number(x).toFi
 const pct = (x, d = 2) => fmt(100 * x, d);
 
 module.exports = { pres, C, HEX, THEME, W, H, M, R, ASSETS, A0, ABL, P3B, T, card, iconBubble, cellImg, img, imgFit, stat,
-  addSlide, icon, fmt, pct, fa, applyTheme, OUT };
+  addSlide, icon, fmt, pct, fa, applyTheme, OUT, PARTS, tracker, partSlide };
