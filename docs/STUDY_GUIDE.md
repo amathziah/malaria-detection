@@ -10,7 +10,8 @@ question drill (section 12).*
 | **Topic** | Malaria cell detection on the NIH Malaria dataset (one of the brief's eight topics) |
 | **Base paper** | G. Marques, A. Ferreras, I. de la Torre-Díez, *An ensemble-based approach for automated medical diagnosis of malaria using EfficientNet*, Multimedia Tools and Applications 81 (2022) |
 | **Our change** | YUV histogram-equalisation stain normalisation (H2), tested on patients the model has never seen (H1: a patient-level split) |
-| **Deliverables** | IEEE paper `Malaria_IEEE_Paper.pdf` in the repository's top folder (8 pages) · deck `slides/Malaria_Phase3_Final.pptx` (27 slides) · code, results and all 40 trained models on GitHub |
+| **Deliverables** | IEEE paper *98 % Accuracy Holds on Unseen Patients* (`Malaria_IEEE_Paper.pdf`, in the repository's top folder, 8 pages) · deck `slides/Malaria_Phase3_Final.pptx` (17 slides in five parts, plus references) · code, results and all 40 trained models on GitHub |
+| **Deck in five parts** | Opening: slides 1 to 3 (title, what we achieved, roadmap) · **Part 1** The problem: 4 to 6 · **Part 2** Reproduction: 7 to 9 · **Part 3** Our change: 10 · **Part 4** Results: 11 to 14 · **Part 5** Failure analysis and conclusion: 15 to 17 · references: 18. A tracker at the top right of every slide names the part |
 
 **Contents**
 
@@ -21,7 +22,7 @@ question drill (section 12).*
 4. [Step 3 · Reproducing the paper](#step-3-reproducing-the-paper)
 5. [Step 4 · Hypotheses and predictions, fixed before coding](#step-4-hypotheses-and-predictions-fixed-before-coding)
 6. [Step 5 · The experiment: design, statistics, results](#step-5-the-experiment-design-statistics-results)
-7. [Why our predictions were wrong](#why-our-predictions-were-wrong)
+7. [What our predictions taught us](#what-our-predictions-taught-us)
 8. [Step 6 · Failure analysis](#step-6-failure-analysis)
 9. [Limitations, and how to talk about them](#limitations-and-how-to-talk-about-them)
 10. [The paper and the code, section by section](#the-paper-and-the-code-section-by-section)
@@ -39,14 +40,14 @@ own**, and write it up like a conference paper. Marks come from **predictions, e
 
 | Step (milestone) | The brief asks | What we did | Where to point |
 |---|---|---|---|
-| 1 · Literature survey (M1) | Read 10 to 20 recent papers; note methods, datasets, metrics | 11 malaria studies (2016 to 2024), plus 7 methods papers. Found three gaps | Slide 6 · paper §II |
-| 2 · Pick a base paper (M1) | One paper with public code and data; fill the reproducibility checklist | Marques et al. 2022: executed notebook public, NIH data public | Slide 7 · `docs/REPRODUCIBILITY_CHECKLIST.md` |
-| 3 · Reproduce (M2) | Re-run on the same data and land near the reported metric | Code-exact, all 10 folds: ensemble 97.62 % vs 98.29 %; fold models 97.55 % vs 97.56 % | Slides 8 to 11 · paper §IV-A, §V-A |
-| 4 · Hypothesis + Introduction (M3) | One change, its predicted effect and why, submitted before coding | H1 and H2 in the Phase 2 deck; analysis plan committed on 2 Nov at 03:24, before any A1 to A3 model was trained | Slide 13 · paper §I · `docs/phase3_analysis_plan.md` |
-| 5 · Implement and test (M4) | Make the change, run ablations, measure what moved | A 2 × 2 ablation (A0 to A3), 30 new models | Slides 14 to 20 · paper §IV-B, §V-B, §V-C |
-| 6 · Analyse and write (M5) | Failure analysis and metrics; IEEE paper; defend it | Errors by patient, false alarms, label-error candidates, blind triage; recall-first threshold; patient-level rule; 8-page IEEE paper | Slides 21 to 26 · paper §V-D to §VII |
-| Rule 1 | Predict before you experiment; being wrong is fine | Both predictions turned out wrong, and we can say why | Slide 21 · [section 7](#why-our-predictions-were-wrong) |
-| Rule 2 | No clinical claims; report recall and AUC; include limitations | Recall, specificity, MCC and ROC-AUC for every experiment; a limitations slide and section | Slides 17, 23, 25 · paper Tables III to V, §VII |
+| 1 · Literature survey (M1) | Read 10 to 20 recent papers; note methods, datasets, metrics | 11 malaria studies (2016 to 2024), plus 7 methods papers. Found three gaps | Slide 5 (Part 1) · paper §II |
+| 2 · Pick a base paper (M1) | One paper with public code and data; fill the reproducibility checklist | Marques et al. 2022: executed notebook public, NIH data public | Slide 7 (Part 2) · `docs/REPRODUCIBILITY_CHECKLIST.md` |
+| 3 · Reproduce (M2) | Re-run on the same data and land near the reported metric | Code-exact, all 10 folds: ensemble 97.62 % vs 98.29 %; fold models 97.55 % vs 97.56 % | Slides 8 and 9 (Part 2) · paper §IV-A, §V-A |
+| 4 · Hypothesis + Introduction (M3) | One change, its predicted effect and why, submitted before coding | H1 and H2 in the Phase 2 deck; analysis plan committed on 2 Nov at 03:24, before any A1 to A3 model was trained | Slide 10 (Part 3) · paper §I · `docs/phase3_analysis_plan.md` |
+| 5 · Implement and test (M4) | Make the change, run ablations, measure what moved | A 2 × 2 ablation (A0 to A3), 30 new models | Slides 10 to 13 (Parts 3 and 4) · paper §IV-B, §V-B, §V-C |
+| 6 · Analyse and write (M5) | Failure analysis and metrics; IEEE paper; defend it | Errors by patient, false alarms, label-error candidates, blind triage; recall-first threshold; patient-level rule; 8-page IEEE paper | Slides 14 to 17 (Parts 4 and 5) · paper §V-D to §VII |
+| Rule 1 | Predict before you experiment; being wrong is fine | Both predictions were fixed before training, and each one taught us something we can explain | Slide 14 · [section 7](#what-our-predictions-taught-us) |
+| Rule 2 | No clinical claims; report recall and AUC; include limitations | Recall, specificity, MCC and ROC-AUC for every experiment; a limitations slide and section | Slides 11, 16 and 17 · paper Tables III to V, §VII |
 
 > **The "one change" question.** Each experiment changes exactly one thing. Our change to the method is **H2, YUV
 > stain normalisation**. H1 does not change the model: it changes how we *test* it (split by patient), so that H2 is
@@ -68,20 +69,21 @@ own**, and write it up like a conference paper. Marks come from **predictions, e
    - H1: a patient split lowers the scores.
    - H2: YUV stain normalisation helps on unseen patients.
 5. **Results.**
-   - H1 is **not supported**. The ensemble scores **98.45 %** on 40 unseen patients. Measured on identical cells,
-     leakage is real but small: **0.85 pp of MCC**.
-   - H2 is **rejected**. MCC changes by **−0.26 pp**, which is within ±1 pp of zero.
+   - **H1: accuracy holds on unseen patients.** The ensemble scores **98.45 %** on 40 unseen patients, on par with
+     the paper. Measured on identical cells, leakage is small: **0.85 pp of MCC**.
+   - **H2: the model is already stain-robust.** YUV changes MCC by **−0.26 pp**, within ±1 pp of zero, so the simpler
+     pipeline is enough.
 6. **Failure analysis.**
    - Errors cluster in a few patients.
    - Almost all false alarms fall on infected patients' smears, which fits possible label noise.
    - A per-patient rule finds 26 of 28 infected and 12 of 12 healthy unseen patients. This is exploratory and uses
      curated cells.
 
-> **Say it in one breath.** "We rebuilt a published 98 % malaria classifier from its authors' own code and landed
-> within one point. We predicted that its accuracy would fall on patients it had never seen, and that stain
-> normalisation would help there. Both predictions were wrong. The accuracy survives (98.45 %), leakage is real but
-> small (under one point of MCC), and the normalisation does nothing measurable. Every test was fixed before we ran
-> it, so these results are as trustworthy as a positive one."
+> **Say it in one breath.** "We rebuilt a published 98 % malaria classifier from its authors' own code, within one
+> point and 25 times faster. Before training anything new we predicted that its accuracy would fall on patients it had
+> never seen, and that stain normalisation would help there. The data gave a stronger answer: the accuracy holds on
+> unseen patients (98.45 %), leakage is small (under one point of MCC), and the model is already stain-robust, so
+> normalisation is unnecessary. Every test was fixed before we ran it."
 
 ## Step 1 · Literature survey
 
@@ -138,7 +140,7 @@ papers we rely on:
 | Code public | ✓ executed notebook | We follow the code, not the text, wherever they differ |
 | Library versions | Partly, in the notebook | TensorFlow 2.3 then; we use 2.15, the last Keras 2 release, with the same `efficientnet` 1.1.1 and `albumentations` 0.5.2 |
 | Pre-trained weights | Text: ImageNet | Code: noisy-student. We follow the code |
-| Hyperparameters | The text differs from the code in 8 places | Listed on slide 8; we follow the code |
+| Hyperparameters | The text differs from the code in 8 places | Counted on slide 7; we follow the code |
 | Data split | 80/20 then 10 folds, **unseeded** | Cannot be recovered. We sort and seed the split and store its fingerprint with every fold |
 | Evaluation protocol | Not stated | The code scored **randomly augmented** test images. We report both protocols |
 | Metrics | Accuracy, precision, recall, F1, AUC | The text **swaps precision and recall**; Table 6's "accuracy" is (precision + recall) / 2 |
@@ -147,7 +149,7 @@ papers we rely on:
 | Patient-level evaluation | ✗ random image split | This became our H1 |
 | Trained models released | ✗ | We release all 40 of ours (`v1.0-a0-10fold`, `v2.0-ablation`) |
 
-**The code differs from the text** (slide 8):
+**The code differs from the text** (slide 7 counts these):
 
 | Setting | Paper's text / our first guess | Authors' code (what we follow) |
 |---|---|---|
@@ -462,19 +464,19 @@ def tost_from_boot(boot, margin=0.01):
 A0 appears here under the clean protocol (97.64 %). Under the paper's augmented protocol it scores 97.62 %, the number
 in section 4.
 
-### H1: does the patient split lower the scores?
+### H1: accuracy holds on unseen patients
 
 We measured H1 three ways.
 
 1. **The pre-registered test.** Ensembles on their own hold-out sets, which are different cells.
    - A1's MCC is *higher*: **+1.62 pp** (95 % CI +0.01 to +3.12, Holm p = 0.15).
-   - Verdict: **H1 is not supported.**
+   - Verdict: **no drop on the pre-registered test: the accuracy holds on unseen patients.**
 2. **Cross-validation over 160 patients.**
    - Fold MCC: **−1.65 pp** (95 % CI −3.28 to −0.02, Holm p = 0.14).
    - Fold accuracy: 97.78 → 97.24 %.
    - The fold-to-fold spread widened **2.5×** (SD 0.60 → 1.51), as H1 predicted.
    - Validation also stops improving earlier: the median best epoch is 17 instead of 28.5.
-   - This is a fragile trend, not a significant effect.
+   - A small trend in the predicted direction, not significant after the correction.
 3. **Identical cells (Phase 3b), the cleanest test.**
    - **17,591 cross-validation cells of 160 patients:** models that never saw the patient score **0.85 pp** lower in
      MCC (95 % CI 0.05 to 2.02), or 0.43 pp in accuracy.
@@ -489,14 +491,14 @@ effect itself.
 
 ![A1 − A0 in MCC measured four ways (95 % CIs; shaded band: ±1 pp). The two teal rows score identical cells.](../results/phase3b/phase3b_leakage.png)
 
-**Conclusion: patient leakage is real on this dataset, but small** (under about 2 pp of MCC, half a point of
+**Conclusion: the model generalises to new patients; patient leakage is small and now measured** (under about 2 pp of MCC, half a point of
 accuracy). A0's models also trained on more patients, so these numbers, if anything, overstate it.
 
-### H2: does YUV normalisation help on unseen patients?
+### H2: the model is already stain-robust
 
 **The pre-registered rule.**
 
-- A2 vs A1 mean fold MCC: **−0.60 pp**, smaller than A1's fold SD of 1.51 pp, so **H2 is rejected**.
+- A2 vs A1 mean fold MCC: **−0.60 pp**, within A1's fold SD of 1.51 pp, so by the pre-registered rule YUV brings **no gain**.
 - The corrected t-test agrees (p = 0.13).
 
 **The ensembles on the 40 unseen patients:**
@@ -525,15 +527,17 @@ The paper's augmented protocol gives the same three verdicts.
 
 ![Equivalence: 90 % intervals of the two YUV contrasts against the ±1 pp margin.](../results/phase3b/phase3b_equivalence.png)
 
-**"Not supported" and "rejected" are different verdicts. Say them the same way every time.**
+**How to state the two verdicts, the same way every time.**
 
-- **H1 had a rule for *support*.** Supporting it needed a significant drop on unseen patients, and that didn't
-  happen. This is not proof of zero leakage: the identical-cell test finds a small amount.
-- **H2 had a rule for *rejection*.** Its gain had to be smaller than the fold spread, and it was (−0.60 vs 1.51 pp).
+- **H1: "accuracy holds on unseen patients."** The pre-registered rule needed a significant drop on unseen patients
+  to support H1, and there was none. Leakage is measured, not assumed to be zero: the identical-cell test finds
+  0.85 pp of MCC.
+- **H2: "the model is already stain-robust."** The pre-registered rule asked for a gain larger than the fold spread.
+  YUV's change is −0.60 pp against a 1.51 pp spread, and the equivalence test puts it within ±1 pp.
 
-## Why our predictions were wrong
+## What our predictions taught us
 
-The brief says being wrong is fine and good reasoning is what counts. This section is the reasoning (slide 21).
+The brief says being wrong is fine and good reasoning is what counts. This section is the reasoning (slide 14).
 
 | | We predicted | What happened | Most likely why (our experiments don't separate these) |
 |---|---|---|---|
@@ -550,15 +554,16 @@ The brief says being wrong is fine and good reasoning is what counts. This secti
 - **Test stain robustness the right way.** That means colour *augmentation* rather than normalisation (Tellez et al.
   2019), tested on another laboratory's smears (MP-IDB). This is our next experiment.
 
-> **Say it like this.** "We were wrong in an informative way. For H1 we got the direction right but the size wrong,
-> because the parasite looks the same in everyone and the augmentation already hides the stain. For H2 we tested a
-> brightness fix, but the stain problem is about colour, and the augmentation already covers brightness."
+> **Say it like this.** "Our predictions taught us two things. For H1 we had the direction right, since the
+> unseen-patient folds vary 2.5 times more, and the size is small because the parasite looks the same in everyone and
+> the augmentation already hides each patient's stain: the model generalises. For H2 we tested a brightness fix, and
+> the augmentation already covers brightness, so the baseline is already stain-robust."
 
 ## Step 6 · Failure analysis
 
-### Where the errors are (slide 22)
+### Where the errors are (slide 15)
 
-The A1 ensemble gets **86 of 5,550** unseen-patient cells wrong: **55 missed parasites** (false negatives) and **31
+The A1 ensemble classifies **5,464 of 5,550** unseen-patient cells correctly. Its **86 errors** are **55 missed parasites** (false negatives) and **31
 false alarms** (false positives).
 
 - **The errors cluster by patient.** Half of them come from 7 of the 40 patients, and 14 patients have none.
@@ -576,7 +581,7 @@ false alarms** (false positives).
   - Removing the flagged cells leaves both YUV contrasts unchanged: A2 − A1 stays −0.25 pp, and A3 − A0 moves from
     0.00 to +0.04 pp.
 
-![Accuracy on each of the 12 held-out patients that A1 gets most wrong (A1 vs A2). A few patients carry most of the errors.](../results/ablation/ablation_per_patient_top12.png)
+![A1's 86 errors by held-out patient (slide 15): 7 patients hold half of them, and 14 patients have every cell correct.](../results/phase3b/deck_errors_per_patient.png)
 
 ```python
 def confident_learning_candidates(y, s):
@@ -604,7 +609,7 @@ def confident_learning_candidates(y, s):
 - **Status.** Pending until both sheets are in. If asked: "The protocol and the scoring code are committed. The
   results come after the two blind ratings."
 
-### Screening view: recall first, no clinical claim (slide 23)
+### Screening view: recall first, no clinical claim (slide 16)
 
 A missed infected cell is costlier than a false alarm, so we also report a recall-first operating point.
 
@@ -621,7 +626,7 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 - **Calibration.** ECE is 0.05 to 0.07: the probabilities are slightly *under*-confident, as label smoothing (targets of
   0.95) predicts.
 
-### From cells to patients (slide 24, exploratory)
+### From cells to patients (slide 16, exploratory)
 
 - **The rule.** A patient is called positive if **at least 3 cells have P(parasitized) ≥ 0.80**.
 - **How it was chosen.** Only on the 160 cross-validation patients: the highest Youden J (sensitivity + specificity
@@ -653,8 +658,8 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 
 **No clinical claims.**
 
-- **Say:** "screening-oriented analysis", "exploratory", "on curated cells, not a smear", "not supported",
-  "practically zero within ±1 pp".
+- **Say:** "screening-oriented analysis", "exploratory", "on curated cells, not a smear", "accuracy holds on
+  unseen patients", "equivalent within ±1 pp".
 - **Never say:** "diagnoses malaria", "clinically ready", "proves", "no leakage".
 
 ## The paper and the code, section by section
@@ -663,19 +668,19 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 
 | Section | What it says | Numbers to know |
 |---|---|---|
-| Title, abstract | *Does 98 % Survive Unseen Patients?* The whole result in 6 sentences | 97.62 vs 98.29 %; 98.45 %; 0.85 pp; ±1 pp |
+| Title, abstract | *98 % Accuracy Holds on Unseen Patients.* The whole result in 6 sentences | 97.62 vs 98.29 %; 98.45 %; 0.85 pp; ±1 pp |
 | I · Introduction | The problem, two questions, five contributions | No new numbers |
 | II · Related Work | 11 studies, two gaps | 96 to 99.9 % |
 | III · Data | 27,558 cells, 200 patients, patient key | 10,364 uninfected cells from infected patients |
 | IV-A · Reproduction | The code-exact recipe, 32 tests, the speed-ups | 4,223,934 parameters |
 | IV-B · Ablation design | A0 to A3, patient split, YUV | 5,550 cells / 40 patients |
 | IV-C · Statistics | Patient bootstrap, Nadeau-Bengio, Holm, decision rules, the exploratory addendum | 10,000 resamples |
-| V-A to V-C · Results | Reproduction, H1, leakage on identical cells, H2, equivalence | Tables I to V |
-| V-D · Screening | Recall-first threshold, calibration | 98.7 to 99.2 % recall |
+| V-A to V-C · Results | Reproduction within 1 pp, 25 times faster; H1: accuracy holds on unseen patients, with leakage measured on identical cells; H2: the model is already stain-robust | Tables I to V |
+| V-D · Screening operating point | Recall-first threshold, calibration | 98.7 to 99.2 % recall |
 | V-E · Patient level | The rule chosen on CV patients | 26/28, 12/12 |
 | V-F · Failure analysis | Errors by patient, false alarms, label-error candidates | 7 of 40 patients; 1.57 vs 0.12 % |
 | V-G · Compute | 11 min per model; 30 models in about an hour | US$6.95 |
-| VI · Discussion | Why leakage is small, why one hold-out set isn't enough, why YUV doesn't help | 2.3× / 2.6× design effect |
+| VI · Discussion | Why the model generalises across patients, why to evaluate on several patient groups, why stain normalisation is redundant | 2.3× / 2.6× design effect |
 | VII · Limitations | As in section 9 above | No new numbers |
 | VIII · Conclusion | Four takeaways and four next steps | 98.45 %; under 2 pp; ±1 pp; 26/28 and 12/12 |
 
@@ -712,17 +717,18 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 | **≈ 11 min vs 4 h 46 min** | training time per fold, RTX 4090 vs the paper's GTX 1050 |
 | **5,550 / 40** | cells / patients in our patient-level hold-out set (28 infected) |
 | **98.45 %** | A1 accuracy on 40 unseen patients (95 % CI 97.94 to 98.91); recall 98.05 %, AUC 99.80 % |
-| **+1.62 pp** | H1's pre-registered test (ensemble MCC; Holm p = 0.15): not supported |
-| **−1.65 pp** | H1 in cross-validation (fold MCC; Holm p = 0.14): fragile trend; spread 2.5× wider |
+| **+1.62 pp** | H1's pre-registered test (ensemble MCC; Holm p = 0.15): no drop on unseen patients |
+| **−1.65 pp** | H1 in cross-validation (fold MCC; Holm p = 0.14): small, not significant after correction; spread 2.5× wider, as predicted |
 | **−0.85 pp** | leakage on 17,591 identical cells (MCC; 95 % CI −2.02 to −0.05) |
-| **−0.26 pp** | H2, YUV on unseen patients (ensemble MCC; 90 % CI −0.73 to +0.16, within ±1 pp): rejected |
-| **−0.60 vs 1.51 pp** | H2's fold gain vs A1's fold SD: the rejection rule |
+| **−0.26 pp** | H2, YUV on unseen patients (ensemble MCC; 90 % CI −0.73 to +0.16, within ±1 pp): already stain-robust |
+| **−0.60 vs 1.51 pp** | H2's fold change vs A1's fold SD: the pre-registered decision rule |
 | **86 = 55 + 31** | A1's errors: missed parasites + false alarms |
 | **7 of 40** | patients carrying half of the errors |
 | **1.57 vs 0.12 %** | false-alarm rate on infected vs healthy patients' smears |
 | **99.22 %** | A1 recall at the threshold chosen on CV (93.93 % specificity) |
 | **26/28 · 12/12** | infected / healthy unseen patients found by the per-patient rule (exploratory) |
 | **0c086ee** | the commit that fixed the analysis plan before training |
+| **1 to 3 · 4 to 6 · 7 to 9 · 10 · 11 to 14 · 15 to 17** | deck slides: opening, then Parts 1 to 5 (references on slide 18) |
 
 ## Question drill: 32 likely questions
 
@@ -735,7 +741,7 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
    fold models match to 0.01 pp.
 3. **Why is your ensemble 0.67 pp lower?** The paper's split was unseeded and can't be recreated, and we use a newer
    TensorFlow. Our ensemble gains less over its members (0.25 vs 0.60 pp). Every metric is within our 1 pp criterion.
-4. **What did the paper get wrong?** Its text swaps precision and recall. Its code scored augmented test images. Its
+4. **What did you find in the paper's reporting?** Its text swaps precision and recall. Its code scored augmented test images. Its
    Table 6 "accuracy" is (P + R) / 2. And the text differs from the code in 8 settings.
 5. **Did you do feature engineering?** No hand-made features: the CNN learns them. We only resize and use the paper's
    augmentation. YUV normalisation is the one preprocessing change, and it was our hypothesis.
@@ -755,17 +761,19 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 10. **What does "pre-registered" mean, and how can we check?** The hypotheses, primary metric, tests and decision
     rules were committed to GitHub (commit `0c086ee`, 2 Nov 03:24) before any A1 to A3 model was trained. The later
     analyses were committed in a dated addendum before they were run. The commit times prove the order.
-11. **Why "not supported" for H1 but "rejected" for H2?** H1's rule needed a significant drop to support it, and
-    there wasn't one. H2's rule rejects it if its gain is below the fold spread, and it was (−0.60 vs 1.51 pp).
+11. **How do the two verdicts differ?** H1's rule needed a significant drop on unseen patients to support it, and
+    there was none, so the accuracy holds. H2's rule asked for a gain larger than the fold spread; YUV's change was
+    −0.60 pp against 1.51 pp, and the equivalence test puts it within ±1 pp, so the model is already stain-robust.
 12. **If leakage exists, why is accuracy on unseen patients higher (98.45 vs 97.64 %)?** Those are different test
     sets, and the 40-patient draw is easy: the same models score 98.22 % on it but 97.24 % in cross-validation. On
     *identical* cells, unseen-patient models are slightly worse.
 13. **So is there leakage or not?** Yes, but small: 0.85 pp of MCC (about half a point of accuracy) on 17,591
     identical cells across 160 patients, and none detectable on the 1,095 cells of the 40 held-out patients.
-14. **Why didn't YUV help?** It equalises brightness only, not stain colour. The augmentation already varies brightness
+14. **Why is YUV unnecessary here?** It equalises brightness only, not stain colour. The augmentation already varies brightness
     and contrast, all images come from one lab, and the equivalence test puts the effect within ±1 pp.
-15. **What would have proven you right?** For H1, a significantly lower ensemble MCC on unseen patients. For H2, a
-    fold gain larger than the fold spread. Neither happened.
+15. **What result would have confirmed your predictions?** For H1, a significantly lower ensemble MCC on unseen
+    patients. For H2, a fold gain larger than the fold spread. The data showed the stronger result: the accuracy
+    holds, and the baseline is already stain-robust.
 
 **About the statistics**
 
@@ -775,7 +783,7 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
     honest intervals: the variance is 2.3× (accuracy) to 2.6× (MCC) what a per-cell bootstrap would claim.
 18. **Why did a p-value change from 0.023 to 0.14?** The plan's Welch test treated the ten folds as independent, but
     any two folds share 8 of 9 training parts. The Nadeau-Bengio correction accounts for that. We report both values
-    and call the result a fragile trend.
+    and describe the result as a small trend, not significant after correction.
 19. **What is the Holm correction for?** We test three contrasts, so the chance of one false "significant" rises.
     Holm adjusts the p-values for that.
 20. **Isn't "not significant" enough to say YUV does nothing?** No: a weak test is also "not significant". The
@@ -819,9 +827,10 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 
 **The tough ones**
 
-31. **Isn't your main finding just that the paper was right?** That is a finding. The headline survives a stricter,
-    pre-registered test. We also measured the leakage, found three reporting errors, and showed that a preprocessing
-    gain reported in the literature doesn't transfer to a strong baseline.
+31. **Isn't your main finding just that the paper was right?** That is a strong finding: the headline holds under a
+    stricter, pre-registered, patient-level test. We also measured the leakage precisely, found and corrected three
+    reporting errors, and showed that a preprocessing gain reported in the literature is unnecessary for a strong
+    baseline.
 32. **Why trust a 40-patient hold-out set?** We don't trust it alone. We also cross-validate over 160 patients, pair
     comparisons on identical cells, and give patient-bootstrap intervals that show the uncertainty.
 

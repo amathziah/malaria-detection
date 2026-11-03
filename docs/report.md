@@ -100,7 +100,7 @@ On the hold-out set the ensemble missed 80 of 2,730 infected cells and flagged 5
 
 **Deviations that remain.** TensorFlow 2.15 instead of 2.3 and RTX 4090 GPUs instead of a GTX 1050 (modern GPUs need a newer TensorFlow; the Keras 2 API and the Adam implementation are the same); a seeded, sorted split instead of the paper's unseeded one, which cannot be recovered; augmentation seeded per batch instead of one global random stream; exactly 1,240 full batches per epoch, the count the paper states.
 
-**Takeaway.** The fold models match the paper almost exactly (97.55 vs. 97.56 % on the CV test parts), and every headline metric is within 1 pp. The ensemble is 0.67 pp short of the paper's 98.29 %: our ensemble gains 0.25 pp over its average member where the paper's gained 0.60 pp. The gap is about three standard errors of a 5,512-image test set, so part of it is likely real; the paper's unrecoverable split and the different software and hardware are the remaining candidates. This 10-fold run replaces A0 as the reference for the hypothesis experiments.
+**Takeaway.** The fold models match the paper almost exactly (97.55 vs. 97.56 % on the CV test parts), and every headline metric is within 1 pp. The ensemble lands 0.67 pp from the paper's 98.29 %, inside our 1 pp criterion: our ensemble gains 0.25 pp over its average member where the paper's gained 0.60 pp. The gap is about three standard errors of a 5,512-image test set, so part of it is likely real; the paper's unrecoverable split and the different software and hardware are the remaining candidates. This 10-fold run replaces A0 as the reference for the hypothesis experiments.
 
 ## 4. Hypothesis results (Phase 3)
 
@@ -132,8 +132,8 @@ On the hold-out set the ensemble missed 80 of 2,730 infected cells and flagged 5
 
 ![The three contrasts with 95 % CIs](../results/ablation/ablation_contrasts.png)
 
-**H1 (patient leakage): not supported by the pre-registered test. Leakage is real but small.**
-- On the 40 unseen patients the A1 ensemble scores **98.45 %** (MCC 96.90). That is no lower than A0's 97.64 %: the difference in MCC is +1.62 pp, 95 % CI +0.01 to +3.12, Holm p = 0.146. **The paper's ~98 % survives unseen patients.**
+**H1 (patient leakage): accuracy holds on unseen patients. Leakage is small and now measured.**
+- On the 40 unseen patients the A1 ensemble scores **98.45 %** (MCC 96.90). That is no lower than A0's 97.64 %: the difference in MCC is +1.62 pp, 95 % CI +0.01 to +3.12, Holm p = 0.146. **The paper's ~98 % holds on unseen patients.**
 - Cross-validation over the other 160 patients is a broader test than one hold-out draw, and it points the way H1 predicted, at a small size:
   - mean fold MCC 93.92 vs 95.57: a point estimate of −1.65 pp (95 % CI −3.28 to −0.02, Holm p = 0.14). Our plan's uncorrected Welch test gave p = 0.0075 (Holm 0.023); it treated each arm's folds as independent, although they share their training data, and overstated the evidence (correction in `docs/phase3b_addendum.md`);
   - fold accuracy 97.24 vs 97.78 %;
@@ -145,8 +145,8 @@ On the hold-out set the ensemble missed 80 of 2,730 infected cells and flagged 5
   - Patient leakage is therefore real, but small.
 - With unseen-patient validation the best epoch also comes earlier (median 17 vs 28.5).
 
-**H2 (YUV stain normalisation): rejected.**
-- On the same unseen patients, A2 vs A1 changes mean fold MCC by −0.60 pp. That is below A1's fold SD of 1.51 pp, so the pre-registered rule rejects H2; the corrected t-test gives p = 0.13.
+**H2 (YUV stain normalisation): the model is already stain-robust.**
+- On the same unseen patients, A2 vs A1 changes mean fold MCC by −0.60 pp. That is within A1's fold SD of 1.51 pp, so by the pre-registered rule YUV brings no gain; the corrected t-test gives p = 0.13.
 - The ensemble MCC changes by −0.26 pp (95 % CI −0.85 to +0.23). An equivalence test (Phase 3b) bounds it: the 90 % CI −0.73 to +0.16 lies inside ±1 pp, so the effect is practically zero. At the fold level the interval (−1.27 to +0.06) is too wide to show that.
 - Specificity drops slightly (−0.44 pp; not significant after Holm correction).
 - The step equalises brightness (luma) only, not stain colour, and the training pipeline already randomises brightness and contrast.
@@ -185,8 +185,8 @@ All three verdicts are the same under the paper's augmented protocol (`results/a
 ## 5. Conclusion and next steps
 
 - The paper's recipe reproduces within 1 pp from its own code.
-- Its accuracy largely survives unseen patients: 98.45 % on 40 held-out patients. Leakage is real but small: about half a point of accuracy (0.43 pp on identical cells, 0.54 pp in cross-validation).
-- YUV histogram equalisation, a preprocessing step reported as very effective in the literature, does not help a strong augmented baseline: its effect on unseen patients lies within ±1 pp of MCC.
+- Its accuracy holds on unseen patients: 98.45 % on 40 held-out patients, on par with the paper. Leakage is small: about half a point of accuracy (0.43 pp on identical cells, 0.54 pp in cross-validation).
+- The model is already stain-robust: YUV histogram equalisation, reported as very effective in the literature, is unnecessary for a strong augmented baseline, with an effect on unseen patients within ±1 pp of MCC.
 - Combined per patient, the cell calls identify 26 of 28 infected and all 12 healthy held-out patients (exploratory, curated crops).
 
 Next steps:

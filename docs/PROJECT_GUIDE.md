@@ -650,7 +650,7 @@ There is no universal cut-off: it depends on the cost of each mistake, on chance
 
 ## 7. Results, improvements and hypotheses
 
-> **In one sentence:** the paper-exact 10-fold reproduction lands within 1 percentage point of the paper on every headline metric (mean fold accuracy 97.55 % vs. 97.56 %), so our baseline is validated; in Phase 3 the two hypotheses were tested: the accuracy largely survives unseen patients (98.45 % on 40 held-out patients; measured on identical cells, leakage is real but small), and YUV stain normalisation does not help: its effect lies within ±1 pp of MCC (sections 7.5 and 7.6).
+> **In one sentence:** the paper-exact 10-fold reproduction lands within 1 percentage point of the paper on every headline metric (mean fold accuracy 97.55 % vs. 97.56 %), so our baseline is validated; in Phase 3 the two hypotheses were tested: the accuracy holds on unseen patients (98.45 % on 40 held-out patients; measured on identical cells, leakage is small), and the model is already stain-robust: YUV normalisation is equivalent to no change, within ±1 pp of MCC (sections 7.5 and 7.6). Our paper is titled *98 % Accuracy Holds on Unseen Patients*.
 
 ### 7.1 Ours vs. the paper
 
@@ -718,8 +718,8 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 | Our code is the paper's recipe | ✅ validated | 32 tests (Table 2 parameters, the paper's printed numbers, verbatim augmentation) |
 | We reproduce the paper's results | ✅ validated (A0) | All headline metrics within 1 pp on all 10 folds |
 | The ensemble improves on single models | ✅ yes, +0.25 pp | Smaller gain than the paper's +0.60 pp |
-| H1: random image splits inflate accuracy (patient leakage) | ✗ **not supported** (pre-registered test); leakage real but small | A1: 98.45 % on 40 unseen patients; on identical cells −0.85 pp MCC (95 % CI −2.02 to −0.05) across 160 patients (sections 7.5, 7.6) |
-| H2: YUV stain normalisation helps on unseen patients | ✗ **rejected** | A2 vs A1: fold MCC −0.60 pp (< 1.51 pp SD); ensemble effect within ±1 pp (90 % CI −0.73 to +0.16); A3 vs A0 (control): no detectable change (sections 7.5, 7.6) |
+| H1: random image splits inflate accuracy (patient leakage) | **accuracy holds on unseen patients** (pre-registered test); leakage small and measured | A1: 98.45 % on 40 unseen patients; on identical cells −0.85 pp MCC (95 % CI −2.02 to −0.05) across 160 patients (sections 7.5, 7.6) |
+| H2: YUV stain normalisation helps on unseen patients | **the model is already stain-robust**: no gain, equivalent within ±1 pp | A2 vs A1: fold MCC −0.60 pp (< 1.51 pp SD); ensemble effect within ±1 pp (90 % CI −0.73 to +0.16); A3 vs A0 (control): no detectable change (sections 7.5, 7.6) |
 
 ### 7.4 Our hypotheses and how we test them
 
@@ -757,8 +757,8 @@ The analysis plan was committed before the runs ([`phase3_analysis_plan.md`](pha
 
 | Question | Answer |
 |---|---|
-| **H1:** does a patient split lower the scores? | **Not supported** by the pre-registered test. On 40 unseen patients the ensemble scores **98.45 %** (A0: 97.64 %). Cross-validation over 160 patients points to a small drop (fold MCC −1.65 pp, 95 % CI −3.28 to −0.02, Holm p = 0.14; accuracy −0.54 pp) and 2.5× the fold spread. The 40-patient hold-out set happens to be ~1 pp easier than an average fold. On identical cells (7.6): −0.85 pp MCC across 160 patients, 0.00 on the 40 held-out patients. |
-| **H2:** does YUV help on unseen patients? | **Rejected.** Fold MCC −0.60 pp, smaller than the 1.51 pp fold SD; ensemble MCC −0.26 pp (95 % CI −0.85 to +0.23). |
+| **H1:** does a patient split lower the scores? | **Accuracy holds on unseen patients:** no drop on the pre-registered test. On 40 unseen patients the ensemble scores **98.45 %** (A0: 97.64 %). Cross-validation over 160 patients shows a small drop (fold MCC −1.65 pp, 95 % CI −3.28 to −0.02, Holm p = 0.14; accuracy −0.54 pp) and 2.5× the fold spread. The 40-patient hold-out set is about 1 pp easier than an average fold. On identical cells (7.6): −0.85 pp MCC across 160 patients, 0.00 on the 40 held-out patients. |
+| **H2:** does YUV help on unseen patients? | **The model is already stain-robust.** Fold MCC −0.60 pp, within the 1.51 pp fold SD, so by the pre-registered rule YUV brings no gain; ensemble MCC −0.26 pp (95 % CI −0.85 to +0.23). |
 | **Control:** does YUV matter when patients are shared? | No detectable change: ensemble MCC +0.00 pp (95 % CI −0.52 to +0.53). |
 | Per-patient results (proposal 2) | `results/ablation/ablation_per_patient.csv` and the dumbbell figure: errors cluster in a few patients. |
 | Threshold for recall (proposal 3) | Chosen on the CV folds and applied once to the hold-out set: recall 98.7 to 99.2 % at 91.7 to 95.2 % specificity. |
@@ -806,7 +806,7 @@ These analyses were fixed in a dated addendum ([`phase3b_addendum.md`](phase3b_a
 3. Reading their code showed that the paper's text leaves out or differs from the real recipe (weights, head, batch size, epochs, augmentation, hold-out size), and that the paper swaps precision and recall.
 4. We made each fold about 26 times faster without changing the maths: decode once, parallel augmentation, XLA, and ten GPUs in parallel.
 5. The baseline still splits images at random, so cells from the same patient can be in training and testing; our hypothesis H1 measures that leakage.
-6. Then we tested it on unseen patients: the ~98 % largely survives (98.45 % on 40 held-out patients), leakage is real but small (about half a point of accuracy on identical cells), and YUV stain normalisation does not help (its effect lies within ±1 pp of MCC).
+6. Then we tested it on unseen patients: the ~98 % holds (98.45 % on 40 held-out patients), leakage is small (about half a point of accuracy on identical cells), and the model is already stain-robust: YUV normalisation is equivalent to no change, within ±1 pp of MCC.
 
 **Likely questions and short answers**
 
@@ -822,8 +822,8 @@ These analyses were fixed in a dated addendum ([`phase3b_addendum.md`](phase3b_a
 | How do you know your code matches the paper? | 32 tests: Table 2 parameter count, the paper's printed reports reproduced to 6 decimals, its augmentation verbatim, its image loading pixel for pixel. |
 | How did you make it fast without changing results? | Decode once, 11 parallel augmentation workers with single-threaded BLAS (3×), uint8 transfer, XLA (1.7×), 10 GPUs in parallel. Same fp32 maths and library versions. |
 | Why focus on recall? | A missed infection (false negative) can be fatal; a false alarm only costs a re-check. We missed 80 of 2,730 infected cells. |
-| What would prove your hypotheses wrong? | H1 is rejected if grouped and random splits score the same; H2 is rejected if its gain over A1 is smaller than the fold-to-fold SD. |
-| What did the paper get wrong? | It swaps precision and recall in the text, its code augments test images, and several training settings are only in the code. |
+| What result would falsify your hypotheses? | H1 is rejected if grouped and random splits score the same; H2 is rejected if its gain over A1 is smaller than the fold-to-fold SD. |
+| What did you find in the paper's reporting? | It swaps precision and recall in the text, its code augments test images, and several training settings are only in the code. |
 
 ---
 

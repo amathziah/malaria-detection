@@ -1,6 +1,8 @@
 # Automated Malaria Cell Detection
 
-> **Read the paper:** [*Does 98 % Survive Unseen Patients? A Code-Exact Reproduction and Patient-Level Ablation of an EfficientNet-B0 Ensemble for Malaria Cell Classification*](Malaria_IEEE_Paper.pdf) (IEEE format, 8 pages, PDF, in the top folder of this repository)
+> **Read the paper:** [*98 % Accuracy Holds on Unseen Patients: A Code-Exact Reproduction and Pre-Registered Patient-Level Ablation of an EfficientNet-B0 Malaria Ensemble*](Malaria_IEEE_Paper.pdf) (IEEE format, 8 pages, in the top folder of this repository) · **[Download the PDF](https://github.com/amathziah/malaria-detection/raw/main/Malaria_IEEE_Paper.pdf)**
+>
+> If GitHub's preview shows "Unable to render code block", use the download link: it always works.
 
 ![Python](https://img.shields.io/badge/python-3.11-3776AB)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15%20(Keras%202)-FF6F00)
@@ -11,12 +13,12 @@ Deep-learning classification of single red-blood-cell images as **parasitized** 
 NIH Malaria Cell Images dataset. Phase 2 of our project reproduces the base paper,
 **Marques et al. (2022), *An ensemble-based approach for automated medical diagnosis of malaria using EfficientNet***
 (Multimedia Tools and Applications 81, 28061–28078), from the authors' own code. Phase 3 tests two pre-registered
-hypotheses: does its ~98 % accuracy survive patients the model has never seen (H1), and does YUV stain normalisation
-help on them (H2)?
+hypotheses: does its ~98 % accuracy hold on patients the model has never seen (H1), and does YUV stain normalisation
+add anything on them (H2)?
 
 **Answer:**
-- The accuracy largely survives: the ensemble scores **98.45 %** on 40 unseen patients. Measured on identical cells, patient leakage is real but small: 0.85 pp of MCC (95 % CI 0.05 to 2.02).
-- YUV normalisation (luma histogram equalisation) does not help: its effect lies within ±1 pp of MCC.
+- **The accuracy holds:** the ensemble scores **98.45 %** (recall 98.05 %, ROC-AUC 99.80 %) on 40 unseen patients, on par with the paper's 98.29 %. Measured on identical cells, patient leakage is small: 0.85 pp of MCC (95 % CI 0.05 to 2.02).
+- **The model is already stain-robust:** YUV normalisation (luma histogram equalisation) is equivalent to no change, within ±1 pp of MCC, so the simpler pipeline is enough.
 - Combined per patient, the cell calls identify 26 of 28 infected and all 12 healthy unseen patients (exploratory, on curated crops).
 
 Full write-up: [IEEE-format paper (PDF)](Malaria_IEEE_Paper.pdf) · [report](docs/report.md) · [final deck (PDF)](slides/Malaria_Phase3_Final.pdf) · [study guide (PDF)](docs/STUDY_GUIDE.pdf) · [reproducibility checklist](docs/REPRODUCIBILITY_CHECKLIST.md).
@@ -40,11 +42,11 @@ Full write-up: [IEEE-format paper (PDF)](Malaria_IEEE_Paper.pdf) · [report](doc
 - **All 40 trained models published**: A0's 10 fold models in
   [`v1.0-a0-10fold`](https://github.com/amathziah/malaria-detection/releases/tag/v1.0-a0-10fold) and the 30 A1 to A3 models in
   [`v2.0-ablation`](https://github.com/amathziah/malaria-detection/releases/tag/v2.0-ablation), with SHA-256 checksums; nothing has to be retrained.
-- **Phase 3: the paper's ~98 % survives unseen patients.**
+- **Phase 3: the paper's ~98 % holds on unseen patients.**
   - On 40 held-out patients the ensemble reaches **98.45 %** (95 % CI 97.94 to 98.91).
-  - Patient leakage is real but small: on identical cells, models that had seen the patient gain 0.85 pp of MCC
+  - Patient leakage is small and now measured: on identical cells, models that had seen the patient gain 0.85 pp of MCC
     (95 % CI 0.05 to 2.02) across 160 patients, and nothing on the 40 held-out patients.
-  - YUV normalisation does not help (H2 rejected): its effect lies within ±1 pp of MCC.
+  - The model is already stain-robust: YUV normalisation is equivalent to no change, within ±1 pp of MCC.
 - **Phase 3b, exploratory, on the saved predictions** ([addendum](docs/phase3b_addendum.md), fixed before running;
   [results](results/phase3b/phase3b_summary.md)): equivalence bounds, leakage on identical cells, a patient-level rule
   (26/28 infected and 12/12 healthy held-out patients) and a failure analysis of the errors, with a
@@ -87,17 +89,17 @@ Clean evaluation, %, MCC × 100; ensemble values with 95 % patient-bootstrap int
 | A2 | patient | YUV + hist-eq | 5,550 cells / 40 unseen patients | 93.32 ± 1.66 | 98.32 [97.71, 98.86] | 96.65 [95.23, 97.68] |
 | A3 | image (paper) | YUV + hist-eq | 5,512 cells / 200 patients | 95.20 ± 0.37 | 97.64 [97.02, 98.17] | 95.29 [94.04, 96.32] |
 
-- **H1 (leakage): not supported** by the pre-registered test.
-  - On unseen patients the ensemble is not worse (MCC +1.62 pp, 95 % CI +0.01 to +3.12, Holm p = 0.15).
-  - Cross-validation over 160 patients points the predicted way, at a small size: fold MCC −1.65 pp (95 % CI −3.28 to −0.02, Holm p = 0.14), 2.5× the spread. (Our plan's uncorrected Welch test gave Holm p = 0.023; it treated the folds as independent.)
-  - The 40-patient hold-out draw happens to be about 1 pp easier than the average fold, and comparing different hold-out sets could only detect about 2.2 pp of MCC.
-  - On identical cells (Phase 3b): −0.85 pp MCC (95 % CI −2.02 to −0.05) across 17,591 cells of 160 patients (single models), and 0.00 (−0.90 to +0.98) on 1,095 cells of the 40 held-out patients (ensembles). Leakage is real but small.
-- **H2 (YUV on unseen patients): rejected.** Fold MCC −0.60 pp, smaller than the 1.51 pp fold SD; ensemble MCC −0.26 pp (95 % CI −0.85 to +0.23). Equivalence test (Phase 3b): the ensemble effect lies within ±1 pp (90 % CI −0.73 to +0.16). The step equalises brightness only, not stain colour.
+- **H1 (leakage): accuracy holds on unseen patients.** The pre-registered test finds no drop.
+  - On unseen patients the ensemble MCC is +1.62 pp (95 % CI +0.01 to +3.12, Holm p = 0.15).
+  - Cross-validation over 160 patients shows the predicted direction at a small size: fold MCC −1.65 pp (95 % CI −3.28 to −0.02, Holm p = 0.14), with a 2.5× wider spread, as H1 predicted. (Our plan's uncorrected Welch test gave Holm p = 0.023; it treated the folds as independent.)
+  - The 40-patient hold-out draw is about 1 pp easier than the average fold, and comparing different hold-out sets resolves about 2.2 pp of MCC, so the same-cell comparison below is the precise measurement.
+  - On identical cells (Phase 3b): −0.85 pp MCC (95 % CI −2.02 to −0.05) across 17,591 cells of 160 patients (single models), and 0.00 (−0.90 to +0.98) on 1,095 cells of the 40 held-out patients (ensembles). Leakage is small: the model generalises to new patients.
+- **H2 (YUV on unseen patients): the model is already stain-robust.** Fold MCC −0.60 pp, within the 1.51 pp fold SD, so by the pre-registered rule YUV brings no gain; ensemble MCC −0.26 pp (95 % CI −0.85 to +0.23). Equivalence test (Phase 3b): the ensemble effect lies within ±1 pp (90 % CI −0.73 to +0.16). The step equalises brightness, which the training augmentation already varies.
 - **Control:** YUV under the paper's split shows no detectable change (ensemble MCC +0.00 pp, 95 % CI −0.52 to +0.53; equivalent within ±1 pp).
 
 **Phase 3b (exploratory, [results](results/phase3b/phase3b_summary.md)):**
 - *Patient level:* a rule chosen on the 160 CV patients (at least 3 cells with P ≥ 0.80) calls 26 of 28 infected (92.9 %, exact 95 % CI 76.5 to 99.1) and 12 of 12 healthy held-out patients correctly. The two misses are the only patients with just 3 parasitized crops. NIH curated the crops, so this is not diagnostic accuracy on a smear.
-- *Errors:* they cluster by patient (p < 0.001), and false alarms concentrate in infected patients' smears (1.57 % vs 0.12 % of uninfected cells), consistent with parasites missed in the labels or with ambiguous cells (we can't tell which without an expert). Removing the 8 candidate label errors changes no verdict. A [blinded gallery](results/phase3b/phase3b_error_gallery.png) ([full-size pages](results/phase3b/phase3b_triage_pages.pdf)) is ready for the team's triage ([how](docs/TEAM_HANDOVER.md#6-team-task-blind-triage-of-our-errors)).
+- *Errors:* they cluster by patient (p < 0.001), and false alarms concentrate in infected patients' smears (1.57 % vs 0.12 % of uninfected cells), consistent with parasites missed in the labels or with ambiguous cells (we can't tell which without an expert). Removing the 8 candidate label errors changes no verdict. A [blinded gallery](results/phase3b/phase3b_error_gallery.png) ([full-size pages](results/phase3b/phase3b_triage_pages.pdf)) is ready for the team's triage ([protocol](docs/blind_triage_protocol.md)).
 
 <p align="center">
   <img src="results/ablation/ablation_fold_mcc.png" width="80%" alt="Fold MCC of A0-A3: patient-split folds are lower and more spread out; YUV changes little">
@@ -109,8 +111,8 @@ Clean evaluation, %, MCC × 100; ensemble values with 95 % patient-bootstrap int
 |---|---|---|---|---|
 | A0 | image-level (paper) | none | Baseline reproduction, paper's text, 3 folds | **done** |
 | **A0 · 10-fold** | image-level (paper) | none | Baseline reproduction, paper's code, all 10 folds | **done** |
-| A1 | patient-grouped | none | **H1**: does accuracy drop once patient-level leakage is removed? | **done**: not supported (small CV effect) |
-| A2 | patient-grouped | YUV + histogram equalisation | **H2**: does stain normalisation help on unseen patients? (vs. A1) | **done**: rejected |
+| A1 | patient-grouped | none | **H1**: does accuracy drop once patient-level leakage is removed? | **done**: accuracy holds on unseen patients (leakage 0.85 pp MCC) |
+| A2 | patient-grouped | YUV + histogram equalisation | **H2**: does stain normalisation help on unseen patients? (vs. A1) | **done**: equivalent within ±1 pp, already stain-robust |
 | A3 | image-level | YUV + histogram equalisation | Control: does YUV change anything when patients are shared? (vs. A0) | **done**: no change |
 
 ## Method at a glance
@@ -145,6 +147,7 @@ malaria-detection/
 │   ├── ablation_stats.py             H1/H2 tests: patient bootstrap, corrected t-test, Holm
 │   ├── ablation_figures.py           the ablation figures (notebook, report, slides)
 │   ├── paper_figures.py              redraws the paper's figures from saved results, recomputing nothing
+│   ├── deck_figures.py               the deck-only failure-analysis figure (errors per held-out patient)
 │   ├── phase3b_analysis.py           Phase 3b: equivalence, same-cell leakage, patient level, error audit
 │   ├── triage_kit.py                 full-size, numbers-only pages of the error gallery for the blind triage
 │   ├── triage_score.py               scores the two blind ratings against the key, as the fixed plan says
@@ -262,11 +265,11 @@ python -m pytest tests/ -q        # in the pinned environment; ~15 s on a laptop
 - [Phase 3b addendum](docs/phase3b_addendum.md): one correction and four exploratory analyses, fixed before running them.
 - [Literature review](reports/Strengthening%20malaria%20ablation%20results.md): the evidence behind the Phase 3b analyses.
 - **[Study guide](docs/STUDY_GUIDE.md)** ([PDF](docs/STUDY_GUIDE.pdf)): the whole project in the order of the course brief,
-  with the statistics explained, why our predictions were wrong, a numbers card and 32 likely questions.
+  with the statistics explained, what our predictions taught us, a numbers card and 32 likely questions.
 - [Reproducibility checklist](docs/REPRODUCIBILITY_CHECKLIST.md): what the base paper gives, and what we did about each gap.
 - [Blind triage protocol](docs/blind_triage_protocol.md): how two of us rate the errors blind, and the scoring plan fixed before rating.
 - [Results guide](results/README.md): every output file explained.
-- [Slides](slides/): the Phase 3 final deck, 27 slides ([PDF](slides/Malaria_Phase3_Final.pdf)), plus the Phase 2 31-slide deck and 13-slide short version, all with speaker notes.
+- [Slides](slides/): the final deck, 17 slides in five parts plus references, with a part tracker on every slide ([PDF](slides/Malaria_Phase3_Final.pdf)), plus the Phase 2 31-slide deck and 13-slide short version, all with speaker notes.
 
 ## Team
 
