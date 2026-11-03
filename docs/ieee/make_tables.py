@@ -24,7 +24,7 @@ def signed(x, d=2):
 
 def p_fmt(p):
     if p != p:  # NaN
-        return "--"
+        return "n/a"
     return "$<$0.001" if p < 0.001 else f"{p:.3f}"
 
 
@@ -52,19 +52,30 @@ def num(n):
 
 
 def experiments_table(abl):
+    """Table III: one row of values per experiment, its 95 % intervals on a smaller row below."""
     lines = [r"\begin{table*}[t]", r"\centering",
-             r"\caption{Ablation results, clean evaluation (\%). Fold columns: mean $\pm$ SD over the ten CV test parts. Ensemble columns: the ten-model ensemble on each hold-out set, with 95\,\% patient-bootstrap intervals. MCC $\times$100.}",
-             r"\label{tab:ablation}", r"\footnotesize", r"\setlength{\tabcolsep}{3.5pt}",
-             r"\resizebox{\textwidth}{!}{%", r"\begin{tabular}{@{}lllrllllll@{}}", r"\toprule",
-             r"ID & Split & Prep. & Hold-out cells / patients & Fold MCC & Fold accuracy & Ens. accuracy & Ens. MCC & Ens. recall & Ens. ROC-AUC \\",
+             r"\caption{Ablation results, clean evaluation (\%). Folds: mean $\pm$ SD over the ten cross-validation "
+             r"test parts. Ensemble: the ten-model ensemble on each hold-out set, with 95\,\% patient-bootstrap "
+             r"intervals below each value. MCC $\times$100.}",
+             r"\label{tab:ablation}", r"\footnotesize", r"\setlength{\tabcolsep}{4pt}",
+             r"\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%",
+             r"\begin{tabular}{@{}lllrrcccccc@{}}", r"\toprule",
+             r" & & & \multicolumn{2}{c}{Hold-out set} & \multicolumn{2}{c}{Folds, mean $\pm$ SD} & "
+             r"\multicolumn{4}{c}{Ensemble on the hold-out set [95\,\% CI]} \\",
+             r"\cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(l){8-11}",
+             r"ID & Split & Prep. & Cells & Patients & MCC & Accuracy & Accuracy & MCC & Recall & ROC-AUC \\",
              r"\midrule"]
-    for r in abl["experiments"]:
-        ci = lambda m: f"{pct(r['ens_' + m])} [{pct(r['ens_' + m + '_lo'])}, {pct(r['ens_' + m + '_hi'])}]"
+    metrics = ("accuracy", "mcc", "recall", "auc")
+    for i, r in enumerate(abl["experiments"]):
         prep = "YUV" if r["preprocess"] == "yuv" else "none"
-        lines.append(f"{r['experiment']} & {r['split']} & {prep} & {num(r['holdout_cells'])} / {r['holdout_patients']} & "
+        lines.append(f"{r['experiment']} & {r['split']} & {prep} & {num(r['holdout_cells'])} & {r['holdout_patients']} & "
                      f"{pct(r['fold_mcc_mean'])} $\\pm$ {pct(r['fold_mcc_sd'])} & "
                      f"{pct(r['fold_accuracy_mean'])} $\\pm$ {pct(r['fold_accuracy_sd'])} & "
-                     f"{ci('accuracy')} & {ci('mcc')} & {ci('recall')} & {ci('auc')} \\\\")
+                     + " & ".join(pct(r["ens_" + m]) for m in metrics) + r" \\")
+        cis = " & ".join(rf"{{\scriptsize [{pct(r['ens_' + m + '_lo'])}, {pct(r['ens_' + m + '_hi'])}]}}"
+                         for m in metrics)
+        gap = r"[3pt]" if i < len(abl["experiments"]) - 1 else ""
+        lines.append(f" & & & & & & & {cis} \\\\{gap}")
     lines += [r"\bottomrule", r"\end{tabular}}", r"\end{table*}"]
     return "\n".join(lines)
 
@@ -73,7 +84,7 @@ def contrasts_table(abl):
     names = {"A1 vs A0": "H1: A1 $-$ A0 (unpaired)", "A2 vs A1": "H2: A2 $-$ A1 (paired)", "A3 vs A0": "Control: A3 $-$ A0 (paired)"}
     metrics = [("mcc", "MCC"), ("accuracy", "Accuracy"), ("recall", "Recall"), ("specificity", "Specificity"), ("auc", "ROC-AUC")]
     lines = [r"\begin{table*}[t]", r"\centering",
-             r"\caption{Contrasts (new $-$ reference, percentage points). Fold: mean difference over the ten folds with 95\,\% CI (Nadeau--Bengio corrected $t$; for the unpaired H1 contrast, a Welch-type $t$ with the correction applied to each arm). Ensemble: hold-out difference with 95\,\% patient-bootstrap CI. $p$-values Holm-corrected over the three contrasts.}",
+             r"\caption{Contrasts (new $-$ reference, percentage points). Fold: mean difference over the ten folds with 95\,\% CI (the corrected resampled $t$ of Nadeau and Bengio; for the unpaired H1 contrast, a Welch-type $t$ with the correction applied to each arm). Ensemble: hold-out difference with 95\,\% patient-bootstrap CI. $p$-values Holm-corrected over the three contrasts.}",
              r"\label{tab:contrasts}", r"\begin{tabular}{@{}llrrrr@{}}", r"\toprule",
              r"Contrast & Metric & Fold $\Delta$ [95\,\% CI] & Fold $p_{\mathrm{Holm}}$ & Ensemble $\Delta$ [95\,\% CI] & Ens. $p_{\mathrm{Holm}}$ \\",
              r"\midrule"]
@@ -89,41 +100,50 @@ def contrasts_table(abl):
 
 
 def extras_table(abl):
+    """Table V: the recall-first threshold and each ensemble's calibration."""
     lines = [r"\begin{table}[t]", r"\centering",
-             r"\caption{Recall-first threshold chosen on the pooled out-of-fold CV predictions (max $F_2$) and applied once to the hold-out set; expected calibration error (ECE) of the ensemble. Clean evaluation.}",
-             r"\label{tab:extras}", r"\begin{tabular}{@{}lrrrr@{}}", r"\toprule",
-             r"ID & Threshold & Recall at 0.5 $\to$ at threshold & Specificity & ECE \\", r"\midrule"]
+             r"\caption{Recall-first threshold (best $F_2$ on the cross-validation predictions, applied once to the "
+             r"hold-out set) and expected calibration error (ECE). Clean evaluation, \%.}",
+             r"\label{tab:extras}", r"\footnotesize", r"\setlength{\tabcolsep}{4pt}",
+             r"\begin{tabular}{@{}lrrrrr@{}}", r"\toprule",
+             r" & & \multicolumn{2}{c}{Recall} & Specificity & \\", r"\cmidrule(lr){3-4}",
+             r"ID & Threshold & at 0.5 & at threshold & at threshold & ECE \\", r"\midrule"]
     for r in abl["experiments"]:
-        lines.append(f"{r['experiment']} & {r['cv_threshold']:.3f} & {pct(r['ens_recall'])} $\\to$ {pct(r['recall_at_cv_threshold'])} & "
-                     f"{pct(r['specificity_at_cv_threshold'])} & {r['ece']:.3f} \\\\")
+        lines.append(f"{r['experiment']} & {r['cv_threshold']:.3f} & {pct(r['ens_recall'])} & "
+                     f"{pct(r['recall_at_cv_threshold'])} & {pct(r['specificity_at_cv_threshold'])} & "
+                     f"{r['ece']:.3f} \\\\")
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
     return "\n".join(lines)
 
 
 def phase3b_table(p3b):
-    """Exploratory analyses of docs/phase3b_addendum.md: same-cell leakage, equivalence, patient level."""
+    """Table VI: the exploratory analyses of docs/phase3b_addendum.md in three groups (same-cell leakage, the YUV
+    equivalence tests with their verdict in its own column, the patient-level rule)."""
     e1, e2, h = p3b["E1"], p3b["E2"], p3b["E3"]["holdout"]
-    sec = lambda title: rf"\multicolumn{{3}}{{@{{}}l}}{{\emph{{{title}}}}} \\"
+    group = lambda title: rf"\multicolumn{{4}}{{@{{}}l}}{{\textit{{{title}}}}} \\"
     lines = [r"\begin{table}[t]", r"\centering",
-             r"\caption{Exploratory analyses fixed in a dated addendum before they were run (MCC differences in pp; "
-             r"clean evaluation).}", r"\label{tab:phase3b}", r"\footnotesize", r"\setlength{\tabcolsep}{4pt}",
-             r"\begin{tabular}{@{}lrl@{}}", r"\toprule", r"Analysis & Estimate & Interval \\", r"\midrule",
-             sec(r"Leakage on identical cells, A1 $-$ A0 (95\,\% CI)")]
-    for key, name in [("holdout", "ensembles"), ("oof", "out-of-fold")]:
+             r"\caption{Exploratory analyses, fixed in a dated addendum before they were run. Clean evaluation. "
+             r"The leakage rows score 1{,}095 hold-out and 17{,}591 cross-validation cells; H2 is A2 $-$ A1, the "
+             r"control A3 $-$ A0.}", r"\label{tab:phase3b}", r"\footnotesize",
+             r"\setlength{\tabcolsep}{4pt}", r"\begin{tabular}{@{}lrrc@{}}", r"\toprule",
+             r" & & & Within \\",
+             r"Analysis & Estimate & Interval & $\pm$1\,pp? \\", r"\midrule",
+             group(r"Leakage on identical cells: A1 $-$ A0, MCC (pp), 95\,\% CI")]
+    for key, name in [("holdout", "Ensembles"), ("oof", "Out-of-fold")]:
         b = e2[key]
-        lines.append(f"{name}: {num(b['n_cells'])} cells, {b['n_patients']} pts & {signed(b['mcc']['est'])} & "
-                     f"[{signed(b['mcc']['lo'])}, {signed(b['mcc']['hi'])}] \\\\")
-    lines.append(sec(r"YUV effect within $\pm$1\,pp? (90\,\% CI)"))
-    names = {"A2 vs A1": r"H2 A2 $-$ A1", "A3 vs A0": r"control A3 $-$ A0"}
+        lines.append(f"\\quad {name}, {b['n_patients']} patients & {signed(b['mcc']['est'])} & "
+                     f"[{signed(b['mcc']['lo'])}, {signed(b['mcc']['hi'])}] & \\\\")
+    lines += [r"\addlinespace", group(r"YUV effect: MCC (pp), 90\,\% CI")]
+    names = {"A2 vs A1": "H2", "A3 vs A0": "Control"}
     for r in e1["rows"]:
         if r["metric"] == "mcc" and "lo90" in r:
-            lines.append(f"{names[r['contrast']]}, {'ensemble' if r['level'] == 'ensemble' else 'folds'} & "
-                         f"{signed(r['est'])} & [{signed(r['lo90'])}, {signed(r['hi90'])}] "
+            lines.append(f"\\quad {names[r['contrast']]}, {'ensembles' if r['level'] == 'ensemble' else 'folds'} & "
+                         f"{signed(r['est'])} & [{signed(r['lo90'])}, {signed(r['hi90'])}] & "
                          f"{'yes' if r['equivalent'] else 'no'} \\\\")
-    lines.append(sec(r"Patient level, 40 held-out patients (exact 95\,\% CI)"))
-    for label, k, n, ci in [("sensitivity", h["tp"], h["n_infected"], h["sens_ci"]),
-                            ("specificity", h["tn"], h["n_healthy"], h["spec_ci"])]:
-        lines.append(f"{label} & {k}/{n} & {100 * k / n:.1f}\\,\\% [{100 * ci[0]:.1f}, {100 * ci[1]:.1f}] \\\\")
+    lines += [r"\addlinespace", group(r"Patient level: 40 held-out patients, \%, exact 95\,\% CI")]
+    for label, k, n, ci in [("Sensitivity", h["tp"], h["n_infected"], h["sens_ci"]),
+                            ("Specificity", h["tn"], h["n_healthy"], h["spec_ci"])]:
+        lines.append(f"\\quad {label}, {k}/{n} & {100 * k / n:.1f} & [{100 * ci[0]:.1f}, {100 * ci[1]:.1f}] & \\\\")
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
     return "\n".join(lines)
 

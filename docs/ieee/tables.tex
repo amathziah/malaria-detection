@@ -22,26 +22,32 @@ Ensemble ROC-AUC & 99.76 & 99.73 & 99.68 & $-$0.03 \\
 
 \begin{table*}[t]
 \centering
-\caption{Ablation results, clean evaluation (\%). Fold columns: mean $\pm$ SD over the ten CV test parts. Ensemble columns: the ten-model ensemble on each hold-out set, with 95\,\% patient-bootstrap intervals. MCC $\times$100.}
+\caption{Ablation results, clean evaluation (\%). Folds: mean $\pm$ SD over the ten cross-validation test parts. Ensemble: the ten-model ensemble on each hold-out set, with 95\,\% patient-bootstrap intervals below each value. MCC $\times$100.}
 \label{tab:ablation}
 \footnotesize
-\setlength{\tabcolsep}{3.5pt}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}lllrllllll@{}}
+\setlength{\tabcolsep}{4pt}
+\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
+\begin{tabular}{@{}lllrrcccccc@{}}
 \toprule
-ID & Split & Prep. & Hold-out cells / patients & Fold MCC & Fold accuracy & Ens. accuracy & Ens. MCC & Ens. recall & Ens. ROC-AUC \\
+ & & & \multicolumn{2}{c}{Hold-out set} & \multicolumn{2}{c}{Folds, mean $\pm$ SD} & \multicolumn{4}{c}{Ensemble on the hold-out set [95\,\% CI]} \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(l){8-11}
+ID & Split & Prep. & Cells & Patients & MCC & Accuracy & Accuracy & MCC & Recall & ROC-AUC \\
 \midrule
-A0 & image & none & 5{,}512 / 200 & 95.57 $\pm$ 0.60 & 97.78 $\pm$ 0.30 & 97.64 [97.02, 98.17] & 95.29 [94.03, 96.32] & 97.18 [96.03, 98.06] & 99.68 [99.52, 99.80] \\
-A1 & patient & none & 5{,}550 / 40 & 93.92 $\pm$ 1.51 & 97.24 $\pm$ 0.66 & 98.45 [97.94, 98.91] & 96.90 [95.70, 97.79] & 98.05 [96.79, 98.85] & 99.80 [99.61, 99.92] \\
-A2 & patient & YUV & 5{,}550 / 40 & 93.32 $\pm$ 1.66 & 96.96 $\pm$ 0.75 & 98.32 [97.71, 98.86] & 96.65 [95.23, 97.68] & 98.22 [97.02, 99.02] & 99.76 [99.55, 99.91] \\
-A3 & image & YUV & 5{,}512 / 200 & 95.20 $\pm$ 0.37 & 97.60 $\pm$ 0.19 & 97.64 [97.02, 98.17] & 95.29 [94.04, 96.32] & 97.14 [95.94, 98.05] & 99.66 [99.48, 99.79] \\
+A0 & image & none & 5{,}512 & 200 & 95.57 $\pm$ 0.60 & 97.78 $\pm$ 0.30 & 97.64 & 95.29 & 97.18 & 99.68 \\
+ & & & & & & & {\scriptsize [97.02, 98.17]} & {\scriptsize [94.03, 96.32]} & {\scriptsize [96.03, 98.06]} & {\scriptsize [99.52, 99.80]} \\[3pt]
+A1 & patient & none & 5{,}550 & 40 & 93.92 $\pm$ 1.51 & 97.24 $\pm$ 0.66 & 98.45 & 96.90 & 98.05 & 99.80 \\
+ & & & & & & & {\scriptsize [97.94, 98.91]} & {\scriptsize [95.70, 97.79]} & {\scriptsize [96.79, 98.85]} & {\scriptsize [99.61, 99.92]} \\[3pt]
+A2 & patient & YUV & 5{,}550 & 40 & 93.32 $\pm$ 1.66 & 96.96 $\pm$ 0.75 & 98.32 & 96.65 & 98.22 & 99.76 \\
+ & & & & & & & {\scriptsize [97.71, 98.86]} & {\scriptsize [95.23, 97.68]} & {\scriptsize [97.02, 99.02]} & {\scriptsize [99.55, 99.91]} \\[3pt]
+A3 & image & YUV & 5{,}512 & 200 & 95.20 $\pm$ 0.37 & 97.60 $\pm$ 0.19 & 97.64 & 95.29 & 97.14 & 99.66 \\
+ & & & & & & & {\scriptsize [97.02, 98.17]} & {\scriptsize [94.04, 96.32]} & {\scriptsize [95.94, 98.05]} & {\scriptsize [99.48, 99.79]} \\
 \bottomrule
 \end{tabular}}
 \end{table*}
 
 \begin{table*}[t]
 \centering
-\caption{Contrasts (new $-$ reference, percentage points). Fold: mean difference over the ten folds with 95\,\% CI (Nadeau--Bengio corrected $t$; for the unpaired H1 contrast, a Welch-type $t$ with the correction applied to each arm). Ensemble: hold-out difference with 95\,\% patient-bootstrap CI. $p$-values Holm-corrected over the three contrasts.}
+\caption{Contrasts (new $-$ reference, percentage points). Fold: mean difference over the ten folds with 95\,\% CI (the corrected resampled $t$ of Nadeau and Bengio; for the unpaired H1 contrast, a Welch-type $t$ with the correction applied to each arm). Ensemble: hold-out difference with 95\,\% patient-bootstrap CI. $p$-values Holm-corrected over the three contrasts.}
 \label{tab:contrasts}
 \begin{tabular}{@{}llrrrr@{}}
 \toprule
@@ -70,41 +76,48 @@ Control: A3 $-$ A0 (paired) & MCC & $-$0.37 [$-$0.87, +0.12] & 0.246 & +0.00 [$-
 
 \begin{table}[t]
 \centering
-\caption{Recall-first threshold chosen on the pooled out-of-fold CV predictions (max $F_2$) and applied once to the hold-out set; expected calibration error (ECE) of the ensemble. Clean evaluation.}
+\caption{Recall-first threshold (best $F_2$ on the cross-validation predictions, applied once to the hold-out set) and expected calibration error (ECE). Clean evaluation, \%.}
 \label{tab:extras}
-\begin{tabular}{@{}lrrrr@{}}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrr@{}}
 \toprule
-ID & Threshold & Recall at 0.5 $\to$ at threshold & Specificity & ECE \\
+ & & \multicolumn{2}{c}{Recall} & Specificity & \\
+\cmidrule(lr){3-4}
+ID & Threshold & at 0.5 & at threshold & at threshold & ECE \\
 \midrule
-A0 & 0.192 & 97.18 $\to$ 98.72 & 95.22 & 0.053 \\
-A1 & 0.189 & 98.05 $\to$ 99.22 & 93.93 & 0.065 \\
-A2 & 0.143 & 98.22 $\to$ 99.22 & 91.74 & 0.060 \\
-A3 & 0.159 & 97.14 $\to$ 98.75 & 94.14 & 0.052 \\
+A0 & 0.192 & 97.18 & 98.72 & 95.22 & 0.053 \\
+A1 & 0.189 & 98.05 & 99.22 & 93.93 & 0.065 \\
+A2 & 0.143 & 98.22 & 99.22 & 91.74 & 0.060 \\
+A3 & 0.159 & 97.14 & 98.75 & 94.14 & 0.052 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[t]
 \centering
-\caption{Exploratory analyses fixed in a dated addendum before they were run (MCC differences in pp; clean evaluation).}
+\caption{Exploratory analyses, fixed in a dated addendum before they were run. Clean evaluation. The leakage rows score 1{,}095 hold-out and 17{,}591 cross-validation cells; H2 is A2 $-$ A1, the control A3 $-$ A0.}
 \label{tab:phase3b}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lrl@{}}
+\begin{tabular}{@{}lrrc@{}}
 \toprule
-Analysis & Estimate & Interval \\
+ & & & Within \\
+Analysis & Estimate & Interval & $\pm$1\,pp? \\
 \midrule
-\multicolumn{3}{@{}l}{\emph{Leakage on identical cells, A1 $-$ A0 (95\,\% CI)}} \\
-ensembles: 1{,}095 cells, 40 pts & +0.00 & [$-$0.90, +0.98] \\
-out-of-fold: 17{,}591 cells, 160 pts & $-$0.85 & [$-$2.02, $-$0.05] \\
-\multicolumn{3}{@{}l}{\emph{YUV effect within $\pm$1\,pp? (90\,\% CI)}} \\
-H2 A2 $-$ A1, ensemble & $-$0.26 & [$-$0.73, +0.16] yes \\
-H2 A2 $-$ A1, folds & $-$0.60 & [$-$1.27, +0.06] no \\
-control A3 $-$ A0, ensemble & +0.00 & [$-$0.44, +0.44] yes \\
-control A3 $-$ A0, folds & $-$0.37 & [$-$0.77, +0.03] yes \\
-\multicolumn{3}{@{}l}{\emph{Patient level, 40 held-out patients (exact 95\,\% CI)}} \\
-sensitivity & 26/28 & 92.9\,\% [76.5, 99.1] \\
-specificity & 12/12 & 100.0\,\% [73.5, 100.0] \\
+\multicolumn{4}{@{}l}{\textit{Leakage on identical cells: A1 $-$ A0, MCC (pp), 95\,\% CI}} \\
+\quad Ensembles, 40 patients & +0.00 & [$-$0.90, +0.98] & \\
+\quad Out-of-fold, 160 patients & $-$0.85 & [$-$2.02, $-$0.05] & \\
+\addlinespace
+\multicolumn{4}{@{}l}{\textit{YUV effect: MCC (pp), 90\,\% CI}} \\
+\quad H2, ensembles & $-$0.26 & [$-$0.73, +0.16] & yes \\
+\quad H2, folds & $-$0.60 & [$-$1.27, +0.06] & no \\
+\quad Control, ensembles & +0.00 & [$-$0.44, +0.44] & yes \\
+\quad Control, folds & $-$0.37 & [$-$0.77, +0.03] & yes \\
+\addlinespace
+\multicolumn{4}{@{}l}{\textit{Patient level: 40 held-out patients, \%, exact 95\,\% CI}} \\
+\quad Sensitivity, 26/28 & 92.9 & [76.5, 99.1] & \\
+\quad Specificity, 12/12 & 100.0 & [73.5, 100.0] & \\
 \bottomrule
 \end{tabular}
 \end{table}
