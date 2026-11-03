@@ -172,9 +172,9 @@ module.exports = async function (L, EXP, CON) {
     const pl = P3B.E3, hh = pl.holdout, sel = pl.selected;
     s = addSlide("CONTENT", "Phase 3: results", "FROM CELLS TO PATIENTS", `Combined per patient: ${hh.tp} of ${hh.n_infected} infected, ${hh.tn} of ${hh.n_healthy} healthy`);
     stat(s, M, 1.6, 3.4, `${hh.tp} / ${hh.n_infected}`,
-      `infected held-out patients found (${fmt(100 * hh.sens, 1)} %; 95 % CI ${fmt(100 * hh.sens_ci[0], 1)}–${fmt(100 * hh.sens_ci[1], 1)})`, HEX.teal);
+      `infected held-out patients found (${fmt(100 * hh.sens, 1)} %; 95 % CI ${fmt(100 * hh.sens_ci[0], 1)} to ${fmt(100 * hh.sens_ci[1], 1)})`, HEX.teal);
     stat(s, M, 3.4, 3.4, `${hh.tn} / ${hh.n_healthy}`,
-      `healthy held-out patients cleared (95 % CI ${fmt(100 * hh.spec_ci[0], 1)}–${fmt(100 * hh.spec_ci[1], 1)} %)`, HEX.orange);
+      `healthy held-out patients cleared (95 % CI ${fmt(100 * hh.spec_ci[0], 1)} to ${fmt(100 * hh.spec_ci[1], 1)} %)`, HEX.orange);
     T(s, `Rule chosen on the 160 CV patients only: positive if at least ${sel.tau} cells have P ≥ ${fmt(sel.t, 2)}. Exploratory: NIH curated the crops, so this is not diagnostic accuracy on a smear.`,
       { x: M, y: 5.25, w: 3.4, h: 1.5, fontSize: 13, color: HEX.muted, italic: true, valign: "top" });
     imgFit(s, p3("phase3b_patient_level.png"), 4.25, 1.5, 8.5, 5.0);

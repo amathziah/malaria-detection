@@ -29,8 +29,8 @@ async function main() {
 
   // ================================================================ 2 · answer up front
   s = addSlide("CONTENT_DARK", "Opening", "THE ANSWER, UP FRONT", "Reproduced within 1 pp, then tested on unseen patients");
-  const a1acc = have("A1") ? pct(EXP.A1.ens_accuracy) + " %" : "–";
-  const yuv = CON["A2 vs A1"] ? (100 * CON["A2 vs A1"].ensemble.mcc.est >= 0 ? "+" : "−") + fmt(Math.abs(100 * CON["A2 vs A1"].ensemble.mcc.est)) + " pp" : "–";
+  const a1acc = have("A1") ? pct(EXP.A1.ens_accuracy) + " %" : "n/a";
+  const yuv = CON["A2 vs A1"] ? (100 * CON["A2 vs A1"].ensemble.mcc.est >= 0 ? "+" : "−") + fmt(Math.abs(100 * CON["A2 vs A1"].ensemble.mcc.est)) + " pp" : "n/a";
   stat(s, M, 1.9, 3.7, "97.62 %", "ensemble accuracy with the paper's own recipe, 10 folds, paper protocol (paper: 98.29 %; every metric within 1 pp)", "7FD3E0", true);
   stat(s, M + 4.15, 1.9, 3.7, a1acc, "the same recipe on 40 patients no model ever saw (patient-level split, clean evaluation)", "F3A57F", true);
   stat(s, M + 8.3, 1.9, 3.6, yuv, "change in MCC from YUV stain normalisation on unseen patients", HEX.white, true);
@@ -40,7 +40,7 @@ async function main() {
     { text: `the ensemble scores ${pct(EXP.A1.ens_accuracy)} % on 40 held-out patients. ` +
       (P3B ? `Measured on identical cells, patient leakage is real but small (${Math.abs(100 * P3B.E2.oof.mcc.est).toFixed(2)} pp of MCC). ` : "") +
       `YUV stain normalisation does not help${P3B ? ": its effect stays within ±1 pp" : ""}. H1 is not supported; H2 is rejected.`, options: { color: "C9D3DF" } }]
-    : "Results of the A1–A3 runs are added here once the analysis is in.",
+    : "Results of the A1 to A3 runs are added here once the analysis is in.",
     { x: M, y: 4.55, w: W - 2 * M, h: 1.6, fontSize: 18, valign: "top" });
   s.addNotes("Three numbers carry the talk. First, the paper's recipe, rebuilt from its own code, lands within one percentage point of the paper. Second, what happens to the same recipe when the test patients are new. Third, whether the stain normalisation we proposed helps on those new patients.");
 
@@ -296,7 +296,7 @@ async function main() {
   // ================================================================ 14 · patient split + YUV
   s = addSlide("CONTENT", "Phase 3: hypotheses", "THE TWO SWITCHES", "40 held-out patients and a stain-normalised input");
   stat(s, M, 1.7, 3.0, "40", "patients held out (28 infected): 5,550 cells, 50.7 % parasitized", HEX.teal);
-  stat(s, M, 3.4, 3.0, "160", "patients in 10 folds of 15–17 patients, StratifiedGroupKFold", HEX.ink);
+  stat(s, M, 3.4, 3.0, "160", "patients in 10 folds of 15 to 17 patients, StratifiedGroupKFold", HEX.ink);
   T(s, "Split committed to the repository; every run checks its fingerprint.", { x: M, y: 5.15, w: 3.0, h: 0.9, fontSize: 13, color: HEX.muted, italic: true, valign: "top" });
   const yuvPairs = [["parasitized_0", "parasitized_0_yuv", "Parasitized"], ["uninfected_0", "uninfected_0_yuv", "Uninfected"]];
   yuvPairs.forEach(([a, b, l], i) => {

@@ -9,14 +9,17 @@ One folder per experiment. Every number in the slides and report comes from thes
 | `A1_slide_split/` | H1: patient-level split (40 held-out patients), A0's recipe otherwise | done: 10 folds |
 | `A2_yuv_slide/` | H2: patient split + YUV histogram-equalisation stain normalisation | done: 10 folds |
 | `A3_yuv_image/` | Control: the paper's image split + YUV | done: 10 folds |
-| `ablation/` | Hypothesis tests over A0–A3 (`src/ablation_stats.py`) and their figures | done |
+| `ablation/` | Hypothesis tests over A0 to A3 (`src/ablation_stats.py`) and their figures | done |
 | `phase3b/` | Exploratory analyses on the saved predictions (`src/phase3b_analysis.py`): equivalence, same-cell leakage, patient level, error audit | done |
-| `ablation_runpod/` | RunPod bookkeeping and logs of the A1–A3 run (pods, timings, setup/training logs) | done |
+| `ablation_runpod/` | RunPod bookkeeping and logs of the A1 to A3 run (pods, timings, setup/training logs) | done |
 
-The analysis plan for A1–A3 (hypotheses, primary metric, tests, decision rules) is in
+The analysis plan for A1 to A3 (hypotheses, primary metric, tests, decision rules) is in
 [`docs/phase3_analysis_plan.md`](../docs/phase3_analysis_plan.md); it was committed before the runs. The Phase 3b
 analyses, and one correction to the plan's unpaired fold test, are fixed in
 [`docs/phase3b_addendum.md`](../docs/phase3b_addendum.md), committed before they were run.
+
+The figures the paper prints are redrawn from these files, without recomputing any statistic, by
+`python src/paper_figures.py`.
 
 ## Files in `A0_10fold_paper/`
 
@@ -37,7 +40,7 @@ See [`A0_10fold_paper/README.md`](A0_10fold_paper/README.md): summary JSON, pape
 | `samples.png`, `yuv_preview.png` | Example cells, and what the YUV preprocessing looks like |
 | `kaggle_run_v2.log` | Full Kaggle log of the run |
 
-A1–A3 get the same files under their own prefix (`A1_summary.json`, `A1_slide_split_per_fold_val.csv`, ...).
+A1 to A3 get the same files under their own prefix (`A1_summary.json`, `A1_slide_split_per_fold_val.csv`, ...).
 When more than one experiment runs in a session, the notebook also writes `ablation.csv`: one row per experiment (fold accuracy mean ± SD, fold recall and MCC, ensemble test accuracy and MCC).
 `python src/check_results.py results/<folder>` prints any of them; `python src/compare_experiments.py` puts them side by side.
 
@@ -65,6 +68,7 @@ Same layout as `A0_10fold_paper/`, with the experiment ID as prefix (`A1_summary
 | `ablation_per_patient.csv` | Ensemble errors per hold-out patient |
 | `ablation_fold_mcc.png`, `ablation_fold_accuracy.png` | Every fold of every experiment; grey lines join paired folds |
 | `ablation_contrasts.png`, `ablation_contrasts_folds.png` | The three contrasts with 95 % CIs (ensemble and fold level) |
+| `ablation_contrasts_2x2.png` | The ensemble contrasts as a 2 × 2 grid, the layout the paper prints (Fig. 5) |
 | `ablation_per_patient.png`, `ablation_per_patient_top12.png` | Each held-out patient, A1 vs A2 (all 40; the 12 hardest, for slides) |
 | `paper_protocol/` | The same analysis on augmented evaluation (the paper's protocol) |
 
@@ -92,5 +96,5 @@ and `python src/triage_kit.py` then writes the full-size triage pages.
 Metrics are in %, including MCC (×100). The slides show MCC as a coefficient (0.95).
 Trained models are kept out of git. The 10 fold models of `A0_10fold_paper` (17 MB each) are attached to the
 [`v1.0-a0-10fold` release](https://github.com/amathziah/malaria-detection/releases/tag/v1.0-a0-10fold), and the
-30 models of A1–A3 to the [`v2.0-ablation` release](https://github.com/amathziah/malaria-detection/releases/tag/v2.0-ablation);
+30 models of A1 to A3 to the [`v2.0-ablation` release](https://github.com/amathziah/malaria-detection/releases/tag/v2.0-ablation);
 the `A0_baseline` models (`.keras`, 47 MB each) stay with the repository owner.

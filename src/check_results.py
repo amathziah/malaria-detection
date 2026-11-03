@@ -47,12 +47,12 @@ def main():
     for name, p, o in rows:
         flag = "" if abs(o - p) <= TOLERANCE_PP else "  ← more than 1 pp"
         print(f"{name:20s} {p:8.2f} {o:8.2f} {o - p:+7.2f}{flag}")
-    print(f"{'MCC':20s} {'—':>8s} {ens['mcc'] / 100:8.2f}")
+    print(f"{'MCC':20s} {'n/a':>8s} {ens['mcc'] / 100:8.2f}")
     print(f"\nMean fold accuracy SD: ±{sd['accuracy']:.2f}")
     print(f"Test set: {ens['FN']} infected cells missed, {ens['FP']} healthy cells flagged")
 
     # The 1 pp target only applies to the reproduction (image split, no preprocessing).
-    # A1–A3 change the protocol on purpose, so a gap there is a result, not a failure.
+    # A1 to A3 change the protocol on purpose, so a gap there is a result, not a failure.
     reproduction = (s["experiment"] == "A0" if s.get("experiment") in ("A0", "A1", "A2", "A3") else
                     s.get("split", "image").startswith("image") and s.get("preprocess", "none").startswith("none"))
     if not reproduction:

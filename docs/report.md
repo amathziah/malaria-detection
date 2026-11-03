@@ -29,7 +29,7 @@ Phase 1 surveyed 11 published studies. In Phase 2 we reproduced the strongest-do
 | Precision | 97.74 % | 98.31 % | +0.57 |
 | F1 | 98.28 % | 97.55 % | −0.73 |
 | ROC-AUC | 99.76 % | 99.76 % | 0.00 |
-| MCC | — | 0.95 | — |
+| MCC | not reported | 0.95 | n/a |
 
 *The paper column is the paper's text. Its recall and precision are swapped there: the authors' code gives recall 97.74 % and precision 98.82 % (see Section 3).*
 
@@ -71,7 +71,7 @@ Phase 1 surveyed 11 published studies. In Phase 2 we reproduced the strongest-do
 
 **Method.** `src/marques2022_exact.py` implements that recipe with the same library generation (TensorFlow 2.15 with Keras 2, `efficientnet` 1.1.1, `albumentations` 0.5.2, `imgaug` 0.4.0). 32 tests (`tests/test_marques2022_exact.py`) compare it with the paper: the parameter counts of its Table 2 (4,223,934 total, 4,181,918 trainable), the split and fold sizes printed by its code, its exact augmentation pipeline, image loading identical to `ImageDataAugmentor`, the loss, optimiser and callbacks, and its classification reports. The file list is sorted and the hold-out split seeded (the paper's was not) so that every machine builds the same split; a split fingerprint stored with each fold confirms it.
 
-**Compute.** Each fold ran on its own RunPod RTX 4090 (10 pods in parallel), launched and collected by `src/runpod_10fold.py`. Training took 10.5–11.1 min per fold (16.6 min on one slower host), against 4 h 46 min per fold in the paper (GTX 1050; mean of its printed fold times). The speed-ups do not change the computation: images are decoded once into a uint8 cache; the paper's augmentation runs in 11 worker processes, each batch seeded by (fold, epoch, batch) and each worker limited to one BLAS thread (3× faster than the default); batches are sent to the GPU as uint8 and divided by 255 in the model; the training step is XLA-compiled (21 → 12.5 ms per step). Arithmetic stays in float32, as in the paper.
+**Compute.** Each fold ran on its own RunPod RTX 4090 (10 pods in parallel), launched and collected by `src/runpod_10fold.py`. Training took 10.5 to 11.1 min per fold (16.6 min on one slower host), against 4 h 46 min per fold in the paper (GTX 1050; mean of its printed fold times). The speed-ups do not change the computation: images are decoded once into a uint8 cache; the paper's augmentation runs in 11 worker processes, each batch seeded by (fold, epoch, batch) and each worker limited to one BLAS thread (3× faster than the default); batches are sent to the GPU as uint8 and divided by 255 in the model; the training step is XLA-compiled (21 → 12.5 ms per step). Arithmetic stays in float32, as in the paper.
 
 **Results** (`results/A0_10fold_paper/`). "Paper protocol" scores augmented images, as the paper's code did; "clean" scores the original images.
 
@@ -114,7 +114,7 @@ On the hold-out set the ensemble missed 80 of 2,730 infected cells and flagged 5
 - **Analysis.**
   - Primary protocol: clean evaluation. Primary metric: MCC.
   - Every interval comes from a bootstrap over patients.
-  - Paired contrasts use the Nadeau–Bengio corrected t-test over folds.
+  - Paired contrasts use the Nadeau-Bengio corrected t-test over folds.
   - Holm correction over the three contrasts.
 
 **Compute.** 30 models (10 folds × 3 experiments) on 10 RunPod pods (7× RTX 4090, 3× L40S; each pod trained one fold of A1, A2 and A3 in turn). The run took about one hour of wall-clock time and cost $6.95.
@@ -140,7 +140,7 @@ On the hold-out set the ensemble missed 80 of 2,730 infected cells and flagged 5
   - 2.5× the fold-to-fold spread (MCC SD 1.51 vs 0.60).
 - The same A1 models score 98.22 % on the 40 held-out patients but 97.24 % in cross-validation, so this hold-out draw is about 1 pp easier than an average group of unseen patients. Comparing two different hold-out sets could also only detect about 2.2 pp of MCC.
 - **On identical cells (Phase 3b)** both problems disappear:
-  - Across the 17,591 cross-validation cells both arms share, A1's out-of-fold models score 0.85 pp lower in MCC than A0's (95 % CI 0.05–2.02; accuracy −0.43 pp).
+  - Across the 17,591 cross-validation cells both arms share, A1's out-of-fold models score 0.85 pp lower in MCC than A0's (95 % CI 0.05 to 2.02; accuracy −0.43 pp).
   - On the 1,095 A0 hold-out cells of A1's 40 held-out patients, the two ensembles have identical confusion matrices (difference 0.00 pp, 95 % CI −0.90 to +0.98).
   - Patient leakage is therefore real, but small.
 - With unseen-patient validation the best epoch also comes earlier (median 17 vs 28.5).
@@ -156,15 +156,15 @@ On the hold-out set the ensemble missed 80 of 2,730 infected cells and flagged 5
 All three verdicts are the same under the paper's augmented protocol (`results/ablation/paper_protocol/`).
 
 **For screening:**
-- A decision threshold chosen on the CV folds (max F2) raises hold-out recall to 98.7–99.2 %, at 91.7–95.2 % specificity.
-- The ensembles are slightly under-confident (ECE 0.05–0.07), as the paper's label smoothing predicts.
+- A decision threshold chosen on the CV folds (max F2) raises hold-out recall to 98.7 to 99.2 %, at 91.7 to 95.2 % specificity.
+- The ensembles are slightly under-confident (ECE 0.05 to 0.07), as the paper's label smoothing predicts.
 
 ![Each held-out patient, A1 vs A2](../results/ablation/ablation_per_patient.png)
 
 **Phase 3b: exploratory analyses on the saved predictions** (`results/phase3b/`; fixed in `docs/phase3b_addendum.md` before running):
 - *Patient-level diagnosis.* The rule is chosen on the 160 CV patients: a patient is positive if at least 3 cells have P(parasitized) ≥ 0.80.
-  - On the 40 held-out patients it identifies 26 of 28 infected (92.9 %, exact 95 % CI 76.5–99.1) and all 12 healthy patients (100 %, 73.5–100).
-  - The two missed patients (C53, C73) are the only ones with just 3 parasitized crops. With only 1–2 parasitized crops per patient, sensitivity falls to 3.6–12.3 %.
+  - On the 40 held-out patients it identifies 26 of 28 infected (92.9 %, exact 95 % CI 76.5 to 99.1) and all 12 healthy patients (100 %, 73.5 to 100).
+  - The two missed patients (C53, C73) are the only ones with just 3 parasitized crops. With only 1 to 2 parasitized crops per patient, sensitivity falls to 3.6 to 12.3 %.
   - NIH curated the crops (about 68 uninfected per patient), so this is aggregation on curated crops, not diagnostic accuracy on a smear.
 - *Errors cluster by patient* (permutation test p < 0.001).
   - False alarms concentrate in infected patients' smears: 1.57 % of their uninfected-labelled cells against 0.12 % in healthy patients (out of fold: 2.35 vs 0.85 %).
@@ -180,7 +180,7 @@ All three verdicts are the same under the paper's augmented protocol (`results/a
 - All data comes from one hospital, with no external test set.
 - Labels come from one expert. Fuhad et al. set aside 1,397 cells (5.1 %) as mislabelled or suspicious, but their list is no longer online.
 - There is one 40-patient hold-out draw and one training run per fold and arm.
-- A1–A3 ran on 7 RTX 4090s and 3 L40S, whereas A0 ran on RTX 4090s only. Within a fold, A1, A2 and A3 shared one GPU.
+- A1 to A3 ran on 7 RTX 4090s and 3 L40S, whereas A0 ran on RTX 4090s only. Within a fold, A1, A2 and A3 shared one GPU.
 
 ## 5. Conclusion and next steps
 

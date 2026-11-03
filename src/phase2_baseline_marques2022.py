@@ -1,4 +1,4 @@
-# Malaria Cell Detection — Phase 2: reproduction of Marques et al. (2022)
+# Malaria Cell Detection, Phase 2: reproduction of Marques et al. (2022)
 # Plain-script version of Phase2_Baseline_Reproduction_Marques2022.ipynb.
 # Run on any cloud GPU terminal:   pip install tensorflow scikit-learn pandas matplotlib kagglehub
 #                                   python phase2_baseline_marques2022.py
@@ -13,7 +13,7 @@ except NameError:
 
 
 # %% [markdown]
-# # Automated Malaria Cell Detection — Phase 2, Milestone 2
+# # Automated Malaria Cell Detection: Phase 2, Milestone 2
 # ## Reproducing the base paper: Marques *et al.* (2022), EfficientNet-B0 with stratified k-fold and ensembling
 # 
 # **Team:** J Amathziah (230139): Kaggle runs, repo · C Murali Madhav (230115): code (notebook, scripts) · Ravi Yadav (230131): slides · Pugazhendhi J (230066): report  
@@ -41,7 +41,7 @@ except NameError:
 # * **Kaggle (recommended):** New Notebook → *File → Import Notebook* → upload this file. Then *Add Input* → search **"cell-images-for-detecting-malaria"** (by *iarunava*) → add it. *Settings → Accelerator → GPU T4 ×2 (or P100)*. Click **Run All**.
 # * **VS Code + free Colab GPU:** install the official **Google Colab** extension in VS Code → open this `.ipynb` → *Select Kernel → Colab → New Colab Server → GPU (T4)* → sign in with Google → **Run All**. Files are saved on the Colab machine (not your laptop); download `phase2_results.zip` at the end.
 # * **Google Colab (browser):** *Runtime → Change runtime type → T4 GPU*. Run All. The dataset downloads automatically (from the NIH, or from Kaggle through `kagglehub`).
-# * **Runtime:** about 21 min per fold on Kaggle's 2× T4 (measured in our A0 run). The default `FOLDS_TO_RUN = 3` takes about 70 min. Set it to `10` for the full paper protocol (about 3.5–4 h).
+# * **Runtime:** about 21 min per fold on Kaggle's 2× T4 (measured in our A0 run). The default `FOLDS_TO_RUN = 3` takes about 70 min. Set it to `10` for the full paper protocol (about 3.5 to 4 h).
 
 # %% [markdown]
 # ## 1 · Setup and configuration
@@ -75,7 +75,7 @@ CFG = dict(
     PLATEAU_FACTOR  = 0.1,
     EARLY_STOP_PATIENCE = 5,   # our addition, to fit a free GPU budget (restores best weights)
     N_FOLDS         = 10,      # paper: stratified 10-fold CV
-    FOLDS_TO_RUN    = 3,       # set to 10 for the full protocol (≈3.5–4 h on Kaggle 2× T4)
+    FOLDS_TO_RUN    = 3,       # set to 10 for the full protocol (≈3.5 to 4 h on Kaggle 2× T4)
     TEST_FRACTION   = 0.10,    # untouched hold-out set, used to evaluate the ensemble
     DROPOUT         = 0.2,
     AUGMENT         = True,    # light, label-preserving flips/rotations
@@ -163,7 +163,7 @@ if DATA_ROOT is None:
     with zipfile.ZipFile("cell_images.zip") as z:
         z.extractall(".")
     DATA_ROOT = find_root(".")
-assert DATA_ROOT, "Dataset not found — add the Kaggle input 'cell-images-for-detecting-malaria'."
+assert DATA_ROOT, "Dataset not found: add the Kaggle input 'cell-images-for-detecting-malaria'."
 print("Dataset root:", DATA_ROOT)
 
 # %% [markdown]
@@ -204,7 +204,7 @@ print("Raw crop height/width (sample): min", sizes.min(0), "max", sizes.max(0), 
 
 # %% [markdown]
 # ## 3 · Input pipeline
-# * Read the PNG → **resize to 224×224** → pixel values stay in 0–255. Keras' EfficientNet does its own rescaling and normalisation inside the model.
+# * Read the PNG → **resize to 224×224** → pixel values stay in 0 to 255. Keras' EfficientNet does its own rescaling and normalisation inside the model.
 # * **Augmentation** (training only): random horizontal/vertical flips and 90° rotations. A blood cell has no "up", so these never change the label. The paper used the Albumentations library but doesn't list the exact transforms, so this is our closest faithful choice.
 # * `preprocess="yuv"` turns on the **YUV histogram-equalisation** stain normalisation from Umer *et al.* [4]. That's hypothesis H2, and it stays off for the baseline.
 
@@ -234,7 +234,7 @@ def load_image(path, preprocess="none"):
     if preprocess == "yuv":
         img = tf_yuv_hist_eq(img)
     img = tf.image.resize(img, [CFG["IMG_SIZE"], CFG["IMG_SIZE"]], antialias=True)
-    return img  # float32, 0–255
+    return img  # float32, 0 to 255
 
 def augment(img):
     img = tf.image.random_flip_left_right(img)
@@ -469,7 +469,7 @@ plt.tight_layout(); plt.savefig(f"{OUT_DIR}/A0_vs_paper.png", dpi=140); plt.show
 
 # %% [markdown]
 # ## 9 · (Next milestone) Hypothesis experiments
-# All three (A1–A3) are switched off for Milestone 2. Set the flags in the config to `True` to run them later. Each experiment changes **one thing** relative to the experiment it is compared with:
+# All three (A1 to A3) are switched off for Milestone 2. Set the flags in the config to `True` to run them later. Each experiment changes **one thing** relative to the experiment it is compared with:
 # 
 # | ID | Split | Preprocessing | Tests |
 # |---|---|---|---|
@@ -504,7 +504,7 @@ else:
 
 # %%
 def save_summary(name, r):
-    # One JSON per experiment: A0_summary.json, A1_summary.json, ... (A1–A3 used to get none)
+    # One JSON per experiment: A0_summary.json, A1_summary.json, ... (A1 to A3 used to get none)
     f = r["folds"]
     s = dict(config=CFG, experiment=name, split=r["split"], preprocess=r["preprocess"],
              n_images=int(len(df)), n_slides=int(df.slide.nunique()),
@@ -525,7 +525,7 @@ print(f"| Metric | Paper | Ours |")
 print(f"| Mean single-fold accuracy | 97.70 | {summary['mean_fold']['accuracy']:.2f} ± {summary['sd_fold']['accuracy']:.2f} |")
 for k, lab in [("accuracy", "Ensemble accuracy"), ("recall", "Recall"), ("precision", "Precision"), ("f1", "F1"), ("auc", "ROC-AUC")]:
     print(f"| {lab} | {PAPER[k]:.2f} | {summary['ensemble'][k]:.2f} |")
-print(f"| MCC (not reported in paper) | — | {summary['ensemble']['mcc'] / 100:.2f} |")  # stored ×100
+print(f"| MCC (not reported in paper) | n/a | {summary['ensemble']['mcc'] / 100:.2f} |")  # stored ×100
 print(f"\nFolds run: {summary['folds_run']} of {CFG['N_FOLDS']}  ·  outputs in {OUT_DIR}/")
 
 # Bundle the results (CSVs, plots, JSON; not the model files) into one zip to download

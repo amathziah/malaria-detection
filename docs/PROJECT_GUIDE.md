@@ -1,4 +1,4 @@
-# Automated Malaria Cell Detection — Project Guide
+# Automated Malaria Cell Detection: Project Guide
 
 *A plain-language, visual walkthrough of what we built in Phase 2, why we built it that way, and how every piece works.*
 *Read it top to bottom once (about 30 minutes); use the [cheat sheet](#8-presentation-cheat-sheet) at the end while presenting.*
@@ -8,19 +8,19 @@
 | **Task** | Look at one photo of a red blood cell and say: *parasitized* (malaria) or *uninfected* |
 | **Base paper** | G. Marques, A. Ferreras, I. de la Torre-Díez, *An ensemble-based approach for automated medical diagnosis of malaria using EfficientNet*, Multimedia Tools and Applications 81 (2022) 28061–28078 |
 | **What we did in Phase 2** | Reproduced the paper exactly as its own published code does it, on all 10 folds, and set up the experiments for our two hypotheses |
-| **Headline result** | Mean fold accuracy **97.55 %** (paper 97.56 %) · 10-model ensemble **97.62 %** (paper 98.29 %) · ROC-AUC **99.73 %** (paper 99.76 %) — all within 1 percentage point |
+| **Headline result** | Mean fold accuracy **97.55 %** (paper 97.56 %) · 10-model ensemble **97.62 %** (paper 98.29 %) · ROC-AUC **99.73 %** (paper 99.76 %), all within 1 percentage point |
 
 **Contents**
 
-1. [The dataset](#1-the-dataset) — what it is, how big, is it clean, how we split it
-2. [The model and its parameters](#2-the-model-and-its-parameters) — EfficientNet-B0, 4,223,934 parameters
-3. [Feature engineering](#3-feature-engineering) — what we do (and don't do) to the images
-4. [Architecture and training, in depth](#4-architecture-and-training-in-depth) — layers, recipe, ensemble, GPU engineering
-5. [Code walkthrough](#5-code-walkthrough) — every important function, with snippets
-6. [How we evaluate: folds, ensemble, metrics](#6-how-we-evaluate-folds-ensemble-metrics) — fold, 10-fold, ensemble, precision, recall, F1/F2, pp, what a good value is
-7. [Results, improvements and hypotheses](#7-results-improvements-and-hypotheses) — what is validated and what comes next
-8. [Presentation cheat sheet](#8-presentation-cheat-sheet) — 10 numbers, 6 sentences, likely questions
-9. [Glossary](#9-glossary) — every technical term on one page
+1. [The dataset](#1-the-dataset): what it is, how big, is it clean, how we split it
+2. [The model and its parameters](#2-the-model-and-its-parameters): EfficientNet-B0, 4,223,934 parameters
+3. [Feature engineering](#3-feature-engineering): what we do (and don't do) to the images
+4. [Architecture and training, in depth](#4-architecture-and-training-in-depth): layers, recipe, ensemble, GPU engineering
+5. [Code walkthrough](#5-code-walkthrough): every important function, with snippets
+6. [How we evaluate: folds, ensemble, metrics](#6-how-we-evaluate-folds-ensemble-metrics): fold, 10-fold, ensemble, precision, recall, F1/F2, pp, what a good value is
+7. [Results, improvements and hypotheses](#7-results-improvements-and-hypotheses): what is validated and what comes next
+8. [Presentation cheat sheet](#8-presentation-cheat-sheet): 10 numbers, 6 sentences, likely questions
+9. [Glossary](#9-glossary): every technical term on one page
 
 ---
 
@@ -33,7 +33,7 @@
 | | |
 |---|---|
 | **Name** | NIH Malaria Cell Images Dataset (also on Kaggle as *cell-images-for-detecting-malaria*) |
-| **Download** | `https://data.lhncbc.nlm.nih.gov/public/Malaria/cell_images.zip` (353 MB) — our notebook downloads it automatically |
+| **Download** | `https://data.lhncbc.nlm.nih.gov/public/Malaria/cell_images.zip` (353 MB); our notebook downloads it automatically |
 | **Origin** | Giemsa-stained thin blood smears photographed at Chittagong Medical College Hospital, Bangladesh |
 | **Patients** | 150 *Plasmodium falciparum*-infected and 50 healthy patients |
 | **Labels** | Every cell was annotated by an expert slide reader at the Mahidol-Oxford Tropical Medicine Research Unit, Bangkok |
@@ -49,13 +49,13 @@
 |---|---|---|
 | Images | **27,558** | Large enough to train a CNN, small enough to train 10 times |
 | Balance | **13,779 / 13,779** (exactly 50/50) | Accuracy is a fair metric; no class re-weighting needed |
-| Image size | height 40–385 px (median 130), width 46–394 px (median 130) | Every image is resized to 224 × 224 for the model |
+| Image size | height 40 to 385 px (median 130), width 46 to 394 px (median 130) | Every image is resized to 224 × 224 for the model |
 | Colour | RGB PNG, black background around the cell | The background carries no information |
 | Slides / patients | **200** slide IDs in the file names | Needed for our leakage hypothesis (H1) |
 
 ![Distribution of image sizes](figures/dataset_sizes.png)
 
-**File names carry the patient ID.** For example `C100P61ThinF_IMG_20150918_144104_cell_162.png`: `C100` is the patient (one smear), then the photo, then the cell number; we checked this key against NIH's own patient-to-cell mapping (200 patients). Parasitized cells come from 150 patients; uninfected cells come from all 200 (infected patients also have many healthy cells). **150 patients contribute cells to both classes.** This matters: if we split images at random, cells from the same patient (same stain batch, same microscope light) land in both training and testing — see hypothesis H1 in section 7.
+**File names carry the patient ID.** For example `C100P61ThinF_IMG_20150918_144104_cell_162.png`: `C100` is the patient (one smear), then the photo, then the cell number; we checked this key against NIH's own patient-to-cell mapping (200 patients). Parasitized cells come from 150 patients; uninfected cells come from all 200 (infected patients also have many healthy cells). **150 patients contribute cells to both classes.** This matters: if we split images at random, cells from the same patient (same stain batch, same microscope light) land in both training and testing (see hypothesis H1 in section 7).
 
 ### Is it clean? Is it "proper"?
 
@@ -63,10 +63,10 @@
 |---|---|
 | Non-image files | Each class folder contains one `Thumbs.db` (a Windows thumbnail cache). Removed, exactly like the paper's code. |
 | Exact duplicates | We hashed all 27,558 files (MD5): **0 duplicates**, and no image appears in both classes. |
-| Corrupt files | None — every PNG decodes. |
+| Corrupt files | None: every PNG decodes. |
 | Class balance | Perfect 50/50 overall; the hold-out set is 2,730 parasitized / 2,782 uninfected (the split is random, as in the paper). |
 | Label noise | Fuhad et al. (*Diagnostics* 2020, one of our Phase 1 papers) had an expert re-check the images and set aside **1,397 of 27,558 (5.1 %)** as mislabelled or suspicious, 647 of them "parasitized". We do **not** relabel anything, so our numbers stay comparable with the paper; some of our "errors" are probably label errors. |
-| Hidden bias | The random image split lets cells from one patient appear in train and test. That is not a data error, but it can inflate accuracy — it is what our hypothesis H1 measures. |
+| Hidden bias | The random image split lets cells from one patient appear in train and test. That is not a data error, but it can inflate accuracy, and it is what our hypothesis H1 measures. |
 
 **Verdict:** a clean, balanced, expert-labelled benchmark, with two caveats we state openly: about 5 % label noise, and patient-level leakage under a random split.
 
@@ -76,14 +76,14 @@
 
 | Set | Size | Used for |
 |---|---|---|
-| CV (learning) set — 80 % | 22,046 (11,049 parasitized / 10,997 uninfected) | 10-fold cross-validation: training + per-fold testing |
-| Hold-out set — 20 % | 5,512 (2,730 / 2,782) | Never trained on; scores every fold model and the ensemble |
+| CV (learning) set, 80 % | 22,046 (11,049 parasitized / 10,997 uninfected) | 10-fold cross-validation: training + per-fold testing |
+| Hold-out set, 20 % | 5,512 (2,730 / 2,782) | Never trained on; scores every fold model and the ensemble |
 | Each fold, training part | 19,841 or 19,842 | Training one of the 10 models |
 | Each fold, test part | 2,205 or 2,204 | Choosing the best epoch (validation loss) and the paper's Table 5 |
 
 > 💡 **What is a hold-out set?** Images locked away at the start and used only at the very end, so the final score is on data the model never influenced.
 >
-> 💡 **What is k-fold cross-validation / a fold?** Cut the learning set into 10 equal slices. Train model 1 on slices 2–10 and test it on slice 1; train model 2 on slices 1, 3–10 and test on slice 2; and so on. Every image is tested exactly once, and we get 10 models and 10 scores (a mean and a spread).
+> 💡 **What is k-fold cross-validation / a fold?** Cut the learning set into 10 equal slices. Train model 1 on slices 2 to 10 and test it on slice 1; train model 2 on slices 1, 3 to 10 and test on slice 2; and so on. Every image is tested exactly once, and we get 10 models and 10 scores (a mean and a spread).
 >
 > 💡 **What does stratified mean?** Each slice keeps the same parasitized/uninfected ratio as the whole set.
 >
@@ -93,7 +93,7 @@
 
 ## 2. The model and its parameters
 
-> **In one sentence:** EfficientNet-B0 — a compact image network already trained on millions of photos — with a small 4-layer classifier on top, 4,223,934 parameters in total, all of them fine-tuned on malaria cells.
+> **In one sentence:** EfficientNet-B0 (a compact image network already trained on millions of photos) with a small 4-layer classifier on top, 4,223,934 parameters in total, all of them fine-tuned on malaria cells.
 
 | | |
 |---|---|
@@ -141,7 +141,7 @@ The 42,016 non-trainable numbers are batch-normalisation running statistics (ave
 
 ## 3. Feature engineering
 
-> **In one sentence:** we do **no hand-crafted feature engineering** — the CNN learns its own features from pixels; we only resize, scale and randomly augment the images, exactly as the paper did.
+> **In one sentence:** we do **no hand-crafted feature engineering**: the CNN learns its own features from pixels, and we only resize, scale and randomly augment the images, exactly as the paper did.
 
 Older malaria systems computed features by hand (cell area, colour histograms, texture statistics) and fed them to an SVM or random forest. A convolutional network learns those features itself: early layers learn edges and colour blobs, middle layers parasite-like rings and dots, late layers whole-cell patterns.
 
@@ -151,8 +151,8 @@ Older malaria systems computed features by hand (cell area, colour histograms, t
 |---|---|---|
 | 1. Read | `cv2.imread` + BGR → RGB | Same library and call as the paper's `ImageDataAugmentor` |
 | 2. Resize | to 224 × 224, **nearest neighbour** | EfficientNet-B0's native input size; nearest neighbour is the paper's default |
-| 3. Augment (training, and — like the paper — also when evaluating) | random rotations, flips, noise, blur, distortions, contrast changes | Teaches the model that a cell is the same cell from any angle or under any stain |
-| 4. Scale | pixel ÷ 255 → values 0–1 | The paper's `rescale=1/255` |
+| 3. Augment (training and, like the paper, also when evaluating) | random rotations, flips, noise, blur, distortions, contrast changes | Teaches the model that a cell is the same cell from any angle or under any stain |
+| 4. Scale | pixel ÷ 255 → values 0 to 1 | The paper's `rescale=1/255` |
 
 **The paper's augmentation pipeline** (copied verbatim from its supplementary code; `albumentations` 0.5.2):
 
@@ -247,7 +247,7 @@ Here is what our **trained** fold-0 model actually computes for a hold-out cell 
 
 The whole block has 11,334 weights including batch-norm. Sixteen such blocks (with different sizes) make up the backbone.
 
-> 💡 **What is a depthwise convolution?** A convolution that filters each channel separately (one small filter per channel) instead of mixing all channels at every position. Together with the 1 × 1 convolutions around it, it does the job of a normal 3 × 3 convolution for about 8–9 times less computation, which is why EfficientNet is small.
+> 💡 **What is a depthwise convolution?** A convolution that filters each channel separately (one small filter per channel) instead of mixing all channels at every position. Together with the 1 × 1 convolutions around it, it does the job of a normal 3 × 3 convolution for about 8 to 9 times less computation, which is why EfficientNet is small.
 >
 > 💡 **What is squeeze-and-excitation (SE)?** A mini-network inside each block that looks at the whole feature map (squeeze: average each channel to one number), decides which channels matter for this image (excitation: two tiny dense layers + sigmoid), and re-weights the channels. It lets the block focus on "purple-dot" channels when they are present.
 >
@@ -273,7 +273,7 @@ The whole block has 11,334 weights including batch-norm. Sixteen such blocks (wi
 
 **Why B0 and not a bigger model?** EfficientNet scales one base network (B0) up to B7 by growing depth, width and image resolution together ("compound scaling"). B0 is the smallest: 4.2 M parameters, 224 × 224 input, about 0.39 billion operations per image. Cell crops are small (median 130 px) and simple, so bigger versions mostly add cost. The paper chose B0 for this reason, and it is the version that could later run on a phone.
 
-> 💡 **What is compound scaling?** Instead of making a network only deeper (more layers) or only wider (more channels), EfficientNet grows depth, width and input resolution together by fixed ratios. B0 is the baseline; B1–B7 are scaled-up copies.
+> 💡 **What is compound scaling?** Instead of making a network only deeper (more layers) or only wider (more channels), EfficientNet grows depth, width and input resolution together by fixed ratios. B0 is the baseline; B1 to B7 are scaled-up copies.
 
 ### 4.2 The training recipe (from the paper's code)
 
@@ -323,7 +323,7 @@ The paper trained on a laptop GTX 1050: **4 h 46 min per fold on average, 1 day 
 | 10 folds one after another is slow | **10 RunPod pods in parallel**, one RTX 4090 per fold, launched and collected by `src/runpod_10fold.py` | All folds finish in about the time of one |
 | Re-reading 27,558 PNGs every epoch | Decode and resize **once** into a 4.1 GB uint8 array shared by all processes | No PNG decoding during training |
 | The paper's augmentation runs on the CPU and is slow | A pool of **11 worker processes** builds batches in parallel, each batch seeded by (fold, epoch, batch) so results don't depend on the number of workers | CPU keeps the GPU fed |
-| A "16 vCPU" pod only allows **13.6 CPUs** (container quota), but Python sees 32–64 | Size the pool from the real quota (cgroup), not `os.cpu_count()` | No over-subscription |
+| A "16 vCPU" pod only allows **13.6 CPUs** (container quota), but Python sees 32 to 64 | Size the pool from the real quota (cgroup), not `os.cpu_count()` | No over-subscription |
 | Each worker started its own many-threaded maths library | **One BLAS/OpenMP thread per worker** | Augmentation **957 → 2,884 images/s (3×)** |
 | At batch 16 the GPU spends most time launching tiny kernels | **XLA-compile** the training step (fuses many small operations) | **21.2 → 12.5 ms per step (1.7×)** |
 | Sending float32 images to the GPU | Send **uint8** (4× smaller) and divide by 255 on the GPU, inside the model | Less data over PCIe; same numbers |
@@ -331,7 +331,7 @@ The paper trained on a laptop GTX 1050: **4 h 46 min per fold on average, 1 day 
 
 ![Speed-ups](figures/speedups.png)
 
-**Result:** about 19 s per epoch and about **11 minutes per fold** (mean 11.3, median 10.8; one slower host took 16.6 min) — about 25× faster per fold than the paper's 4 h 46 min, with the same recipe.
+**Result:** about 19 s per epoch and about **11 minutes per fold** (mean 11.3, median 10.8; one slower host took 16.6 min), about 25× faster per fold than the paper's 4 h 46 min, with the same recipe.
 
 > 💡 **What is a GPU / CUDA / cuDNN?** A GPU runs thousands of small calculations at once. CUDA is NVIDIA's programming platform for GPUs; cuDNN is NVIDIA's library of fast deep-learning operations (convolutions etc.) that TensorFlow calls.
 >
@@ -343,7 +343,7 @@ The paper trained on a laptop GTX 1050: **4 h 46 min per fold on average, 1 day 
 >
 > 💡 **What is a vCPU and a cgroup quota?** A vCPU is one CPU thread a cloud provider gives you. Containers are limited by a "cgroup" quota (here 13.6 CPUs) even though the operating system shows all the host's CPUs; using more threads than the quota just makes them wait.
 >
-> 💡 **What are BLAS / OpenMP threads?** BLAS is the low-level maths library NumPy and SciPy use; OpenMP is how it runs on several threads. By default each process starts one thread per visible CPU — with 11 processes on 13.6 CPUs that meant hundreds of threads fighting each other.
+> 💡 **What are BLAS / OpenMP threads?** BLAS is the low-level maths library NumPy and SciPy use; OpenMP is how it runs on several threads. By default each process starts one thread per visible CPU: with 11 processes on 13.6 CPUs that meant hundreds of threads fighting each other.
 >
 > 💡 **What is RunPod?** A cloud service that rents GPU machines by the hour. Each "pod" is a container on one machine with its own GPU, CPUs and disk.
 
@@ -364,12 +364,12 @@ The paper trained on a laptop GTX 1050: **4 h 46 min per fold on average, 1 day 
 | `src/runpod_requirements.txt` | The exact library versions (TensorFlow 2.15, efficientnet 1.1.1, albumentations 0.5.2, numpy 1.23.5, …) |
 | `tests/test_marques2022_exact.py` | 32 automated checks against the paper and its code |
 | `results/A0_10fold_paper/` | Per-fold outputs, summary JSON, CSV tables, plots, logs |
-| `notebooks/Phase2_Baseline_Reproduction_Marques2022.ipynb`, `src/phase2_baseline_marques2022.py` | Our first (3-fold, paper-text) reproduction and the A1–A3 hypothesis switches |
-| `src/check_results.py`, `src/compare_experiments.py` | Print one experiment vs. the paper; put A0–A3 side by side |
+| `notebooks/Phase2_Baseline_Reproduction_Marques2022.ipynb`, `src/phase2_baseline_marques2022.py` | Our first (3-fold, paper-text) reproduction and the A1 to A3 hypothesis switches |
+| `src/check_results.py`, `src/compare_experiments.py` | Print one experiment vs. the paper; put A0 to A3 side by side |
 
 ### 5.2 `src/marques2022_exact.py`, function by function
 
-**The recipe in one dictionary** — every value is taken from the paper's code:
+**The recipe in one dictionary.** Every value is taken from the paper's code:
 
 ```python
 PAPER = dict(SEED=1234, KFOLD=10, KFOLD_SEED=50, EPOCHS=33, BATCH_SIZE=16, IMG_SIZE=224,
@@ -484,7 +484,7 @@ def train_fold(fold, *, learn, val, folds, pool, out_dir, xla=True, epochs=33, b
 
 - **`train_fold`** is the body of the paper's training loop for one fold: build, train 33 epochs, reload the best checkpoint, then predict the fold's test part and the hold-out set, both with the paper's augmented images and with clean images. It saves the history, timings, every metric and all predictions.
 - **`classification_summary`** reproduces sklearn's `classification_report` (per-class precision/recall/F1, macro and weighted averages) plus the confusion matrix, MCC and ROC-AUC. A test feeds it the paper's own ensemble counts and gets the paper's printed numbers back to 6 decimals.
-- **`aggregate`** loads all 10 folds, checks they share one split, rebuilds the paper's Tables 3–6, and averages the 10 models' softmax outputs into the ensemble (paper protocol and clean).
+- **`aggregate`** loads all 10 folds, checks they share one split, rebuilds the paper's Tables 3 to 6, and averages the 10 models' softmax outputs into the ensemble (paper protocol and clean).
 - **`write_results`** writes the CSV/JSON files in the same layout as our first experiment, so `python src/check_results.py results/A0_10fold_paper` works.
 
 ### 5.3 The notebook, section by section
@@ -496,10 +496,10 @@ def train_fold(fold, *, learn, val, folds, pool, out_dir, xla=True, epochs=33, b
 | 3 · Augmentation | Prints the paper's `Compose`; shows augmented examples |
 | 4 · Model | Builds the model; parameter table vs. the paper's Table 2 |
 | 5 · Training | Builds the image cache, starts the worker pool, trains each requested fold; prints accuracy and the classification report exactly like the paper's notebook |
-| 6 · Results | Tables 3–6, the ensemble report, ours vs. paper, the figures |
-| 7–8 · Notes and conclusion | What is identical to the paper, what differs and why |
+| 6 · Results | Tables 3 to 6, the ensemble report, ours vs. paper, the figures |
+| 7 to 8 · Notes and conclusion | What is identical to the paper, what differs and why |
 
-### 5.4 `src/runpod_10fold.py` — the cloud launcher
+### 5.4 `src/runpod_10fold.py`: the cloud launcher
 
 ```bash
 python src/runpod_10fold.py up --folds 0 --setup-only   # one "canary" pod: install + check the GPU first
@@ -516,7 +516,7 @@ It talks to RunPod's REST API (API key from `~/.runpod_key`), asks for RTX 4090s
 | Group | Tests | What they check against |
 |---|---:|---|
 | Recipe | 2 | Every hyper-parameter equals the paper's code; class order |
-| Splits | 4 | 22,046 / 5,512 split; fold sizes 19,841–19,842 / 2,204–2,205 as printed in the paper's output; order-independence; stratification |
+| Splits | 4 | 22,046 / 5,512 split; fold sizes 19,841 to 19,842 / 2,204 to 2,205 as printed in the paper's output; order-independence; stratification |
 | Augmentation and images | 7 | `Compose` identical to a verbatim copy; pixels identical to the paper's `ImageDataAugmentor`; reproducible batches for any number of workers; new augmentations every epoch; 1,240 steps per epoch |
 | Model | 6 | **4,223,934 / 4,181,918 / 42,016 parameters** (Table 2); the head layer by layer; ÷255 input; label-smoothed loss; Adam 1e-4; callbacks |
 | Metrics | 4 | The paper's ensemble report and Table 5 reproduced to 6 decimals from its own confusion counts; AUC; ensemble = mean of softmax |
@@ -536,8 +536,8 @@ Run them with `python -m pytest tests/ -q` (needs the environment in `src/runpod
 
 | Set | Size | Used for | Analogy |
 |---|---|---|---|
-| **Train part** of a fold | 19,841–19,842 | the model learns from these | the textbook |
-| **Test part** of a fold | 2,204–2,205 | checked after every epoch; picks the best epoch and lowers the learning rate | mock exams |
+| **Train part** of a fold | 19,841 to 19,842 | the model learns from these | the textbook |
+| **Test part** of a fold | 2,204 to 2,205 | checked after every epoch; picks the best epoch and lowers the learning rate | mock exams |
 | **Hold-out set** | 5,512 (20 %) | never touched in training; the final score of every model and of the ensemble | the final exam |
 
 > 💡 **The paper's words.** The paper calls the hold-out set the *validation* set and the fold's test part the *test* set. Many courses use the opposite names, so always say which one you mean.
@@ -550,7 +550,7 @@ Run them with `python -m pytest tests/ -q` (needs the environment in `src/runpod
 
 | Phrase | What it means here |
 |---|---|
-| **"a fold"** / **"fold 3"** | One round of the procedure: one model trained on 9 of the 10 parts and tested on the remaining part (part 3). We number them 0–9 like the paper's code. "Fold 3 took 16.6 min" = that round's training time. |
+| **"a fold"** / **"fold 3"** | One round of the procedure: one model trained on 9 of the 10 parts and tested on the remaining part (part 3). We number them 0 to 9 like the paper's code. "Fold 3 took 16.6 min" = that round's training time. |
 | **2-fold** | Two halves: train on half A, test on half B, then the other way round. Two models, each trained on only 50 % of the data, so each is weaker. |
 | **10-fold** (ours, the paper's) | Ten parts, ten models, each trained on 90 % of the data. More training data per model and ten test scores instead of two. |
 | **"1-fold"** | Not real cross-validation (k must be at least 2). People mean a single train/test split, which gives one score and no idea of the spread. |
@@ -622,16 +622,16 @@ There is no universal cut-off: it depends on the cost of each mistake, on chance
 
 | Metric | Chance level | What published work reports | Ours (ensemble) | Verdict |
 |---|---|---|---:|---|
-| Accuracy | 50 % | 95.9–99.96 % across the 11 studies we reviewed; only one above 99.5 % | 97.62 % | good, inside the published range |
-| Recall | 50 % (random guessing) | 82–98.8 % in the paper's comparison table (Table 7); thin-smear models mostly 92–98 % | 97.07 % | good; the metric to push up first (misses are the dangerous error) |
-| Precision | 50 % | 89–98.8 % in Table 7 for thin-smear models | 98.11 % | good |
+| Accuracy | 50 % | 95.9 to 99.96 % across the 11 studies we reviewed; only one above 99.5 % | 97.62 % | good, inside the published range |
+| Recall | 50 % (random guessing) | 82 to 98.8 % in the paper's comparison table (Table 7); thin-smear models mostly 92 to 98 % | 97.07 % | good; the metric to push up first (misses are the dangerous error) |
+| Precision | 50 % | 89 to 98.8 % in Table 7 for thin-smear models | 98.11 % | good |
 | Specificity | 50 % | rarely reported | 98.17 % | good |
-| F1 | about 50 % | 88–98.3 % in Table 7 for thin-smear models | 97.59 % | good |
+| F1 | about 50 % | 88 to 98.3 % in Table 7 for thin-smear models | 97.59 % | good |
 | ROC-AUC | 50 % | 99.76 % for the paper; rarely reported elsewhere | 99.73 % | excellent |
 | MCC | 0 | rarely reported; above 0.9 is very strong agreement | 0.95 | very strong |
 
 **Rules of thumb (not official standards)**
-- On this benchmark, above 95 % is solid, around 97–98 % is competitive with published work, and above 99.5 % deserves suspicion: random image splits let cells of the same patient sit in both training and test (hypothesis H1), which can inflate scores.
+- On this benchmark, above 95 % is solid, around 97 to 98 % is competitive with published work, and above 99.5 % deserves suspicion: random image splits let cells of the same patient sit in both training and test (hypothesis H1), which can inflate scores.
 - In medicine, **recall comes first** (a missed infection can be fatal; a false alarm costs a second look), but precision and specificity must stay high or clinics drown in false alarms.
 - A metric only means something next to a baseline: compare with chance, with the paper (here within 1 pp) and with the spread between folds (± 0.3 pp).
 - These are **per-cell** numbers. A patient's slide contains hundreds of cells, so the per-patient decision can be more reliable than any single cell's, but we have not measured it; that is a proposed next step.
@@ -665,7 +665,7 @@ There is no universal cut-off: it depends on the cost of each mistake, on chance
 | Ensemble F1 (parasitized) | 98.28 | 97.59 | −0.69 | 97.61 |
 | Ensemble specificity | 98.84 | 98.17 | −0.67 | 98.09 |
 | Ensemble ROC-AUC | 99.76 | **99.73** | −0.03 | 99.68 |
-| Ensemble MCC | — | 0.95 | — | 0.95 |
+| Ensemble MCC | not reported | 0.95 | n/a | 0.95 |
 
 On the 5,512 hold-out cells the ensemble **missed 80 of 2,730 infected cells** and **flagged 51 of 2,782 healthy cells** (the paper: 62 and 32).
 
@@ -681,19 +681,19 @@ On the 5,512 hold-out cells the ensemble **missed 80 of 2,730 infected cells** a
 - **Compared with our first reproduction** (3 folds, paper text, Kaggle 2× T4): mean fold accuracy 97.38 ± 0.74 → **97.55 ± 0.30**, ensemble 97.57 % → **97.62 %**, recall 96.81 % → **97.07 %**.
 
 > 💡 **The metrics in plain words** (parasitized = "positive"):
-> **Accuracy** — share of all cells classified correctly.
-> **Precision** — of the cells we called infected, how many really were (few false alarms → high).
-> **Recall / sensitivity** — of the truly infected cells, how many we caught (few missed infections → high). The clinically most important number.
-> **Specificity** — of the healthy cells, how many we called healthy.
-> **F1** — one number balancing precision and recall (their harmonic mean).
-> **ROC-AUC** — the probability that a random infected cell gets a higher "infected" score than a random healthy one; 100 % = perfect ranking, 50 % = coin toss. Independent of the 50 % decision threshold.
-> **MCC** (Matthews correlation coefficient) — a balanced score from −1 to +1 that uses all four confusion-matrix cells; robust even when classes are unbalanced.
-> **Confusion matrix** — the 2 × 2 table of true vs. predicted class: correct infected, missed infected, false alarms, correct healthy.
-> **pp (percentage points)** — the plain difference between two percentages: 97.62 % vs. 98.29 % is −0.67 pp.
+> **Accuracy**: share of all cells classified correctly.
+> **Precision**: of the cells we called infected, how many really were (few false alarms → high).
+> **Recall / sensitivity**: of the truly infected cells, how many we caught (few missed infections → high). The clinically most important number.
+> **Specificity**: of the healthy cells, how many we called healthy.
+> **F1**: one number balancing precision and recall (their harmonic mean).
+> **ROC-AUC**: the probability that a random infected cell gets a higher "infected" score than a random healthy one; 100 % = perfect ranking, 50 % = coin toss. Independent of the 50 % decision threshold.
+> **MCC** (Matthews correlation coefficient): a balanced score from −1 to +1 that uses all four confusion-matrix cells; robust even when classes are unbalanced.
+> **Confusion matrix**: the 2 × 2 table of true vs. predicted class: correct infected, missed infected, false alarms, correct healthy.
+> **pp (percentage points)**: the plain difference between two percentages: 97.62 % vs. 98.29 % is −0.67 pp.
 
 ### 7.2 What reading the paper's code revealed
 
-The paper's supplementary file is its authors' executed Jupyter notebook. It differs from the paper's text — and from our first reproduction — in eight settings:
+The paper's supplementary file is its authors' executed Jupyter notebook. It differs from the paper's text, and from our first reproduction, in eight settings:
 
 | # | Setting | Paper's code (now used) | Our first reproduction |
 |---:|---|---|---|
@@ -723,21 +723,21 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 
 ### 7.4 Our hypotheses and how we test them
 
-![Ablation plan: A0–A3 (as designed; all four have since been run, see section 7.5)](figures/ablation_plan.png)
+![Ablation plan: A0 to A3 (as designed; all four have since been run, see section 7.5)](figures/ablation_plan.png)
 
-*The plan as drawn in Phase 2. A1–A3 have since been run; their results are in section 7.5 and in the figure below.*
+*The plan as drawn in Phase 2. A1 to A3 have since been run; their results are in section 7.5 and in the figure below.*
 
-![Every fold of A0–A3 (Phase 3)](../results/ablation/ablation_fold_mcc.png)
+![Every fold of A0 to A3 (Phase 3)](../results/ablation/ablation_fold_mcc.png)
 
 | ID | Split | Preprocessing | Question it answers |
 |---|---|---|---|
-| A0 | Random image split (paper) | None | Baseline — **done** |
+| A0 | Random image split (paper) | None | Baseline, **done** |
 | A1 | Patient split (no patient in both train and test) | None | **H1:** how big is the leakage gap (A0 − A1)? |
 | A2 | Patient split | YUV + histogram equalisation | **H2:** does stain normalisation help on unseen patients (A2 − A1)? |
 | A3 | Random image split | YUV + histogram equalisation | Control: is H2's gain specific to new patients (A3 − A0 ≈ 0)? |
 
-- **H1 — validation.** Cells from one patient share stain, lighting and the patient's blood; a random split lets the model recognise the patient rather than the parasite. *We expect* accuracy and MCC to fall below A0 and the fold-to-fold spread to widen.
-- **H2 — preprocessing.** Converting to YUV and equalising the brightness channel removes slide-specific brightness cues, so the network must rely on the parasite. *We expect* higher recall and MCC than A1 on unseen patients, and little change on the random split (A3 ≈ A0).
+- **H1 (validation).** Cells from one patient share stain, lighting and the patient's blood; a random split lets the model recognise the patient rather than the parasite. *We expect* accuracy and MCC to fall below A0 and the fold-to-fold spread to widen.
+- **H2 (preprocessing).** Converting to YUV and equalising the brightness channel removes slide-specific brightness cues, so the network must rely on the parasite. *We expect* higher recall and MCC than A1 on unseen patients, and little change on the random split (A3 ≈ A0).
 
 **Success criteria (decided in advance):**
 
@@ -748,7 +748,7 @@ The paper's supplementary file is its authors' executed Jupyter notebook. It dif
 
 ### 7.5 What the hypothesis experiments found (Phase 3)
 
-A1–A3 ran with the paper-exact recipe:
+A1 to A3 ran with the paper-exact recipe:
 - 10 folds each, 30 models in total;
 - one RunPod pod per fold, training A1, A2 and A3 in turn;
 - about one hour of wall-clock time, $6.95.
@@ -761,14 +761,14 @@ The analysis plan was committed before the runs ([`phase3_analysis_plan.md`](pha
 | **H2:** does YUV help on unseen patients? | **Rejected.** Fold MCC −0.60 pp, smaller than the 1.51 pp fold SD; ensemble MCC −0.26 pp (95 % CI −0.85 to +0.23). |
 | **Control:** does YUV matter when patients are shared? | No detectable change: ensemble MCC +0.00 pp (95 % CI −0.52 to +0.53). |
 | Per-patient results (proposal 2) | `results/ablation/ablation_per_patient.csv` and the dumbbell figure: errors cluster in a few patients. |
-| Threshold for recall (proposal 3) | Chosen on the CV folds and applied once to the hold-out set: recall 98.7–99.2 % at 91.7–95.2 % specificity. |
-| Calibration (proposal 4) | ECE 0.05–0.07: slightly under-confident, as label smoothing predicts. |
+| Threshold for recall (proposal 3) | Chosen on the CV folds and applied once to the hold-out set: recall 98.7 to 99.2 % at 91.7 to 95.2 % specificity. |
+| Calibration (proposal 4) | ECE 0.05 to 0.07: slightly under-confident, as label smoothing predicts. |
 
 **A correction.** The fold-level H1 comparison first used a plain Welch t-test, which treated each arm's ten folds as independent although they share their training data. It gave Holm p = 0.023. Corrected for that, the same −1.65 pp has a 95 % CI of −3.28 to −0.02 and Holm p = 0.14: a trend, not a significant effect. The correction is documented in [`phase3b_addendum.md`](phase3b_addendum.md).
 
 ### 7.6 Phase 3b: four exploratory analyses on the saved predictions
 
-These analyses were fixed in a dated addendum ([`phase3b_addendum.md`](phase3b_addendum.md)) before they were run, after the A1–A3 results were known. They need no training: they reuse the 40 models' saved predictions ([`results/phase3b/`](../results/phase3b/phase3b_summary.md)).
+These analyses were fixed in a dated addendum ([`phase3b_addendum.md`](phase3b_addendum.md)) before they were run, after the A1 to A3 results were known. They need no training: they reuse the 40 models' saved predictions ([`results/phase3b/`](../results/phase3b/phase3b_summary.md)).
 
 | Analysis | What it asks | What we found |
 |---|---|---|
@@ -794,18 +794,18 @@ These analyses were fixed in a dated addendum ([`phase3b_addendum.md`](phase3b_a
 | Number | Meaning | Number | Meaning |
 |---|---|---|---|
 | **27,558** | cell images (13,779 per class), 200 patients, 0 duplicates | **97.62 %** | 10-model ensemble accuracy on 5,512 hold-out cells (paper 98.29 %) |
-| **4,223,934** | parameters (4,181,918 trainable) — exactly the paper's Table 2 | **99.73 %** | ensemble ROC-AUC (paper 99.76 %) |
-| **10 × 33 × 1,240** | folds × epochs × steps of 16 images | **97.07 %** | ensemble recall (paper 97.74 % — its text wrongly says 98.82 %) |
+| **4,223,934** | parameters (4,181,918 trainable), exactly the paper's Table 2 | **99.73 %** | ensemble ROC-AUC (paper 99.76 %) |
+| **10 × 33 × 1,240** | folds × epochs × steps of 16 images | **97.07 %** | ensemble recall (paper 97.74 %; its text wrongly says 98.82 %) |
 | **97.55 %** | mean fold accuracy (paper 97.56 %) | **80 / 51** | infected cells missed / healthy cells flagged, out of 5,512 |
 | **32** | automated tests proving the recipe matches the paper | **≈ 11 min** | per fold on an RTX 4090 (mean 11.3; paper: 4 h 46 min on a GTX 1050) |
 
 **6 sentences**
 
-1. We reproduced Marques et al. (2022) — EfficientNet-B0 with a 10-fold ensemble — exactly as their published code does it, on all 10 folds.
+1. We reproduced Marques et al. (2022), EfficientNet-B0 with a 10-fold ensemble, exactly as their published code does it, on all 10 folds.
 2. Every headline metric is within 1 percentage point of the paper; the mean fold accuracy matches to 0.01 points.
 3. Reading their code showed that the paper's text leaves out or differs from the real recipe (weights, head, batch size, epochs, augmentation, hold-out size), and that the paper swaps precision and recall.
 4. We made each fold about 26 times faster without changing the maths: decode once, parallel augmentation, XLA, and ten GPUs in parallel.
-5. The baseline still splits images at random, so cells from the same patient can be in training and testing — our hypothesis H1 measures that leakage.
+5. The baseline still splits images at random, so cells from the same patient can be in training and testing; our hypothesis H1 measures that leakage.
 6. Then we tested it on unseen patients: the ~98 % largely survives (98.45 % on 40 held-out patients), leakage is real but small (about half a point of accuracy on identical cells), and YUV stain normalisation does not help (its effect lies within ±1 pp of MCC).
 
 **Likely questions and short answers**
@@ -817,7 +817,7 @@ These analyses were fixed in a dated addendum ([`phase3b_addendum.md`](phase3b_a
 | Why is your ensemble 0.67 pp below the paper? | The paper's random split had no seed and can't be recreated; newer TensorFlow and different GPUs. Single models match to 0.01 pp, and every metric is within our 1 pp criterion. |
 | Did you do feature engineering? | No hand-crafted features; the CNN learns them. Only resizing, ÷255 and the paper's random augmentation. YUV stain normalisation is hypothesis H2. |
 | Is the dataset clean? | Balanced 50/50, no duplicates, expert labels; we drop two Thumbs.db files. Caveats: Fuhad et al. (2020) set aside 5.1 % of images as mislabelled or suspicious, and random splits allow patient leakage (H1). |
-| Is there data leakage? | Yes, but it is small. A random split puts cells of the same patient on both sides. Measured on identical cells, models that had seen other cells of the patient score 0.85 pp of MCC higher (95 % CI 0.05–2.02; section 7.6). |
+| Is there data leakage? | Yes, but it is small. A random split puts cells of the same patient on both sides. Measured on identical cells, models that had seen other cells of the patient score 0.85 pp of MCC higher (95 % CI 0.05 to 2.02; section 7.6). |
 | What is label smoothing? | Training targets of 0.95/0.05 instead of 1/0, so the model doesn't become over-confident. It is in the paper's code. |
 | How do you know your code matches the paper? | 32 tests: Table 2 parameter count, the paper's printed reports reproduced to 6 decimals, its augmentation verbatim, its image loading pixel for pixel. |
 | How did you make it fast without changing results? | Decode once, 11 parallel augmentation workers with single-threaded BLAS (3×), uint8 transfer, XLA (1.7×), 10 GPUs in parallel. Same fp32 maths and library versions. |

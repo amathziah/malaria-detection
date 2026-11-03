@@ -24,7 +24,7 @@ cell. The plan below is unchanged since then.
 **What the gallery contains.**
 
 - All 86 errors, mixed with 86 correctly classified cells.
-- The cells are shuffled and numbered 1–172, so nobody can tell from the pictures which are which.
+- The cells are shuffled and numbered 1 to 172, so nobody can tell from the pictures which are which.
 
 ## How to rate
 

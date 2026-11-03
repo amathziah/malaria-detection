@@ -1,4 +1,4 @@
-# A0 — full 10-fold reproduction, following the paper's code
+# A0: full 10-fold reproduction, following the paper's code
 
 All 10 folds of Marques et al. (2022), trained with the recipe from the paper's own executed notebook
 (Springer supplementary file MOESM1): noisy-student EfficientNet-B0, the 128-64-32 dense head, label smoothing 0.1,
@@ -9,9 +9,9 @@ Notebook: `notebooks/Phase2_A0_10fold_PaperExact.ipynb` (recipe in `src/marques2
 `results/A0_baseline/` (the first, 3-fold reproduction from the paper's text) is unchanged.
 
 Two evaluation views:
-* **paper protocol** — every prediction is made on a randomly augmented image, as in the paper's code
+* **paper protocol**: every prediction is made on a randomly augmented image, as in the paper's code
   (its test and validation generators used the augmenting `ImageDataAugmentor`). These are the headline numbers.
-* **clean** — the same models on the original images (`*_clean*` files).
+* **clean**: the same models on the original images (`*_clean*` files).
 
 | File | What it is |
 |---|---|

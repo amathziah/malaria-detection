@@ -59,4 +59,4 @@ Every headline metric is within 1 percentage point of the paper:
 - the classification reports.
 
 Details are in the [report](report.md#3-paper-exact-10-fold-reproduction) and the
-[paper](ieee/main.pdf) (§IV-A, §V-A).
+[paper](../Malaria_IEEE_Paper.pdf) (§IV-A, §V-A).

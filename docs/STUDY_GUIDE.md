@@ -10,7 +10,7 @@ question drill (section 12).*
 | **Topic** | Malaria cell detection on the NIH Malaria dataset (one of the brief's eight topics) |
 | **Base paper** | G. Marques, A. Ferreras, I. de la Torre-Díez, *An ensemble-based approach for automated medical diagnosis of malaria using EfficientNet*, Multimedia Tools and Applications 81 (2022) |
 | **Our change** | YUV histogram-equalisation stain normalisation (H2), tested on patients the model has never seen (H1: a patient-level split) |
-| **Deliverables** | IEEE paper `docs/ieee/main.pdf` (8 pages) · deck `slides/Malaria_Phase3_Final.pptx` (27 slides) · code, results and all 40 trained models on GitHub |
+| **Deliverables** | IEEE paper `Malaria_IEEE_Paper.pdf` in the repository's top folder (8 pages) · deck `slides/Malaria_Phase3_Final.pptx` (27 slides) · code, results and all 40 trained models on GitHub |
 
 **Contents**
 
@@ -39,14 +39,14 @@ own**, and write it up like a conference paper. Marks come from **predictions, e
 
 | Step (milestone) | The brief asks | What we did | Where to point |
 |---|---|---|---|
-| 1 · Literature survey (M1) | Read 10–20 recent papers; note methods, datasets, metrics | 11 malaria studies (2016–2024), plus 7 methods papers. Found three gaps | Slide 6 · paper §II |
+| 1 · Literature survey (M1) | Read 10 to 20 recent papers; note methods, datasets, metrics | 11 malaria studies (2016 to 2024), plus 7 methods papers. Found three gaps | Slide 6 · paper §II |
 | 2 · Pick a base paper (M1) | One paper with public code and data; fill the reproducibility checklist | Marques et al. 2022: executed notebook public, NIH data public | Slide 7 · `docs/REPRODUCIBILITY_CHECKLIST.md` |
-| 3 · Reproduce (M2) | Re-run on the same data and land near the reported metric | Code-exact, all 10 folds: ensemble 97.62 % vs 98.29 %; fold models 97.55 % vs 97.56 % | Slides 8–11 · paper §IV-A, §V-A |
-| 4 · Hypothesis + Introduction (M3) | One change, its predicted effect and why, submitted before coding | H1 and H2 in the Phase 2 deck; analysis plan committed on 2 Nov at 03:24, before any A1–A3 model was trained | Slide 13 · paper §I · `docs/phase3_analysis_plan.md` |
-| 5 · Implement and test (M4) | Make the change, run ablations, measure what moved | A 2 × 2 ablation (A0–A3), 30 new models | Slides 14–20 · paper §IV-B, §V-B, §V-C |
-| 6 · Analyse and write (M5) | Failure analysis and metrics; IEEE paper; defend it | Errors by patient, false alarms, label-error candidates, blind triage; recall-first threshold; patient-level rule; 8-page IEEE paper | Slides 21–26 · paper §V-D to §VII |
+| 3 · Reproduce (M2) | Re-run on the same data and land near the reported metric | Code-exact, all 10 folds: ensemble 97.62 % vs 98.29 %; fold models 97.55 % vs 97.56 % | Slides 8 to 11 · paper §IV-A, §V-A |
+| 4 · Hypothesis + Introduction (M3) | One change, its predicted effect and why, submitted before coding | H1 and H2 in the Phase 2 deck; analysis plan committed on 2 Nov at 03:24, before any A1 to A3 model was trained | Slide 13 · paper §I · `docs/phase3_analysis_plan.md` |
+| 5 · Implement and test (M4) | Make the change, run ablations, measure what moved | A 2 × 2 ablation (A0 to A3), 30 new models | Slides 14 to 20 · paper §IV-B, §V-B, §V-C |
+| 6 · Analyse and write (M5) | Failure analysis and metrics; IEEE paper; defend it | Errors by patient, false alarms, label-error candidates, blind triage; recall-first threshold; patient-level rule; 8-page IEEE paper | Slides 21 to 26 · paper §V-D to §VII |
 | Rule 1 | Predict before you experiment; being wrong is fine | Both predictions turned out wrong, and we can say why | Slide 21 · [section 7](#why-our-predictions-were-wrong) |
-| Rule 2 | No clinical claims; report recall and AUC; include limitations | Recall, specificity, MCC and ROC-AUC for every experiment; a limitations slide and section | Slides 17, 23, 25 · paper Tables III–V, §VII |
+| Rule 2 | No clinical claims; report recall and AUC; include limitations | Recall, specificity, MCC and ROC-AUC for every experiment; a limitations slide and section | Slides 17, 23, 25 · paper Tables III to V, §VII |
 
 > **The "one change" question.** Each experiment changes exactly one thing. Our change to the method is **H2, YUV
 > stain normalisation**. H1 does not change the model: it changes how we *test* it (split by patient), so that H2 is
@@ -55,7 +55,7 @@ own**, and write it up like a conference paper. Marks come from **predictions, e
 ## The whole project in two minutes
 
 1. **The problem.** Malaria is diagnosed by a technician counting Giemsa-stained blood cells under a microscope. This
-   is slow, needs scarce experts, and varies between observers. CNNs report 96–99.9 % accuracy on the public NIH cell
+   is slow, needs scarce experts, and varies between observers. CNNs report 96 to 99.9 % accuracy on the public NIH cell
    images.
 2. **The catch.** Most studies split the *images* at random, so cells of the same patient sit in both the training
    and the test set (**patient leakage**). Only Rajaraman et al. test on unseen patients.
@@ -89,7 +89,7 @@ We reviewed **11 studies** on the NIH cell images, from Liang et al. (2016) to M
 papers we rely on:
 
 - EfficientNet and noisy-student training, for the model;
-- Nadeau–Bengio, Holm and Lakens, for the statistics;
+- Nadeau-Bengio, Holm and Lakens, for the statistics;
 - Northcutt, for label errors;
 - Tellez, for stain augmentation.
 
@@ -273,8 +273,8 @@ float32.
 
 | When | What | Evidence |
 |---|---|---|
-| Phase 2 (October) | H1, H2 and their falsification rules presented | Phase 2 deck, slides 28–29 |
-| 2 Nov, 03:24 | Analysis plan and notebook committed, **before any A1–A3 model was trained** | commit `0c086ee`, `docs/phase3_analysis_plan.md` |
+| Phase 2 (October) | H1, H2 and their falsification rules presented | Phase 2 deck, slides 28 to 29 |
+| 2 Nov, 03:24 | Analysis plan and notebook committed, **before any A1 to A3 model was trained** | commit `0c086ee`, `docs/phase3_analysis_plan.md` |
 | 2 Nov, morning | 30 models trained on RunPod (about 1 hour) | `results/A1_*`, `A2_*`, `A3_*`; release `v2.0-ablation` |
 | 2 Nov, 17:32 | Four exploratory analyses fixed in a dated addendum, **before running them** | commit `8e17fd6`, `docs/phase3b_addendum.md` |
 | 2 Nov, evening | Phase 3b analyses run on the saved predictions | `results/phase3b/` |
@@ -339,7 +339,7 @@ def patient_split(df, seed=1234, outer_splits=5):
 **What it produces.**
 
 - A hold-out set of **5,550 cells from 40 patients** (28 infected, 12 healthy), 50.7 % parasitized.
-- The other **160 patients** form 10 folds of 15–17 patients each.
+- The other **160 patients** form 10 folds of 15 to 17 patients each.
 - The split is committed to the repository, and every training run checks its fingerprint (`ff94f8c3b200e708`).
 - `check_no_shared_patients` raises an error if any patient appears on both sides.
 
@@ -370,10 +370,10 @@ $$\text{MCC} = \frac{TP\cdot TN - FP\cdot FN}{\sqrt{(TP+FP)(TP+FN)(TN+FP)(TN+FN)
 
 **Worked example: the A1 ensemble on 5,550 cells.**
 
-- TP = 2,759 (parasites found), FN = 55 (missed), FP = 31 (false alarms), TN = 2,705.
-- Accuracy = (2,759 + 2,705) / 5,550 = 98.45 %.
-- Recall = 2,759 / 2,814 = 98.05 %.
-- Specificity = 2,705 / 2,736 = 98.87 %.
+- TP = 2,760 (parasites found), FN = 55 (missed), FP = 31 (false alarms), TN = 2,704.
+- Accuracy = (2,760 + 2,704) / 5,550 = 98.45 %.
+- Recall = 2,760 / 2,815 = 98.05 %.
+- Specificity = 2,704 / 2,735 = 98.87 %.
 - MCC = 0.9690, which we write as **96.90** (× 100).
 
 **Why MCC?**
@@ -406,7 +406,7 @@ accuracy and **2.6×** for MCC (the *design effect*).
 - **Unpaired:** A1 vs A0 have different hold-out sets, so each arm resamples its own patients. This could detect only
   about **2.2 pp**. That is why we later measured leakage on identical cells.
 
-**4. The Nadeau–Bengio corrected t-test, for fold scores.**
+**4. The Nadeau-Bengio corrected t-test, for fold scores.**
 
 ```python
 def corrected_resampled_ttest(diffs, n_train, n_test):
@@ -477,7 +477,7 @@ We measured H1 three ways.
    - This is a fragile trend, not a significant effect.
 3. **Identical cells (Phase 3b), the cleanest test.**
    - **17,591 cross-validation cells of 160 patients:** models that never saw the patient score **0.85 pp** lower in
-     MCC (95 % CI 0.05–2.02), or 0.43 pp in accuracy.
+     MCC (95 % CI 0.05 to 2.02), or 0.43 pp in accuracy.
    - **1,095 hold-out cells of the 40 patients:** the difference is **0.00** (−0.90 to +0.98). The confusion matrices
      are identical, and 19 of each ensemble's 22 errors fall on the same cells.
 
@@ -566,7 +566,7 @@ false alarms** (false positives).
   - The same holds out of fold: 619 errors over 160 patients.
 - **False alarms fall on infected smears.**
   - 30 of the 31 are on infected patients' smears: 1.57 % of their uninfected-labelled cells, against 0.12 % in
-    healthy patients (difference 1.45 pp, 95 % CI 0.82–2.14).
+    healthy patients (difference 1.45 pp, 95 % CI 0.82 to 2.14).
   - Out of fold, the rates are 2.35 % and 0.85 %.
   - Two explanations fit. Either the labeller missed some parasites, or these are genuinely ambiguous cells next to
     parasites (early rings, platelets, stain specks). Without an expert we can't tell which.
@@ -589,7 +589,7 @@ def confident_learning_candidates(y, s):
 
 ### The blind triage: turning "possible label noise" into our own evidence
 
-- **What the gallery is.** The 86 errors are shuffled with 86 correctly classified cells and numbered 1–172, with no
+- **What the gallery is.** The 86 errors are shuffled with 86 correctly classified cells and numbered 1 to 172, with no
   labels shown. The pages are `results/phase3b/phase3b_triage_pages.pdf`.
 - **What the raters do.** Two teammates each mark every cell: parasite visible (yes / no / unsure), plus one of eight
   categories.
@@ -618,7 +618,7 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 | A2 · patient split + YUV | 0.143 | 98.22 → 99.22 % | 91.74 % | 0.060 |
 | A3 · image split + YUV | 0.159 | 97.14 → 98.75 % | 94.14 % | 0.052 |
 
-- **Calibration.** ECE is 0.05–0.07: the probabilities are slightly *under*-confident, as label smoothing (targets of
+- **Calibration.** ECE is 0.05 to 0.07: the probabilities are slightly *under*-confident, as label smoothing (targets of
   0.95) predicts.
 
 ### From cells to patients (slide 24, exploratory)
@@ -629,8 +629,8 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
   - On those patients: sensitivity 96.7 %, specificity 100 %.
   - With the rule selection nested inside the folds: 96.7 % and 97.4 %.
 - **On the 40 unseen patients** (applied once):
-  - **26 of 28** infected (92.9 %, exact 95 % CI 76.5–99.1);
-  - **12 of 12** healthy (100 %, 73.5–100).
+  - **26 of 28** infected (92.9 %, exact 95 % CI 76.5 to 99.1);
+  - **12 of 12** healthy (100 %, 73.5 to 100).
 - **The two misses**, C53 and C73, are the only held-out patients with just three parasitized crops.
 - **Why it is exploratory.**
   - NIH kept about 68 uninfected crops per patient but *curated* the parasitized ones.
@@ -647,7 +647,7 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 | One hospital | A patient split removes patient leakage, not site or staining-protocol effects. There is no external test set |
 | One expert's labels | Fuhad et al. set aside 5.1 % of the cells as mislabelled or suspicious. Their list is no longer available, so we keep the original labels, as the paper did |
 | One hold-out draw, one run per fold | A different draw of 40 patients or a second seed would move the numbers. The confidence intervals show by how much |
-| Only 12 healthy held-out patients | The specificity interval is wide (73.5–100 %) |
+| Only 12 healthy held-out patients | The specificity interval is wide (73.5 to 100 %) |
 | Same-cell comparison uses single models | Its interval omits run-to-run noise |
 | Two GPU types (RTX 4090, L40S) | Within a fold, A1, A2 and A3 shared one GPU, so the paired comparisons use identical hardware |
 
@@ -659,25 +659,25 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 
 ## The paper and the code, section by section
 
-### The IEEE paper (`docs/ieee/main.pdf`, IEEEtran, 8 pages)
+### The IEEE paper (`Malaria_IEEE_Paper.pdf`, IEEEtran, 8 pages)
 
 | Section | What it says | Numbers to know |
 |---|---|---|
 | Title, abstract | *Does 98 % Survive Unseen Patients?* The whole result in 6 sentences | 97.62 vs 98.29 %; 98.45 %; 0.85 pp; ±1 pp |
-| I · Introduction | The problem, two questions, five contributions | — |
-| II · Related Work | 11 studies, two gaps | 96–99.9 % |
+| I · Introduction | The problem, two questions, five contributions | No new numbers |
+| II · Related Work | 11 studies, two gaps | 96 to 99.9 % |
 | III · Data | 27,558 cells, 200 patients, patient key | 10,364 uninfected cells from infected patients |
 | IV-A · Reproduction | The code-exact recipe, 32 tests, the speed-ups | 4,223,934 parameters |
-| IV-B · Ablation design | A0–A3, patient split, YUV | 5,550 cells / 40 patients |
-| IV-C · Statistics | Patient bootstrap, Nadeau–Bengio, Holm, decision rules, the exploratory addendum | 10,000 resamples |
-| V-A to V-C · Results | Reproduction, H1, leakage on identical cells, H2, equivalence | Tables I–V |
-| V-D · Screening | Recall-first threshold, calibration | 98.7–99.2 % recall |
+| IV-B · Ablation design | A0 to A3, patient split, YUV | 5,550 cells / 40 patients |
+| IV-C · Statistics | Patient bootstrap, Nadeau-Bengio, Holm, decision rules, the exploratory addendum | 10,000 resamples |
+| V-A to V-C · Results | Reproduction, H1, leakage on identical cells, H2, equivalence | Tables I to V |
+| V-D · Screening | Recall-first threshold, calibration | 98.7 to 99.2 % recall |
 | V-E · Patient level | The rule chosen on CV patients | 26/28, 12/12 |
 | V-F · Failure analysis | Errors by patient, false alarms, label-error candidates | 7 of 40 patients; 1.57 vs 0.12 % |
 | V-G · Compute | 11 min per model; 30 models in about an hour | US$6.95 |
 | VI · Discussion | Why leakage is small, why one hold-out set isn't enough, why YUV doesn't help | 2.3× / 2.6× design effect |
-| VII · Limitations | As in section 9 above | — |
-| VIII · Conclusion | Four takeaways and four next steps | — |
+| VII · Limitations | As in section 9 above | No new numbers |
+| VIII · Conclusion | Four takeaways and four next steps | 98.45 %; under 2 pp; ±1 pp; 26/28 and 12/12 |
 
 ### The code (`github.com/amathziah/malaria-detection`)
 
@@ -691,13 +691,13 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 | `src/phase3b_analysis.py` | Equivalence, same-cell leakage, the patient-level rule, the error audit, the blinded gallery |
 | `src/triage_kit.py`, `src/triage_score.py` | Triage pages (numbers only) and the pre-planned triage scoring |
 | `docs/ieee/make_tables.py` | Writes every table of the paper from `results/`, so no number is typed by hand |
-| `notebooks/Phase3_Ablation_A1_A3.ipynb` | Trains A1–A3, one pod per fold |
+| `notebooks/Phase3_Ablation_A1_A3.ipynb` | Trains A1 to A3, one pod per fold |
 | `tests/` | Over 130 automated tests |
 
 **Trained models.** All 40 are public, so nothing has to be retrained:
 
 - release `v1.0-a0-10fold`: the 10 A0 models;
-- release `v2.0-ablation`: the 30 A1–A3 models, with SHA-256 checksums.
+- release `v2.0-ablation`: the 30 A1 to A3 models, with SHA-256 checksums.
 
 ## Numbers card
 
@@ -711,7 +711,7 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 | **99.73 vs 99.76 %** | ensemble ROC-AUC, ours vs the paper's |
 | **≈ 11 min vs 4 h 46 min** | training time per fold, RTX 4090 vs the paper's GTX 1050 |
 | **5,550 / 40** | cells / patients in our patient-level hold-out set (28 infected) |
-| **98.45 %** | A1 accuracy on 40 unseen patients (95 % CI 97.94–98.91); recall 98.05 %, AUC 99.80 % |
+| **98.45 %** | A1 accuracy on 40 unseen patients (95 % CI 97.94 to 98.91); recall 98.05 %, AUC 99.80 % |
 | **+1.62 pp** | H1's pre-registered test (ensemble MCC; Holm p = 0.15): not supported |
 | **−1.65 pp** | H1 in cross-validation (fold MCC; Holm p = 0.14): fragile trend; spread 2.5× wider |
 | **−0.85 pp** | leakage on 17,591 identical cells (MCC; 95 % CI −2.02 to −0.05) |
@@ -753,7 +753,7 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
    normalisation (H2). The patient split (H1) changes how we test, not the model; we needed it so H2 is measured on
    unseen patients. A3 controls for it.
 10. **What does "pre-registered" mean, and how can we check?** The hypotheses, primary metric, tests and decision
-    rules were committed to GitHub (commit `0c086ee`, 2 Nov 03:24) before any A1–A3 model was trained. The later
+    rules were committed to GitHub (commit `0c086ee`, 2 Nov 03:24) before any A1 to A3 model was trained. The later
     analyses were committed in a dated addendum before they were run. The commit times prove the order.
 11. **Why "not supported" for H1 but "rejected" for H2?** H1's rule needed a significant drop to support it, and
     there wasn't one. H2's rule rejects it if its gain is below the fold spread, and it was (−0.60 vs 1.51 pp).
@@ -774,7 +774,7 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 17. **Why resample patients rather than cells?** A patient's cells are correlated. Resampling whole patients gives
     honest intervals: the variance is 2.3× (accuracy) to 2.6× (MCC) what a per-cell bootstrap would claim.
 18. **Why did a p-value change from 0.023 to 0.14?** The plan's Welch test treated the ten folds as independent, but
-    any two folds share 8 of 9 training parts. The Nadeau–Bengio correction accounts for that. We report both values
+    any two folds share 8 of 9 training parts. The Nadeau-Bengio correction accounts for that. We report both values
     and call the result a fragile trend.
 19. **What is the Holm correction for?** We test three contrasts, so the chance of one false "significant" rises.
     Holm adjusts the p-values for that.
@@ -832,7 +832,7 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 | Ablation | An experiment that changes one thing to see what it does |
 | Addendum | A dated, committed note fixing extra analyses before running them |
 | Clean / augmented protocol | Scoring the original test images / randomly altered ones, as the paper's code did |
-| Clopper–Pearson interval | An exact confidence interval for a proportion such as 26/28 |
+| Clopper-Pearson interval | An exact confidence interval for a proportion such as 26/28 |
 | Cluster (patient) bootstrap | Resampling whole patients, not cells, to get honest intervals |
 | Cohen's κ | Agreement between two raters beyond chance: 0 = chance, 1 = perfect |
 | Confident learning | Flagging cells whose label disagrees with a confident model |
@@ -844,7 +844,7 @@ A missed infected cell is costlier than a false alarm, so we also report a recal
 | Holm correction | Adjusts p-values when testing several contrasts |
 | MCC | Matthews correlation coefficient: −1 to 1 (we show × 100), using all four confusion-matrix cells |
 | MDE (minimum detectable effect) | The smallest true effect a design detects 80 % of the time |
-| Nadeau–Bengio correction | Widens the t-test for cross-validation folds that share training data |
+| Nadeau-Bengio correction | Widens the t-test for cross-validation folds that share training data |
 | Out-of-fold (OOF) prediction | A cell's prediction from the fold model that did not train on it |
 | Paired / unpaired comparison | The same cells in both arms / different cells |
 | Patient leakage | Cells of one patient in both training and test, so a test can reward recognising the patient |
