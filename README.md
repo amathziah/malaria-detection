@@ -1,8 +1,10 @@
 # Automated Malaria Cell Detection
 
+> **Read the paper:** [*Does 98 % Survive Unseen Patients? A Code-Exact Reproduction and Patient-Level Ablation of an EfficientNet-B0 Ensemble for Malaria Cell Classification*](Malaria_IEEE_Paper.pdf) (IEEE format, 8 pages, PDF, in the top folder of this repository)
+
 ![Python](https://img.shields.io/badge/python-3.11-3776AB)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15%20(Keras%202)-FF6F00)
-![Tests](https://img.shields.io/badge/tests-147%20passing-2EA44F)
+![Tests](https://img.shields.io/badge/tests-162%20passing-2EA44F)
 ![Reproduction](https://img.shields.io/badge/reproduction-within%201%20pp%20of%20the%20paper-137C8E)
 
 Deep-learning classification of single red-blood-cell images as **parasitized** or **uninfected**, built on the
@@ -13,11 +15,11 @@ hypotheses: does its ~98 % accuracy survive patients the model has never seen (H
 help on them (H2)?
 
 **Answer:**
-- The accuracy largely survives: the ensemble scores **98.45 %** on 40 unseen patients. Measured on identical cells, patient leakage is real but small: 0.85 pp of MCC (95 % CI 0.05–2.02).
+- The accuracy largely survives: the ensemble scores **98.45 %** on 40 unseen patients. Measured on identical cells, patient leakage is real but small: 0.85 pp of MCC (95 % CI 0.05 to 2.02).
 - YUV normalisation (luma histogram equalisation) does not help: its effect lies within ±1 pp of MCC.
 - Combined per patient, the cell calls identify 26 of 28 infected and all 12 healthy unseen patients (exploratory, on curated crops).
 
-Full write-up: [IEEE-format paper (PDF)](docs/ieee/main.pdf) · [report](docs/report.md) · [final deck (PDF)](slides/Malaria_Phase3_Final.pdf) · [study guide (PDF)](docs/STUDY_GUIDE.pdf) · [reproducibility checklist](docs/REPRODUCIBILITY_CHECKLIST.md).
+Full write-up: [IEEE-format paper (PDF)](Malaria_IEEE_Paper.pdf) · [report](docs/report.md) · [final deck (PDF)](slides/Malaria_Phase3_Final.pdf) · [study guide (PDF)](docs/STUDY_GUIDE.pdf) · [reproducibility checklist](docs/REPRODUCIBILITY_CHECKLIST.md).
 
 <p align="center">
   <img src="results/A0_10fold_paper/A0_10fold_roc_vs_paper.png" width="100%" alt="ROC curves of the 10 fold models and the ensemble; paper vs. our reproduction">
@@ -36,12 +38,12 @@ Full write-up: [IEEE-format paper (PDF)](docs/ieee/main.pdf) · [report](docs/re
 - **Two errors found in the paper**: its text swaps the ensemble's precision and recall, and its code evaluates
   on randomly augmented images. Both are documented and handled ([details](docs/report.md#3-paper-exact-10-fold-reproduction)).
 - **All 40 trained models published**: A0's 10 fold models in
-  [`v1.0-a0-10fold`](https://github.com/amathziah/malaria-detection/releases/tag/v1.0-a0-10fold) and the 30 A1–A3 models in
+  [`v1.0-a0-10fold`](https://github.com/amathziah/malaria-detection/releases/tag/v1.0-a0-10fold) and the 30 A1 to A3 models in
   [`v2.0-ablation`](https://github.com/amathziah/malaria-detection/releases/tag/v2.0-ablation), with SHA-256 checksums; nothing has to be retrained.
 - **Phase 3: the paper's ~98 % survives unseen patients.**
-  - On 40 held-out patients the ensemble reaches **98.45 %** (95 % CI 97.94–98.91).
+  - On 40 held-out patients the ensemble reaches **98.45 %** (95 % CI 97.94 to 98.91).
   - Patient leakage is real but small: on identical cells, models that had seen the patient gain 0.85 pp of MCC
-    (95 % CI 0.05–2.02) across 160 patients, and nothing on the 40 held-out patients.
+    (95 % CI 0.05 to 2.02) across 160 patients, and nothing on the 40 held-out patients.
   - YUV normalisation does not help (H2 rejected): its effect lies within ±1 pp of MCC.
 - **Phase 3b, exploratory, on the saved predictions** ([addendum](docs/phase3b_addendum.md), fixed before running;
   [results](results/phase3b/phase3b_summary.md)): equivalence bounds, leakage on identical cells, a patient-level rule
@@ -67,7 +69,7 @@ code printed (Supplementary MOESM1); ensemble metrics are on the 5,512-image hol
 | Ensemble precision, parasitized | 98.82 % | 98.11 % | −0.71 |
 | Ensemble F1, parasitized | 98.28 % | 97.59 % | −0.69 |
 | Ensemble ROC-AUC | 99.76 % | 99.73 % | −0.03 |
-| Ensemble MCC | — | 0.95 | — |
+| Ensemble MCC | not reported | 0.95 | n/a |
 
 Evaluated on clean (un-augmented) images, the same ensemble scores 97.64 %. A first, lighter reproduction
 that followed the paper's text (3 of 10 folds, Kaggle 2× T4) reached 97.38 ± 0.74 % per fold and 97.57 % as an ensemble
@@ -94,7 +96,7 @@ Clean evaluation, %, MCC × 100; ensemble values with 95 % patient-bootstrap int
 - **Control:** YUV under the paper's split shows no detectable change (ensemble MCC +0.00 pp, 95 % CI −0.52 to +0.53; equivalent within ±1 pp).
 
 **Phase 3b (exploratory, [results](results/phase3b/phase3b_summary.md)):**
-- *Patient level:* a rule chosen on the 160 CV patients (at least 3 cells with P ≥ 0.80) calls 26 of 28 infected (92.9 %, exact 95 % CI 76.5–99.1) and 12 of 12 healthy held-out patients correctly. The two misses are the only patients with just 3 parasitized crops. NIH curated the crops, so this is not diagnostic accuracy on a smear.
+- *Patient level:* a rule chosen on the 160 CV patients (at least 3 cells with P ≥ 0.80) calls 26 of 28 infected (92.9 %, exact 95 % CI 76.5 to 99.1) and 12 of 12 healthy held-out patients correctly. The two misses are the only patients with just 3 parasitized crops. NIH curated the crops, so this is not diagnostic accuracy on a smear.
 - *Errors:* they cluster by patient (p < 0.001), and false alarms concentrate in infected patients' smears (1.57 % vs 0.12 % of uninfected cells), consistent with parasites missed in the labels or with ambiguous cells (we can't tell which without an expert). Removing the 8 candidate label errors changes no verdict. A [blinded gallery](results/phase3b/phase3b_error_gallery.png) ([full-size pages](results/phase3b/phase3b_triage_pages.pdf)) is ready for the team's triage ([how](docs/TEAM_HANDOVER.md#6-team-task-blind-triage-of-our-errors)).
 
 <p align="center">
@@ -128,19 +130,21 @@ Clean evaluation, %, MCC × 100; ensemble values with 95 % patient-bootstrap int
 
 ```
 malaria-detection/
+├── Malaria_IEEE_Paper.pdf           the IEEE-format paper (a copy of docs/ieee/main.pdf)
 ├── notebooks/
 │   ├── Phase2_A0_10fold_PaperExact.ipynb             paper-exact 10-fold reproduction (train any folds, build all tables)
 │   ├── Phase2_A0_10fold_PaperExact_executed.ipynb    the same, executed: all tables and figures
-│   ├── Phase3_Ablation_A1_A3.ipynb                   A1–A3: patient split, YUV, hypothesis tests
+│   ├── Phase3_Ablation_A1_A3.ipynb                   A1 to A3: patient split, YUV, hypothesis tests
 │   ├── Phase3_Ablation_A1_A3_executed.ipynb          the same, executed on the real results
 │   ├── Phase2_Baseline_Reproduction_Marques2022.ipynb            first reproduction (A0, 3 folds)
 │   ├── Phase2_Baseline_Reproduction_Marques2022_executed.ipynb   its Kaggle run, with outputs
 │   └── Phase2_A0_Results.ipynb                       A0 results viewer
 ├── src/
-│   ├── marques2022_exact.py          the paper's recipe + the A1–A3 switches (patient split, YUV)
+│   ├── marques2022_exact.py          the paper's recipe + the A1 to A3 switches (patient split, YUV)
 │   ├── make_ablation_splits.py       builds and checks the patient split (NIH patient mapping)
 │   ├── ablation_stats.py             H1/H2 tests: patient bootstrap, corrected t-test, Holm
 │   ├── ablation_figures.py           the ablation figures (notebook, report, slides)
+│   ├── paper_figures.py              redraws the paper's figures from saved results, recomputing nothing
 │   ├── phase3b_analysis.py           Phase 3b: equivalence, same-cell leakage, patient level, error audit
 │   ├── triage_kit.py                 full-size, numbers-only pages of the error gallery for the blind triage
 │   ├── triage_score.py               scores the two blind ratings against the key, as the fixed plan says
@@ -148,22 +152,23 @@ malaria-detection/
 │   ├── runpod_requirements.txt       pinned training environment
 │   ├── phase2_baseline_marques2022.py first reproduction as a plain script
 │   ├── check_results.py              one experiment vs. the paper
-│   ├── compare_experiments.py        A0–A3 side by side (H1/H2)
+│   ├── compare_experiments.py        A0 to A3 side by side (H1/H2)
 │   └── fill_slide_table.py           writes A0 numbers into the archived deck
-├── tests/                           147 tests: fidelity to the paper, splits/YUV, statistics, Phase 3b, triage kit and scoring, paper tables, figures, launcher
+├── tests/                           162 tests: fidelity to the paper, splits/YUV, statistics, Phase 3b, triage kit and scoring, paper tables, figures, launcher
 ├── results/
 │   ├── A0_10fold_paper/              10-fold reproduction: tables, figures, per-fold outputs, pod logs
 │   ├── A0_baseline/                  first reproduction (3 folds)
 │   ├── A1_slide_split/ A2_yuv_slide/ A3_yuv_image/   hypothesis experiments: splits, folds, tables, figures
-│   ├── ablation/                     hypothesis tests over A0–A3 (+ paper_protocol/)
+│   ├── ablation/                     hypothesis tests over A0 to A3 (+ paper_protocol/)
 │   ├── phase3b/                      exploratory analyses on the saved predictions, error gallery
-│   └── ablation_runpod/              pod bookkeeping and logs of the A1–A3 run
+│   └── ablation_runpod/              pod bookkeeping and logs of the A1 to A3 run
 ├── docs/
 │   ├── STUDY_GUIDE.md / .pdf         final study guide: the project step by step, the numbers, 32 likely questions
 │   ├── PROJECT_GUIDE.md / .pdf       visual walkthrough of the whole project (+ figures/)
 │   ├── REPRODUCIBILITY_CHECKLIST.md  what the base paper gives, and what we did about each gap
 │   ├── ieee/                         the IEEE-format paper: main.pdf (LaTeX source, tables generated from results/)
-│   ├── phase3_analysis_plan.md       hypotheses, tests and decision rules, fixed before the A1–A3 runs
+│   ├── figures/                      guide figures; make_architecture.py draws the paper's model diagram
+│   ├── phase3_analysis_plan.md       hypotheses, tests and decision rules, fixed before the A1 to A3 runs
 │   ├── phase3b_addendum.md           the Phase 3b analyses and one correction, fixed before running them
 │   ├── blind_triage_protocol.md      the blind triage of the A1 errors and its scoring plan, fixed before rating
 │   └── report.md                     project report
@@ -221,7 +226,7 @@ Keras 2 release, `efficientnet` 1.1.1, `albumentations` 0.5.2 + `imgaug` 0.4.0, 
 
   Then run the notebook with `FOLDS_TO_TRAIN = []` to build the paper's tables, the ensemble and the figures.
 
-### Reproduce the hypothesis experiments (A1–A3)
+### Reproduce the hypothesis experiments (A1 to A3)
 
 ```bash
 python src/make_ablation_splits.py                           # rebuild + check the patient split (already committed)
@@ -249,8 +254,9 @@ python -m pytest tests/ -q        # in the pinned environment; ~15 s on a laptop
   dataset, the model and its 4.2 M parameters, the training recipe, the code function by function, how we evaluate
   (folds, ensemble, precision, recall, F1/F2, ROC-AUC, MCC, pp, what a good value is), the results and the hypotheses,
   with a glossary and a one-page presentation cheat sheet.
-- **[IEEE-format paper](docs/ieee/main.pdf)**: the whole project as a conference paper, 8 pages ([LaTeX source](docs/ieee/);
-  tables generated from `results/` by `docs/ieee/make_tables.py`).
+- **[IEEE-format paper](Malaria_IEEE_Paper.pdf)**: the whole project as a conference paper, 8 pages ([LaTeX source](docs/ieee/);
+  tables generated from `results/` by `docs/ieee/make_tables.py`, figures by `src/paper_figures.py` and
+  `docs/figures/make_architecture.py`).
 - [Project report](docs/report.md): method, results, deviations from the paper, findings.
 - [Phase 3 analysis plan](docs/phase3_analysis_plan.md): what we tested and how we would decide, fixed before the runs.
 - [Phase 3b addendum](docs/phase3b_addendum.md): one correction and four exploratory analyses, fixed before running them.
@@ -264,7 +270,7 @@ python -m pytest tests/ -q        # in the pinned environment; ~15 s on a laptop
 
 ## Team
 
-Rishihood University. Course project, Phases 1–3.
+Rishihood University. Course project, Phases 1 to 3.
 
 | Member | Role |
 |---|---|
